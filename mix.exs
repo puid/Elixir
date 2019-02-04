@@ -14,7 +14,7 @@ defmodule Puid.Mixfile do
 
   defp deps do
     [
-      {:crypto_rand, path: "../../CryptoRand/Elixir"},
+      {:crypto_rand, "~> 1.0"},
       {:earmark, "~> 1.2", only: :dev},
       {:ex_doc, "~> 0.19", only: :dev},
       {:entropy_string, "~> 1.1", only: :test},
