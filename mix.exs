@@ -30,8 +30,7 @@ defmodule Puid.Mixfile do
   defp description do
     """
 
-    Fast and efficiently generation of cryptographically strong probably unique indentifiers
-    (puid, aka random string) of specified entropy from various character sets.
+    Fast and efficiently generation of cryptographically strong probably unique indentifiers (puid, aka random string) of specified entropy from various character sets.
 
     """
   end
