@@ -4,7 +4,7 @@ defmodule Puid.Mixfile do
   def project do
     [
       app: :puid,
-      version: "1.0.0",
+      version: "1.0.1",
       elixir: "~> 1.8",
       deps: deps(),
       description: description(),
@@ -29,9 +29,7 @@ defmodule Puid.Mixfile do
 
   defp description do
     """
-
     Fast and efficiently generation of cryptographically strong probably unique indentifiers (puid, aka random string) of specified entropy from various character sets.
-
     """
   end
 
@@ -39,7 +37,11 @@ defmodule Puid.Mixfile do
     [
       maintainers: ["Paul Rogers"],
       licenses: ["MIT"],
-      links: %{"GitHub" => "https://github.com/puid/Elixir"}
+      links: %{
+        "GitHub" => "https://github.com/puid/Elixir",
+        "README" => "https://puid.github.io/Elixir/",
+        "Docs" => "https://hexdocs.pm/puid/api-reference.html"
+      }
     ]
   end
 end
