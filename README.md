@@ -20,7 +20,7 @@ Efficiently generate cryptographically strong probably unique identifier (**puid
     - [Randomizer](#Randomizer)
     - [rand_str](#rand_str)
     - [SecureRandom](#SecureRandom)
-    - [UUID](#uuid)
+    - [UUID](#UUID)
 
 ## <a name="Installation"></a>Installation
 
@@ -199,6 +199,8 @@ The source for the **Timing** output is in the `test/timing.exs` file. Module ta
   > mix test test/timing.exs --only misc_random
 ```
 
+[TOC](#TOC)
+
 ### <a name="Common_Solution"></a>Common Solution
 
 The common solution to generating random strings in just about every computer language boils down to the same strategy: from a source character set, create a string where each character is plucked from the source by randomly indexing into the set. In Elixir, this looks like:
@@ -264,7 +266,9 @@ Generate 50000 random IDs with 92 bits of entropy using 16 unicode characters
   Puid            (CSPRNG) : 2.760375
 ```      
 
-### <a name="entropy_string"></a>[EntropyString](https://hex.pm/packages/entropy_string)
+[TOC](#TOC)
+
+### <a name="EntropyString"></a>[EntropyString](https://hex.pm/packages/entropy_string)
 
 #### Specification 
 
@@ -414,7 +418,7 @@ As of __v0.2.6__, `:misc_random` uses the [`:random`](http://www.erlang.org/doc/
 
 [TOC](#TOC)
 
-### <a name="Not_Qwert123"></a>[NotQwerty123](https://hex.pm/packages/not_qwerty123)
+### <a name="Not_Qwerty123"></a>[NotQwerty123](https://hex.pm/packages/not_qwerty123)
 
 #### Specification 
 
@@ -455,6 +459,8 @@ Generate 50000 random IDs with 128 bits of entropy using printable_ascii charact
   NotQwerty123 (CSPRNG) : 8.090046
   Puid         (CSPRNG) : 0.659449
 ```
+
+[TOC](#TOC)
 
 ### <a name="Randomizer"></a>[Randomizer](https://hex.pm/packages/randomizer)
 
