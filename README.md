@@ -11,6 +11,9 @@ Efficiently generate cryptographically strong probably unique identifier (**puid
  - [Why puid?](#WhyPuid)
  - [Why Not uuid?](#WhyNotUuid)
  - [Features](#Features)
+    - [Module API](#ModuleAPI)
+    - [CharSets](#CharSets)
+    - [RandomBytes](#RandomBytes)
  - [Library Comparisons](#Comparisons)
     - [Common Solution](#Common_Solution)
     - [EntropyString](#EntropyString)
@@ -162,30 +165,33 @@ The `OverkillPuid` pool of random strings is slightly larger size than **uuid**s
 
 ## <a name="Features"></a>Features
 
+### <a name="ModuleAPI"></a>Module API
+
+Each defined module has two auto-generated functions, `generate/0` and `info/0`.
+
+  - `gererate/0` generates a new **puid** using module parameterization
+  - `info/0` returns a `Puid.Info` structure consisting of
+    - **puid** string length
+    - The source character set
+    - The pre-defined `Puid.CharSet` used, or if characters are custom
+    - **puid** entropy bits per character
+    - **puid** total entropy bits
+      - May be larger than the specified `bits` since the total is a product of the **puid** length and the entropy bits per character.
+    - **puid** entropy representation efficiency.
+      - The ratio of the **puid** total entropy to the bits required for the **puid** string representation.
+    - Source function for entropy
+
 ### <a name="CharSets"></a>CharSets
 
   - Predefined
-    - 16 pre-defined character sets
+    - [16 pre-defined character sets](https://hexdocs.pm/puid/Puid.CharSet.html#module-charsets)
     - Optimized ID generation for each of the pre-defined characters sets 
   - Custom
     - Any string of unique characters can be used for **puid**s, including Unicode characters.
+
 ### <a name="RandomBytes"></a>Random Bytes
 
 By default, `Puid` uses `:crypto.strong_rand_bytes/1` for entropy. Any function of the form `(non_neg_integer) -> binary` can be used instead.
-
-### <a name="PuidInfo"></a>**puid** `info`
-
-Each `Puid` generated module creates an `info/0` function which provides information regarding the parameterization of the **puid** module. This information includes:
-
-  - **puid** string length
-  - The source character set
-  - The pre-defined `Puid.CharSet` used, or if characters are custom
-  - **puid** entropy bits per character
-  - **puid** total entropy bits
-    - May be larger than the specified `bits` since the total is a product of the **puid** length and the entropy bits per character.
-  - **puid** entropy representation efficiency.
-    - The ratio of the **puid** total entropy to the bits required for the **puid** string representation.
-  - Source function for entropy
 
 [TOC](#TOC)
 
