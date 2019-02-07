@@ -4,7 +4,7 @@ defmodule Puid.Mixfile do
   def project do
     [
       app: :puid,
-      version: "1.0.1",
+      version: "1.0.2",
       elixir: "~> 1.8",
       deps: deps(),
       description: description(),
@@ -29,7 +29,7 @@ defmodule Puid.Mixfile do
 
   defp description do
     """
-    Fast and efficiently generation of cryptographically strong probably unique indentifiers (puid, aka random string) of specified entropy from various character sets.
+    Fast and efficient generation of cryptographically strong probably unique indentifiers (puid, aka random string) of specified entropy from various character sets.
     """
   end
 

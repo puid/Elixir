@@ -1,6 +1,6 @@
 # Puid
 
-Efficiently generate cryptographically strong probably unique identifier (**puid**, aka random string) of specified entropy from various character sets.
+Fast and efficient generation of cryptographically strong probably unique identifier (**puid**, aka random string) of specified entropy from various character sets.
 
 [![Build Status](https://travis-ci.org/puid/Elixir.svg?branch=master)](https://travis-ci.org/puid/Elixir) &nbsp; [![Hex Version](https://img.shields.io/hexpm/v/puid.svg "Hex Version")](https://hex.pm/packages/puid) &nbsp; [![License: MIT](https://img.shields.io/npm/l/express.svg)]()
 
@@ -169,7 +169,7 @@ The `OverkillPuid` pool of random strings is slightly larger size than **uuid**s
 
 Each defined module has two auto-generated functions, `generate/0` and `info/0`.
 
-  - `gererate/0` generates a new **puid** using module parameterization
+  - `generate/0` generates a new **puid** using module parameterization
   - `info/0` returns a `Puid.Info` structure consisting of
     - **puid** string length
     - The source character set
