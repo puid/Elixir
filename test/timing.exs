@@ -92,9 +92,9 @@ defmodule TimingTest do
       "\nGenerate #{trials} random IDs with 128 bits of entropy using #{:safe64} characters"
     )
 
-    defmodule(ES128, do: use(EntropyString, bits: 128, charset: :charset64))
+    defmodule(Safe64ES, do: use(EntropyString, charset: :charset64))
 
-    entropy_string = fn -> for(_ <- 1..trials, do: ES128.random()) end
+    entropy_string = fn -> for(_ <- 1..trials, do: Safe64ES.random()) end
     puid = fn -> for(_ <- 1..trials, do: Safe64Puid128.generate()) end
 
     time(entropy_string, "  Entropy String (CSPRNG) ")

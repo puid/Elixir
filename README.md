@@ -56,7 +56,7 @@ Create a module for generating **puid**s:
 
 By default, `Puid` modules generate **puid**s with 128-bit of entropy using the [RFC 4648](https://tools.ietf.org/html/rfc4648#section-5) file system and URL safe characters. There are 16 pre-defined character sets specified in `Puid.CharSet`.
 
-To **puid**s with 92-bits of entropy from alphanumeric characters:
+To generate **puid**s with 92-bits of entropy from alphanumeric characters:
 
 ```elixir
   iex> defmodule(AlphanumPuid, do: use(Puid, bits: 92, charset: :alphanum))
@@ -82,7 +82,7 @@ You can even use Unicode characters:
 
 Rather than explicitly setting the `bits` parameter, `Puid` provides a simple, intuitive way to specify the amount of entropy for generated `puid`s.  By specifying a `total` number of IDs with a `risk` of a repeat, `Puid` will calculate the required entropy bits.
 
-Generate up to _10 million_ **puid**s with _1 in a trillion_ chance of repeat:
+To generate up to _10 million_ **puid**s with _1 in a trillion_ chance of repeat:
 
 ```elixir
   iex> defmodule(SafePuid, do: use(Puid, total: 10.0e6, risk: 1.0e12))
@@ -113,10 +113,9 @@ We frequently have a need for unique identifiers. Regardless of how we generate 
 
 So we use random IDs (aka random strings), which means we drop _guaranteed uniqueness_ and adopt a weaker strategy of _probabilistic uniqueness_. Specifically, rather than being absolutely sure of uniqueness, we settle for a statement such as *"there is less than a 1 in a billion chance that two of my strings are the same"*. We use an implicit version of this very strategy every time we use a hash as a key. We *assume* there will be no hash collision, but we **_do not_** have any true _guarantee of uniqueness_ per se.
 
-Understanding _probabilistic uniqueness_ requires an understanding of [*entropy*](https://en.wikipedia.org/wiki/Entropy_(information_theory)) and of how to estimate the probability of a [*collision*](https://en.wikipedia.org/wiki/Birthday_problem#Cast_as_a_collision_problem) (i.e., the probability that two strings in a set of randomly generated strings might be the same). The blog post [Hash Collision Probabilities](http://preshing.com/20110504/hash-collision-probabilities/) provides an excellent overview of deriving an expression for calculating the probability of a collision in some number of instances of a perfect N-bit hash. Although the blog post provides detail for calculating the probability of a hash collision, it does not provide an answer to quantifying what we mean by _"there is less than a 1 in a billion chance that 1 million strings of this form will have a repeat"_. That requires we calculate the entropy necessary to generate a **_total_** number of strings (from a much larger pool of possible strings) with a given **_risk_** of a repeat.
+Understanding _probabilistic uniqueness_ requires an understanding of [*entropy*](https://en.wikipedia.org/wiki/Entropy_(information_theory)) and of how to estimate the probability of a [*collision*](https://en.wikipedia.org/wiki/Birthday_problem#Cast_as_a_collision_problem) (i.e., the probability that two strings in a set of randomly generated strings might be the same). The blog post [Hash Collision Probabilities](http://preshing.com/20110504/hash-collision-probabilities/) provides an excellent overview of deriving an expression for calculating the probability of a collision in some number of instances of a perfect N-bit hash. Although the blog post provides detail for calculating the probability for hash collisions, it does not provide an answer to quantifying what we mean by _"there is less than a 1 in a billion chance that 1 million strings of this form will have a repeat"_. That requires we calculate the entropy necessary to generate a **_total_** number of strings (from a much larger pool of possible strings) with a given **_risk_** of a repeat.
 
-`Puid` provides easy creation of modules for randomly generating _probably unique identifiers_ (**puid**s) from a given character set such that a **_total_** number of the strings can be generated with a specified **_risk_** of repeat.
-
+`Puid` provides exactly this capability by creating modules for randomly generating _probably unique identifiers_ (**puid**s) from a given character set such that a **_total_** number of the strings can be generated with an explicitly **_risk_** of repeat.
 
 [TOC](#TOC)
 
@@ -132,9 +131,9 @@ That question really should drive the parameterization of random string generati
 
 Given the issue raised in [Why Puid?](#WhyPuid), developers often punt and simply adopt a strategy of using **uuid**s instead. The leading reason for using **uuid**s seems to be "I want unique IDs" (with an implicit "and I don't want to think about it any further"). But **uuid**s (the version 4 string representation defined in [Section 4.4 of RFC 4122](https://tools.ietf.org/html/rfc4122#section-4.4)) are neither universal nor unique.
 
-Far too often the rational of using **uuid**s is that the probability of a repeat is low. (This is actually an underspecified statement; calculating the probability requires specifying the total number of **uuid**s generated). But if that rationale holds, why not concatenate two **uuid**s and even be "safer". And we sink into [7 Minute Abs](https://www.youtube.com/watch?v=JB2di69FmhE) logic.
+Far too often the rational of using **uuid**s is that the probability of a repeat is low. (This is actually an underspecified statement; calculating the probability requires specifying the total number of **uuid**s generated within a certain context). But if that rationale holds, why not concatenate two **uuid**s and even be "better". And we sink into [7 Minute Abs](https://www.youtube.com/watch?v=JB2di69FmhE) logic.
 
-Better to explicitly declare your intentions. Suppose you're generating 1 million IDs (for whatever reason). If you use **uuid**s, what is the risk of repeat? Be quick now. OK, don't be quick. The risk is about 1 in 10^25. That's 1 in 10 septillion, or perhaps we should call it 1 in a 7 Minute Ab.
+Better would be to explicitly declare your intentions. Suppose you need 1 million IDs (for whatever reason). If you use **uuid**s, what is the risk of repeat? Be quick now. ... OK, don't be quick. The risk is about 1 in 10^25. That's 1 in 10 septillion, or perhaps we should call it 1 in a 7 Minute Ab. Sure, that risk is really low. But is it appropriate and necessary?
 
 Suppose instead you accept a risk of repeat as being about the same as that of you being hit by a meteorite as you are writing code. We'll [estimate](https://www.theguardian.com/commentisfree/2011/oct/13/meteorite-space-earth) that event as 1 in 2.0e13. Using `Puid`, we can generate 1 million of these IDs at that risk using:
 
@@ -148,7 +147,7 @@ The `Puid` specification is explicit. The code clearly shows the expected number
 
 ##### [But wait, there's more!](https://en.wikipedia.org/wiki/Ron_Popeil)
 
-A **uuid** has 122-bits of entropy (although most libraries use 128 bits to actually generate the **uuid**). The [string representation](https://tools.ietf.org/html/rfc4122#section-4.4) requires 36 characters. Let's look at that string length. Using the **MeteorId** module, your random **puid**s are 14 characters each. Using the overkill of **uuid**s, each random ID is 36 characters. One solution requires 14 characters per ID. The other 36. Enough said.
+A **uuid** has 122-bits of entropy (although most libraries use 128 bits to actually generate the **uuid**). The [string representation](https://tools.ietf.org/html/rfc4122#section-4.4) requires 36 characters. Let's look at that string length. Using the **MeteorId** module, your random **puid**s are 14 characters each. Using the overkill of **uuid**s, each random ID is 36 characters. One solution requires 14 characters per ID. The other 36. If you're fine with that inefficiency, enough said.
 
 Well, maybe not. Suppose you _really, really_ want that overkill. OK, let's overkill with `Puid`:
 
@@ -158,7 +157,7 @@ Well, maybe not. Suppose you _really, really_ want that overkill. OK, let's over
   "geDpoXs5KMDgPKbDD5ch"
 ```
 
-The `OverkillPuid` pool of random strings is slightly larger size than **uuid**s. So the risk of repeat in some number of instances is similar. And yet, each `OverkillPuid` **puid** only requires 21 characters, whereas each equivalent **uuid** is 36 characters. Basically, a **uuid** _is_ a **puid** with a fixed entropy of 122 bits and a comparatively inefficient string representation. Overkill if you must, but even then `Puid` is more efficient that using **uuid**s.
+The `OverkillPuid` pool of random strings is slightly larger size than **uuid**s, hence the risk of repeat in some number of instances is similar. And yet, each `OverkillPuid` **puid** still only requires 21 characters, whereas each equivalent **uuid** is stuck at 36 characters. Basically, a **uuid** _is_ a **puid** with a fixed entropy of 122 bits and a comparatively inefficient string representation. Overkill if you must, but even then `Puid` is more efficient that using **uuid**s.
 
 
 [TOC](#TOC)
@@ -167,7 +166,7 @@ The `OverkillPuid` pool of random strings is slightly larger size than **uuid**s
 
 ### <a name="ModuleAPI"></a>Module API
 
-Each defined module has two auto-generated functions, `generate/0` and `info/0`.
+Each module defined using `Puid` has two auto-generated functions, `generate/0` and `info/0`.
 
   - `generate/0` generates a new **puid** using module parameterization
   - `info/0` returns a `Puid.Info` structure consisting of
@@ -183,9 +182,8 @@ Each defined module has two auto-generated functions, `generate/0` and `info/0`.
 
 ### <a name="CharSets"></a>CharSets
 
-  - Predefined
-    - [16 pre-defined character sets](https://hexdocs.pm/puid/Puid.CharSet.html#module-charsets)
-    - Optimized ID generation for each of the pre-defined characters sets 
+  - [16 pre-defined character sets](https://hexdocs.pm/puid/Puid.CharSet.html#module-charsets)
+    - Each has optimized ID generation
   - Custom
     - Any string of unique characters can be used for **puid**s, including Unicode characters.
 
@@ -197,13 +195,15 @@ By default, `Puid` uses `:crypto.strong_rand_bytes/1` for entropy. Any function 
 
 ## <a name="Comparisons"></a>Library Comparisons
 
-The following provides comparisons to existing Elixir methods of generating random IDs. In each case, an equivalent `Puid` module is created. The **Timing** section includes a rough execution time comparison. Where appropriate, the existing Elixir method is run under pseudo-random number generation (PRNG) as well as cryptographically strong pseudo-random number generation (CSPRNG), the latter being slower. All comparisons use the default `Puid` CSPRNG entropy source.
+The following provides comparisons to existing Elixir methods of generating random IDs. In each case, an equivalent `Puid` module is created. The **Timing** section includes a rough execution time comparison. Where appropriate, the existing Elixir method is run under pseudo-random number generation (PRNG) as well as cryptographically strong pseudo-random number generation (CSPRNG), the latter being slower. All comparisons use the default `Puid` CSPRNG entropy source `:crypto.strong_rand_bytes/1`.
 
-The source for the **Timing** output is in the `test/timing.exs` file. Module tags provide an easy means of running the timing test for a particular existing solution. For example, to run the timing test for [Misc.Random](https://hex.pm/packages/misc_random):
+The code used for the **Timing** output is in the `test/timing.exs` file. Testing module tags provide an easy means of running the timing test for a particular existing solution. For example, to run the timing test for [Misc.Random](https://hex.pm/packages/misc_random):
 
 ```elixir
   > mix test test/timing.exs --only misc_random
 ```
+
+Creating equivalent `Puid` modules for the timing comparisons requires use of the `Puid.Entropy.bits_for_string!/2` and `Puid.Entropy.len_for_bits!/2` functions to determine parameters to match the comparison methods. This is not typical in the expected use of `Puid`.
 
 [TOC](#TOC)
 
@@ -287,30 +287,30 @@ Generate 50000 random IDs with 92 bits of entropy using 16 unicode characters
 #### Examples
 
 ```elixir
-  iex> defmodule(IdES128, do: use(EntropyString, charset: :charset64))
-  iex> IdES128.random()
+  iex> defmodule(Safe64ES, do: use(EntropyString, charset: :charset64))
+  iex> Safe64ES.random()
   "RfYP7I5fitDij2Ow4eYgnd"
   
-  iex> defmodule(Safe64Puid128, do: use(Puid, charset: :safe64))
-  iex> Safe64Puid128.generate()
+  iex> defmodule(Safe64Puid, do: use(Puid, charset: :safe64))
+  iex> Safe64Puid.generate()
   "q0E0ra29Xe-sacO71Y4jjQ"
   
-  iex> defmodule(ESDingoSky, do: use(EntropyString, bits: 64, charset: "dingosky"))
-  iex> ESDingoSky.random()
+  iex> defmodule(DingoSkyES64, do: use(EntropyString, bits: 64, charset: "dingosky"))
+  iex> DingoSkyES64.random()
   "kggsodyyynkioyigyoyyoo"
   
   iex> defmodule(DingoskyPuid64, do: use(Puid, bits: 64, chars: "dingosky"))
   iex> DingoskyPuid64.generate()
   "koynkddggokggyinnsogii"
   
-  iex> defmodule(UnicodeES92, do: use(EntropyString, bits: 92, charset: "Unicode:Charsət"))
+  iex> defmodule(UnicodeES92, do: use(EntropyString, bits: 92, charset: "Unicode-Charsət"))
   iex> UnicodeES92.random()
-  <<101, 201, 115, 115, 85, 67, 67, 114, 110, 111, 101, 58, 85, 114, 116, 85, 116,
-  115, 116, 115, 116, 111, 115>>
+  <<97, 201, 101, 85, 110, 99, 45, 115, 100, 116, 153, 67, 115, 201, 99, 153, 97,
+  85, 153, 104, 99, 110, 97>>
   
-  iex> defmodule(UnicodePuid92, do: use(Puid, bits: 92, chars: "Unicode:Charsət"))
+  iex> defmodule(UnicodePuid92, do: use(Puid, bits: 92, chars: "Unicode-Charsət"))
   iex> UnicodePuid92.generate()
-  "iCrnəneCUaiaiəəons:təcss"
+  "hsieadCcəhtts-ennastCtcə"
   
 ```
 
@@ -386,7 +386,7 @@ This solution is clearly faster than `Puid`; however, it has significant shortco
 | 100,000 | 90 % |
 | 200,000 | 99 % |
 
-With no flexibility and limited utility, this solution is somewhat an interesting novelty.
+With no flexibility and limited utility, this solution is basically an interesting novelty.
 
 [TOC](#TOC)
 
@@ -420,7 +420,7 @@ Generate 50000 random IDs with 128 bits of entropy using alphanum characters
 
 #### Comments
 
-As of __v0.2.6__, `:misc_random` uses the [`:random`](http://www.erlang.org/doc/man/random.html) module. Although not deprecated, the Erlang docs recommend using [`:rand`](http://www.erlang.org/doc/man/rand.html) instead.
+As of __v0.2.6__, `:misc_random` uses the [`:random`](http://www.erlang.org/doc/man/random.html) module. Although not deprecated, the Erlang docs recommend using [`:rand`](http://www.erlang.org/doc/man/rand.html) instead. `:random` generated IDs are also not cryptographically strong.
 
 [TOC](#TOC)
 
@@ -593,7 +593,7 @@ Generate 100000 random IDs with 128 bits of entropy using alphanum characters
   
 ```
 
-As of version __0.5.1__, the input argument is not treated consistently. Furthermore, the output of `SecureRandom.urlsafe_base64/1` is not compliant with the [RFC 4648](https://tools.ietf.org/html/rfc4648#section-5) file system and URL safe character set.
+As of version __0.5.1__, the input argument is not treated consistently. Furthermore, the output of `SecureRandom.urlsafe_base64/1` uses superfluous padding characters.
 
 #### Timing
 
@@ -642,8 +642,8 @@ Generate 500000 random IDs with 122 bits of entropy using hex
   Puid hex : 1.823116
 
 Generate 500000 random IDs with 122 bits of entropy using safe64
-  UUID         : 1.751625
-  Puid :safe64 : 1.367201
+  UUID        : 1.751625
+  Puid safe64 : 1.367201
 ```
 
 [TOC](#TOC)
