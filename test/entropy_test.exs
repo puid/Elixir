@@ -91,20 +91,20 @@ defmodule Puid.Entropy.Test do
       bits_per_char!("0103")
     end
   end
-  
-  test "entropy bits for string of len" do
-    assert bits_for_length(14, :alphanum) === {:ok, 83}
-    assert bits_for_length!(14, :alphanum) === 83
 
-    assert bits_for_length(14, :dingosky) === {:error, "Invalid: charset not recognized"}
-    assert bits_for_length(14, "dingodog") === {:error, "Invalid: chars not unique"}
+  test "entropy bits for string of len" do
+    assert bits_for_len(14, :alphanum) === {:ok, 83}
+    assert bits_for_len!(14, :alphanum) === 83
+
+    assert bits_for_len(14, :dingosky) === {:error, "Invalid: charset not recognized"}
+    assert bits_for_len(14, "dingodog") === {:error, "Invalid: chars not unique"}
 
     assert_raise Puid.Error, fn ->
-      bits_for_length!(14, :dingosky)
+      bits_for_len!(14, :dingosky)
     end
 
     assert_raise Puid.Error, fn ->
-      bits_for_length!(14, "dingodog")
+      bits_for_len!(14, "dingodog")
     end
   end
 
@@ -113,7 +113,7 @@ defmodule Puid.Entropy.Test do
       "Puid.Entropy.Test.#{len}_#{charset |> to_string() |> String.capitalize()}"
       |> String.to_atom()
 
-    bits = bits_for_length!(len, charset)
+    bits = bits_for_len!(len, charset)
     defmodule(mod, do: use(Puid, bits: bits, charset: charset))
     assert mod.generate() |> String.length() === len
   end
@@ -130,7 +130,7 @@ defmodule Puid.Entropy.Test do
 
   def test_mod_len_chars(len, chars) do
     mod = "Puid.Entropy.Test.#{len}_#{chars |> String.length()}" |> String.to_atom()
-    bits = bits_for_length!(len, chars)
+    bits = bits_for_len!(len, chars)
     defmodule(mod, do: use(Puid, bits: bits, chars: chars))
     assert mod.generate() |> String.length() === len
   end

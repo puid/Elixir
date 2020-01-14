@@ -31,7 +31,7 @@ Add `puid` to `mix.exs` dependencies:
 
   ```elixir
   def deps,
-    do: [ 
+    do: [
       {:puid, "~> 1.0"}
     ]
   ```
@@ -123,7 +123,7 @@ Understanding _probabilistic uniqueness_ requires an understanding of [*entropy*
 
 As developers, we aren't accustom to thinking of random strings as being _probably unique_, but that's exactly what they are. But more importantly, we often don't consider what the actual probability of that uniqueness is. As example, consider any of the libraries (other than `Puid` and [EntropyString](https://hex.pm/packages/entropy_string), a precursor to `Puid`) or common schemes for generating random strings. They all accept as specification the **_length_** of the string, and perhaps the characters to use. However, they do not address the critical question: _How likely am I to create a repeat if I use this library for N number of strings?_
 
-That question really should drive the parameterization of random string generation. You don't need a string of length 12; you need 100,000 identifiers using some character set with a explicit probability of a repeat. Let the library determine how long the string will be. 
+That question really should drive the parameterization of random string generation. You don't need a string of length 12; you need 100,000 identifiers using some character set with a explicit probability of a repeat. Let the library determine how long the string will be.
 
 [TOC](#TOC)
 
@@ -203,7 +203,7 @@ The code used for the **Timing** output is in the `test/timing.exs` file. Testin
   > mix test test/timing.exs --only misc_random
 ```
 
-Creating equivalent `Puid` modules for the timing comparisons requires use of the `Puid.Entropy.bits_for_string!/2` and `Puid.Entropy.len_for_bits!/2` functions to determine parameters to match the comparison methods. This is not typical in the expected use of `Puid`.
+Creating equivalent `Puid` modules for the timing comparisons requires use of the `Puid.Entropy.bits_for_len!/2` and `Puid.Entropy.len_for_bits!/2` functions to determine parameters to match the comparison methods. This is not typical in the expected use of `Puid`.
 
 [TOC](#TOC)
 
@@ -223,10 +223,10 @@ defmodule CommonSolution do
 end
 ```
 
-#### Specification 
+#### Specification
 
   - specify string length and character set
-  - no pre-defined character sets 
+  - no pre-defined character sets
   - supports custom characters
     - handles Unicode strings
 
@@ -238,16 +238,16 @@ end
   "abcdefghijklmnopqrstuvwxyz"
   iex> CommonSolution.rand_string(len, chars)
   "ckukdbpynhev"
-  
-  iex> bits = Puid.Entropy.bits_for_string!(len, :alpha_lower)
+
+  iex> bits = Puid.Entropy.bits_for_len!(len, :alpha_lower)
   iex> defmodule(AlphaLowerPuid, do: use(Puid, bits: bits, charset: :alpha_lower))
   iex> AlphaLowerPuid.generate()
   "atszyoutahxm"
 
   iex> CommonSolution.rand_string(len, "ŮήιƈŏδεĊħąŕαсτəř")
   "ετδąřŕτŏŮŕəŮ"
-  
-  iex> bits = Puid.Entropy.bits_for_string!(len, "ŮήιƈŏδεĊħąŕαсτəř")
+
+  iex> bits = Puid.Entropy.bits_for_len!(len, "ŮήιƈŏδεĊħąŕαсτəř")
   iex> defmodule(UnicodePuid, do: use(Puid, bits: bits, chars: "ŮήιƈŏδεĊħąŕαсτəř"))
   iex> UnicodePuid.generate()
   "ααιĊδħąιссήą"
@@ -270,16 +270,16 @@ Generate 50000 random IDs with 92 bits of entropy using 16 unicode characters
   Common Solution   (PRNG) : 2.437136
   Common Solution (CSPRNG) : 4.922621
   Puid            (CSPRNG) : 2.760375
-```      
+```
 
 [TOC](#TOC)
 
 ### <a name="EntropyString"></a>[EntropyString](https://hex.pm/packages/entropy_string)
 
-#### Specification 
+#### Specification
 
   - specify string entropy
-  - 6 pre-defined character sets 
+  - 6 pre-defined character sets
   - supports custom characters
      - character set count is restricted to powers of 2
      - does not handle Unicode
@@ -290,28 +290,28 @@ Generate 50000 random IDs with 92 bits of entropy using 16 unicode characters
   iex> defmodule(Safe64ES, do: use(EntropyString, charset: :charset64))
   iex> Safe64ES.random()
   "RfYP7I5fitDij2Ow4eYgnd"
-  
+
   iex> defmodule(Safe64Puid, do: use(Puid, charset: :safe64))
   iex> Safe64Puid.generate()
   "q0E0ra29Xe-sacO71Y4jjQ"
-  
+
   iex> defmodule(DingoSkyES64, do: use(EntropyString, bits: 64, charset: "dingosky"))
   iex> DingoSkyES64.random()
   "kggsodyyynkioyigyoyyoo"
-  
+
   iex> defmodule(DingoskyPuid64, do: use(Puid, bits: 64, chars: "dingosky"))
   iex> DingoskyPuid64.generate()
   "koynkddggokggyinnsogii"
-  
+
   iex> defmodule(UnicodeES92, do: use(EntropyString, bits: 92, charset: "Unicode-Charsət"))
   iex> UnicodeES92.random()
   <<97, 201, 101, 85, 110, 99, 45, 115, 100, 116, 153, 67, 115, 201, 99, 153, 97,
   85, 153, 104, 99, 110, 97>>
-  
+
   iex> defmodule(UnicodePuid92, do: use(Puid, bits: 92, chars: "Unicode-Charsət"))
   iex> UnicodePuid92.generate()
   "hsieadCcəhtts-ennastCtcə"
-  
+
 ```
 
 #### Timing
@@ -345,7 +345,7 @@ defmodule Id do
 end
 ```
 
-#### Specification 
+#### Specification
 
   - no argument input
     - fixed string length of 6
@@ -358,8 +358,8 @@ end
 ```elixir
   iex> Id.gen_reference()
   "DABRC1"
-  
-  iex> bits = Puid.Entropy.bits_for_string!(6, :alphanum_upper)
+
+  iex> bits = Puid.Entropy.bits_for_len!(6, :alphanum_upper)
   iex> defmodule(UpperAlphanumPuid, do: use(Puid, bits: bits, charset: :alphanum_upper))
   iex> UpperAlphanumPuid.generate()
   "2GEIUC"
@@ -379,12 +379,12 @@ Generate 500000 random IDs with 31 bits of entropy using alphanum_upper characte
 This solution is clearly faster than `Puid`; however, it has significant shortcomings. The generated strings have a fixed 31 bits of entropy, so there are only 2.15 billion possible IDs. That's fine if you don't need many IDs, but quickly becomes problematic as more are generated. Here are the approximate probabilities of a repeat for a given number of generated IDs:
 
 | Generated | Repeat Risk |
-| ---------: | -----: |
-| 5,000 | 0.5 % |
-| 10,000 | 20 % |
-| 50,000 | 44 % |
-| 100,000 | 90 % |
-| 200,000 | 99 % |
+| --------: | ----------: |
+|     5,000 |       0.5 % |
+|    10,000 |        20 % |
+|    50,000 |        44 % |
+|   100,000 |        90 % |
+|   200,000 |        99 % |
 
 With no flexibility and limited utility, this solution is basically an interesting novelty.
 
@@ -392,7 +392,7 @@ With no flexibility and limited utility, this solution is basically an interesti
 
 ### <a name="Misc_Random"></a>[Misc.Random](https://hex.pm/packages/misc_random)
 
-#### Specification 
+#### Specification
 
   - specify string length
   - 1 pre-defined character set
@@ -426,10 +426,10 @@ As of __v0.2.6__, `:misc_random` uses the [`:random`](http://www.erlang.org/doc/
 
 ### <a name="Not_Qwerty123"></a>[NotQwerty123](https://hex.pm/packages/not_qwerty123)
 
-#### Specification 
+#### Specification
 
   - specify string length
-  - 4 pre-defined character sets 
+  - 4 pre-defined character sets
   - does not support custom characters
 
 #### Examples
@@ -448,7 +448,7 @@ As of __v0.2.6__, `:misc_random` uses the [`:random`](http://www.erlang.org/doc/
   20
   iex> NotQwerty123.RandomPassword.gen_password(length: len, characters: :letters_digits_punc)
   "-y[UNW(qYhHmy1#N'mg,"
-  
+
   iex> defmodule(PrintablePuid, do: use(Puid, charset: :printable_ascii))
   iex> PrintablePuid.generate()
   "8{\"46>7166BQ!vp+PF;3"
@@ -470,10 +470,10 @@ Generate 50000 random IDs with 128 bits of entropy using printable_ascii charact
 
 ### <a name="Randomizer"></a>[Randomizer](https://hex.pm/packages/randomizer)
 
-#### Specification 
+#### Specification
 
   - specify string length
-  - 5 pre-defined character sets 
+  - 5 pre-defined character sets
   - does not support custom characters
 
 #### Examples
@@ -483,7 +483,7 @@ Generate 50000 random IDs with 128 bits of entropy using printable_ascii charact
   22
   iex> Randomizer.generate!(len)
   "3VEwz3TXAzxZ1H4zcxIszk"
-  
+
   iex> defmodule(AlphanumPuid, do: use(Puid, charset: :alphanum))
   iex> AlphanumPuid.generate()
   "TgFEtGVBuWZuVfayY60Eww"
@@ -492,11 +492,11 @@ Generate 50000 random IDs with 128 bits of entropy using printable_ascii charact
   20
   iex> Randomizer.generate!(len, :downcase)
   "TWRIXlTZwNbRJkanFbXQ"
-  
+
   iex> defmodule(AlphaLowerPuid, do: use(Puid, bits: 92, charset: :alpha_lower))
   iex> AlphaLowerPuid.generate()
   "halpyhdogjafbmipdvsw"
-  
+
 ```
 
 #### Timing
@@ -512,7 +512,7 @@ Generate 5000 random IDs with 128 bits of entropy using alphanum characters
 
 ### <a name="rand_str"></a>[:rand_str](https://hex.pm/packages/rand_str)
 
-#### Specification 
+#### Specification
 
   - specify string length
   - 1 pre-defined character set
@@ -544,7 +544,7 @@ Generate 5000 random IDs with 128 bits of entropy using alphanum characters
   16
   iex> :rand_str.get(len, 'ŮήιƈŏδεĊħąŕαсτəř')
   [266, 964, 335, 341, 964, 261, 948, 295, 948, 392, 392, 392, 942, 366, 949, 261]
-  
+
   iex> defmodule(UnicodePuid, do: use(Puid, bits: 64, chars: "ŮήιƈŏδεĊħąŕαсτəř"))
   iex> UnicodePuid.generate()
   "ŮŕδħƈήřŏεřřĊŮąсř"
@@ -568,10 +568,10 @@ Generate 100000 random IDs with 128 bits of entropy using alphanum characters
 
 ### <a name="SecureRandom"></a>[SecureRandom](https://hex.pm/packages/secure_random)
 
-#### Specification 
+#### Specification
 
   - specified argument is not consistent
-  - 3 pre-defined character sets 
+  - 3 pre-defined character sets
   - does not support custom characters
 
 #### Examples
@@ -582,7 +582,7 @@ Generate 100000 random IDs with 128 bits of entropy using alphanum characters
   iex> SecureRandom.base64(len)
   "SXkaWlieKm+hlID1"
 
-  iex> bits = Puid.Entropy.bits_for_string!(SecureRandom.base64(len) |> String.length(), :safe64)
+  iex> bits = Puid.Entropy.bits_for_len!(SecureRandom.base64(len) |> String.length(), :safe64)
   96
   iex> defmodule(Safe64Puid, do: use(Puid, bits: bits, charset: :safe64))
   iex> Safe64Puid.generate()
@@ -590,7 +590,7 @@ Generate 100000 random IDs with 128 bits of entropy using alphanum characters
 
   iex> SecureRandom.urlsafe_base64(len)
   "Y1M2Y2xqTmNEREp2SXdLeg=="
-  
+
 ```
 
 As of version __0.5.1__, the input argument is not treated consistently. Furthermore, the output of `SecureRandom.urlsafe_base64/1` uses superfluous padding characters.
@@ -611,7 +611,7 @@ Generate 500000 random IDs with 128 bits of entropy using safe64 characters
 
 ### <a name="UUID"></a>[UUID](https://hex.pm/packages/uuid):
 
-#### Specification 
+#### Specification
 
   - no input argument
     - fixed string length of 36
@@ -624,7 +624,7 @@ Generate 500000 random IDs with 128 bits of entropy using safe64 characters
 ```elixir
   iex> UUID.uuid4()
   "39c8277a-9b9e-4c8d-af50-31c17fd39bd0"
-  
+
   iex> defmodule(HexPuid122, do: use(Puid, bits: 122, charset: :hex))
   iex> HexPuid122.generate()
   "2bc031932cc22c051af9e8b5f598275f"
@@ -647,4 +647,3 @@ Generate 500000 random IDs with 122 bits of entropy using safe64
 ```
 
 [TOC](#TOC)
-

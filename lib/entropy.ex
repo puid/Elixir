@@ -71,17 +71,17 @@ defmodule Puid.Entropy do
 
   ## Example
 
-      iex> Puid.Entropy.bits_for_length(14, :alphanum)
+      iex> Puid.Entropy.bits_for_len(14, :alphanum)
       {:ok, 83}
 
-      iex> Puid.Entropy.bits_for_length(14, "dingosky")
+      iex> Puid.Entropy.bits_for_len(14, "dingosky")
       {:ok, 42}
 
   """
-  @spec bits_for_length(non_neg_integer(), atom() | String.t()) ::
+  @spec bits_for_len(non_neg_integer(), atom() | String.t()) ::
           {:ok, non_neg_integer()} | {:error, Puid.reason()}
 
-  def bits_for_length(len, charset) when -1 < len and (is_atom(charset) or is_binary(charset)) do
+  def bits_for_len(len, charset) when -1 < len and (is_atom(charset) or is_binary(charset)) do
     case bits_per_char(charset) do
       {:ok, ebpc} ->
         {:ok, (len * ebpc) |> trunc()}
@@ -93,21 +93,21 @@ defmodule Puid.Entropy do
 
   @doc """
 
-  Same as `Puid.Entropy.bits_for_length/2` but either returns the integer __bits__ or raises a
+  Same as `Puid.Entropy.bits_for_len/2` but either returns the integer __bits__ or raises a
   `Puid.Error`
 
   ## Example
 
-      iex> Puid.Entropy.bits_for_length!(14, :alphanum)
+      iex> Puid.Entropy.bits_for_len!(14, :alphanum)
       83
 
-      iex> Puid.Entropy.bits_for_length!(14, "dingosky")
+      iex> Puid.Entropy.bits_for_len!(14, "dingosky")
       42
 
   """
-  @spec bits_for_length!(non_neg_integer(), atom() | String.t()) :: non_neg_integer()
-  def bits_for_length!(len, charset) when -1 < len and (is_atom(charset) or is_binary(charset)) do
-    case(bits_for_length(len, charset)) do
+  @spec bits_for_len!(non_neg_integer(), atom() | String.t()) :: non_neg_integer()
+  def bits_for_len!(len, charset) when -1 < len and (is_atom(charset) or is_binary(charset)) do
+    case(bits_for_len(len, charset)) do
       {:ok, ebpc} ->
         ebpc
 
@@ -131,7 +131,7 @@ defmodule Puid.Entropy do
 
       iex> Puid.Entropy.bits_per_char(:alphanum)
       {:ok, 5.954196310386875}
-     
+
       iex> Puid.Entropy.bits_per_char("dingosky")
       {:ok, 3.0}
 
@@ -162,7 +162,7 @@ defmodule Puid.Entropy do
 
        iex> Puid.Entropy.bits_per_char!(:alphanum)
        5.954196310386875
-     
+
        Puid.Entropy.bits_per_char!("dingosky")
        3.0
 
