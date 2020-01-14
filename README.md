@@ -402,9 +402,9 @@ With no flexibility and limited utility, this solution is basically an interesti
 #### Examples
 
 ```elixir
-  iex> Misc.Random.get_string(22)
+  iex> Misc.Random.string(22)
   "DGMnEn91xlPYGVOc2lK3Uv"
-  
+
   iex> defmodule(AlphanumPuid, do: use(Puid, charset: :alphanum))
   iex> AlphanumPuid.generate()
   "6bOXdwc5aP2qhRWARtZtpM"
@@ -414,8 +414,8 @@ With no flexibility and limited utility, this solution is basically an interesti
 
 ```
 Generate 50000 random IDs with 128 bits of entropy using alphanum characters
-  Misc.Random (PRNG) : 4.277284
-  Puid      (CSPRNG) : 0.504289
+  Misc.Random (PRNG) : 13.406748
+  Puid      (CSPRNG) :  0.450581
 ```
 
 #### Comments

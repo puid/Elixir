@@ -156,7 +156,7 @@ defmodule TimingTest do
       "\nGenerate #{trials} random IDs with 128 bits of entropy using #{:alphanum} characters"
     )
 
-    misc_random = fn -> for(_ <- 1..trials, do: Misc.Random.get_string(22)) end
+    misc_random = fn -> for(_ <- 1..trials, do: Misc.Random.string(22)) end
     puid = fn -> for(_ <- 1..trials, do: AlphanumPuid128.generate()) end
 
     time(misc_random, "  Misc.Random (PRNG) ")
