@@ -108,6 +108,12 @@ defmodule Puid.Entropy.Test do
     end
   end
 
+  # This test knowningly issues warnings regarding the use of deprecated functions
+  test "delegate functions" do
+    assert bits_for_length(14, :alphanum) === {:ok, 83}
+    assert bits_for_length!(14, :alphanum) === 83
+  end
+
   def test_mod_len_charset(len, charset) do
     mod =
       "Puid.Entropy.Test.#{len}_#{charset |> to_string() |> String.capitalize()}"

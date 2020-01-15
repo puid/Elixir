@@ -116,6 +116,12 @@ defmodule Puid.Entropy do
     end
   end
 
+  @deprecated "Use Puid.Entropy.bits_for_len"
+  defdelegate bits_for_length(len, charset), to: Puid.Entropy, as: :bits_for_len
+
+  @deprecated "Use Puid.Entropy.bits_for_len!"
+  defdelegate bits_for_length!(len, charset), to: Puid.Entropy, as: :bits_for_len!
+
   @doc """
 
   Entropy bits per character where `charset` is either an pre-defined `Puid.CharSet` or a string of
