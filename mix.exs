@@ -12,6 +12,12 @@ defmodule Puid.Mixfile do
     ]
   end
 
+  def application do
+    [
+      extra_applications: [:crypto]
+    ]
+  end
+
   defp deps do
     [
       {:crypto_rand, "~> 1.0"},
