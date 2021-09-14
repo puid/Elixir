@@ -22,7 +22,7 @@ defmodule Puid.Test do
     assert mod.info.entropy_bits_per_char === Float.round(epbc, round_to)
     assert mod.info.entropy_bits === Float.round(eb, round_to)
     assert mod.info.ere === Float.round(ere, round_to)
-    assert mod.generate() |> String.length() === length
+    assert mod.generate |> String.length() === length
   end
 
   def test_mod_charset_chars(charset) do
