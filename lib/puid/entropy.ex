@@ -79,7 +79,7 @@ defmodule Puid.Entropy do
 
   """
   @spec bits_for_len(non_neg_integer(), atom() | String.t()) ::
-          {:ok, non_neg_integer()} | {:error, Puid.reason()}
+          {:ok, non_neg_integer()} | {:error, Error.reason()}
 
   def bits_for_len(len, charset) when -1 < len and (is_atom(charset) or is_binary(charset)) do
     case bits_per_char(charset) do
@@ -142,7 +142,7 @@ defmodule Puid.Entropy do
       {:ok, 3.0}
 
   """
-  @spec bits_per_char(atom() | String.t()) :: {:ok, float()} | {:error, Puid.reason()}
+  @spec bits_per_char(atom() | String.t()) :: {:ok, float()} | {:error, Error.reason()}
   def bits_per_char(charset)
 
   def bits_per_char(charset) when is_atom(charset) do
@@ -207,7 +207,7 @@ defmodule Puid.Entropy do
 
   """
   @spec len_for_bits(non_neg_integer(), atom() | String.t()) ::
-          {:ok, non_neg_integer()} | {:error, Puid.reason()}
+          {:ok, non_neg_integer()} | {:error, Error.reason()}
   def len_for_bits(bits, charset) when -1 < bits and (is_atom(charset) or is_binary(charset)) do
     case bits_per_char(charset) do
       {:ok, ebpc} ->
