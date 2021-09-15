@@ -22,16 +22,15 @@
 
 defmodule Puid.CharSet do
   @moduledoc """
-  Pre-defined `Puid.CharSet`s
 
   Pre-defined `Puid.CharSet`s are specified via an atom `charset` option during `Puid` module
   definition.
 
   ## Example
 
-      defmodule(AlphanumId, do: use(Puid, charset: :alphanum))
+      iex> defmodule(AlphanumId, do: use(Puid, charset: :alphanum))
 
-  ## CharSets
+  ## Pre-defined CharSets
 
   ### :alpha
   Upper/lower case alphabet
@@ -77,7 +76,7 @@ defmodule Puid.CharSet do
 
   ### :base32_hex
   [RFC 4648](https://tools.ietf.org/html/rfc4648#section-7) base32 extended hex character set
-  with lowercase letters 
+  with lowercase letters
   ```none
   0123456789abcdefghijklmnopqrstuv
   ```
@@ -129,7 +128,6 @@ defmodule Puid.CharSet do
   ```
   """
 
-
   @doc false
   def unique?(chars) when is_binary(chars), do: unique?(chars, true)
 
@@ -147,10 +145,18 @@ defmodule Puid.CharSet do
   ## -----------------------------------------------------------------------------------------------
   @doc """
   Return pre-defined `Puid.CharSet` characters or `:undefined`
+
+  ## Example
+
+      iex> Puid.CharSet.chars(:safe32)
+      "2346789bdfghjmnpqrtBDFGHJLMNPQRT"
+
+      iex> Puid.CharSet.chars(:dne)
+      :undefined
   """
   @spec chars(atom()) :: String.t() | :undefined
   def chars(charset)
-  
+
   def chars(:alpha), do: chars(:alpha_upper) <> chars(:alpha_lower)
   def chars(:alpha_lower), do: "abcdefghijklmnopqrstuvwxyz"
   def chars(:alpha_upper), do: "ABCDEFGHIJKLMNOPQRSTUVWXYZ"

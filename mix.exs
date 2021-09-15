@@ -6,9 +6,9 @@ defmodule Puid.Mixfile do
       app: :puid,
       version: "1.1.2",
       elixir: "~> 1.8",
-      deps: deps(),
       description: description(),
-      package: package()
+      package: package(),
+      deps: deps()
     ]
   end
 
@@ -22,7 +22,7 @@ defmodule Puid.Mixfile do
     [
       {:crypto_rand, "~> 1.0"},
       {:earmark, "~> 1.2", only: :dev},
-      {:ex_doc, "~> 0.19", only: :dev},
+      {:ex_doc, "~> 0.25", only: :dev},
       {:entropy_string, "~> 1.3", only: :test},
       {:not_qwerty123, "~> 2.3", only: :test},
       {:misc_random, "~> 0.2", only: :test},

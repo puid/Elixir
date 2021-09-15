@@ -112,11 +112,11 @@ defmodule Puid do
   | ----- | ----------- |
   | chars | source character set |
   | charset | pre-defined `Puid.Charset` or :custom |
-  | entropy_bits | **puid** bits of entropy |
-  | entropy_bits_per_char | **puid** entropy bits per character |
-  | ere | **puid** entropy representation efficiency |
+  | entropy_bits | entropy bits for generated **puid**s |
+  | entropy_bits_per_char | entropy bits per character for generated **puid**s |
+  | ere | **puid** entropy string representation efficiency |
   | length | **puid** string length |
-  | rand_bytes | source function for entropy |
+  | rand_bytes | entropy source function |
 
       iex> defmodule(AlphanumId, do: use(Puid, total: 10e06, risk: 1.0e15, charset: :alphanum))
       iex> AlphanumId.info()
@@ -695,6 +695,8 @@ defmodule Puid do
 
       @doc """
       `Puid.Info` module info
+
+
       """
       def info,
         do: %Info{

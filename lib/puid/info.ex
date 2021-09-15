@@ -22,8 +22,33 @@
 
 defmodule Puid.Info do
   @moduledoc """
-  Information regarding current Puid module parameterization
+  Information regarding Puid module parameterization
+
+  The `Puid.Info` struct has the following fields:
+
+  | Field | Description |
+  | ----- | ----------- |
+  | chars | source character set |
+  | charset | pre-defined `Puid.Charset` or :custom |
+  | entropy_bits | entropy bits for generated **puid**s |
+  | entropy_bits_per_char | entropy bits per character for generated **puid**s |
+  | ere | **puid** entropy string representation efficiency |
+  | length | **puid** string length |
+  | rand_bytes | entropy source function |
+
+      iex> defmodule(SafeId, do: use(Puid, total: 1.0e04, risk: 1.0e12, chars: "thequickbrownfxjmpsvlazydg"))
+      iex> SafeId.info()
+      %Puid.Info{
+        chars: "thequickbrownfxjmpsvlazydg",
+        charset: :custom,
+        entropy_bits: 65.81,
+        entropy_bits_per_char: 4.7,
+        ere: 0.59,
+        length: 14,
+        rand_bytes: &:crypto.strong_rand_bytes/1
+      }
   """
+
   defstruct chars: Puid.CharSet.chars(:safe64),
             charset: :safe64,
             entropy_bits: 128,
