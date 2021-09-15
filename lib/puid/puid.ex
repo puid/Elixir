@@ -20,29 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-defmodule Puid.Info do
-  @moduledoc false
-  alias Puid.CharSet
-
-  defstruct chars: CharSet.chars(:safe64),
-            charset: :safe64,
-            entropy_bits: 128,
-            entropy_bits_per_char: 0,
-            ere: 0,
-            length: 0,
-            rand_bytes: nil
-end
-
-defmodule Puid.Error do
-  @moduledoc """
-  Errors raised when defining a Puid module with invalid options
-  """
-  defexception message: "Puid error"
-end
-
 defmodule Puid do
-  use Bitwise, only: bsl
-
   @moduledoc """
 
   Define modules for the efficient generation of cryptographically strong probably unique
@@ -152,6 +130,7 @@ defmodule Puid do
         rand_bytes: &:crypto.strong_rand_bytes/1
       }
   """
+  use Bitwise, only: bsl
 
   alias Puid.CharSet
   alias Puid.Info
@@ -240,7 +219,7 @@ defmodule Puid do
       puid_len = (puid_bits / ebpc) |> :math.ceil() |> round()
       chars_count = puid_chars |> String.length()
       total_bytes = puid_chars |> String.graphemes() |> Enum.reduce(0, &(byte_size(&1) + &2))
-      ere = ebpc * chars_count / 8 / total_bytes |> Float.round(2)
+      ere = (ebpc * chars_count / 8 / total_bytes) |> Float.round(2)
 
       @puid_charset puid_charset
       @puid_chars puid_chars
