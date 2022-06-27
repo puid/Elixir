@@ -94,13 +94,13 @@ defmodule Puid.CharSet do
   ```
 
   ### :hex
-  Lowercase hexidecimal
+  Lowercase hexadecimal
   ```none
   0123456789abcdef
   ```
 
   ### :hex_upper
-  Uppercase hexidecimal
+  Uppercase hexadecimal
   ```none
   0123456789ABCDEF
   ```
