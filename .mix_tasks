@@ -1,0 +1,58 @@
+app.config:Configures all registered apps
+app.start:Starts all registered apps
+app.tree:Prints the application tree
+archive:Lists installed archives
+archive.build:Archives this project into a .ez file
+archive.install:Installs an archive locally
+archive.uninstall:Uninstalls archives
+clean:Deletes generated application files
+cmd:Executes the given command
+compile:Compiles source files
+deps:Lists dependencies and their status
+deps.clean:Deletes the given dependencies' files
+deps.compile:Compiles dependencies
+deps.get:Gets all out of date dependencies
+deps.tree:Prints the dependency tree
+deps.unlock:Unlocks the given dependencies
+deps.update:Updates the given dependencies
+do:Executes the tasks separated by comma
+docs:Generate documentation for the project
+escript:Lists installed escripts
+escript.build:Builds an escript for the project
+escript.install:Installs an escript locally
+escript.uninstall:Uninstalls escripts
+format:Formats the given files/patterns
+help:Prints help information for tasks
+hex:Prints Hex help information
+hex.audit:Shows retired Hex deps for the current project
+hex.build:Builds a new package version locally
+hex.config:Reads, updates or deletes local Hex config
+hex.docs:Fetches or opens documentation of a package
+hex.info:Prints Hex information
+hex.organization:Manages Hex.pm organizations
+hex.outdated:Shows outdated Hex deps for the current project
+hex.owner:Manages Hex package ownership
+hex.package:Fetches or diffs packages
+hex.publish:Publishes a new package version
+hex.registry:Manages local Hex registries
+hex.repo:Manages Hex repositories
+hex.retire:Retires a package version
+hex.search:Searches for package names
+hex.sponsor:Show Hex packages accepting sponsorships
+hex.user:Manages your Hex user account
+loadconfig:Loads and persists the given configuration
+local:Lists local tasks
+local.hex:Installs Hex locally
+local.public_keys:Manages public keys
+local.rebar:Installs Rebar locally
+new:Creates a new Elixir project
+nimble_parsec.compile:Compiles a parser and injects its content into the parser file
+profile.cprof:Profiles the given file or expression with cprof
+profile.eprof:Profiles the given file or expression with eprof
+profile.fprof:Profiles the given file or expression with fprof
+release:Assembles a self-contained release
+release.init:Generates sample files for releases
+run:Starts and runs the current application
+test:Runs a project's tests
+test.coverage:Build report from exported test coverage
+xref:Prints cross reference information

@@ -4,7 +4,7 @@ defmodule Puid.Mixfile do
   def project do
     [
       app: :puid,
-      version: "1.1.2",
+      version: "2.0.0",
       elixir: "~> 1.8",
       description: description(),
       package: package(),
@@ -20,13 +20,12 @@ defmodule Puid.Mixfile do
 
   defp deps do
     [
-      {:crypto_rand, "~> 1.0"},
-      {:earmark, "~> 1.2", only: :dev},
-      {:ex_doc, "~> 0.25", only: :dev},
+      {:dialyxir, "~> 1.0", only: :dev, runtime: false},
+      {:earmark, "~> 1.4", only: :dev},
+      {:ex_doc, "~> 0.28", only: :dev},
       {:entropy_string, "~> 1.3", only: :test},
       {:not_qwerty123, "~> 2.3", only: :test},
       {:misc_random, "~> 0.2", only: :test},
-      {:rand_str, "~> 1.0", only: :test},
       {:randomizer, "~> 1.1", only: :test},
       {:secure_random, "~> 0.5", only: :test},
       {:uuid, "~> 1.1", only: :test}
@@ -35,7 +34,8 @@ defmodule Puid.Mixfile do
 
   defp description do
     """
-    Fast and efficient generation of cryptographically strong probably unique indentifiers (puid, aka random string) of specified entropy from various character sets.
+    Simple, fast, flexible and efficient generation of probably unique identifiers (`puid`, aka
+    random strings) of intuitively specified entropy using pre-defined or custom characters.
     """
   end
 

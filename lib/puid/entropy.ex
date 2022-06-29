@@ -1,6 +1,6 @@
 # MIT License
 #
-# Copyright (c) 2018 Knoxen
+# Copyright (c) 2019-2022 Knoxen
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,12 +30,12 @@ defmodule Puid.Entropy do
 
   """
 
-  alias Puid.CharSet
+  @type puid_chars :: Puid.Chars.puid_chars()
 
   @doc """
-  Entropy bits for generating a `total` number of instances with the given `risk` of repeat
+  Entropy bits for generating a `total` number of events with the given `risk` of repeat
 
-  The total size of the instance pool is 2<sup>bits</sup>.
+  The total size of the event pool is 2<sup>bits</sup>.
 
   ## Example
 
@@ -43,12 +43,14 @@ defmodule Puid.Entropy do
       85.37013046707142
 
   """
-  @spec bits(pos_integer, pos_integer) :: float()
+  @spec bits(non_neg_integer(), non_neg_integer()) :: float()
+  def bits(0, _), do: 0
   def bits(1, _), do: 0
 
+  def bits(_, 0), do: 0
   def bits(_, 1), do: 0
 
-  def bits(total, risk) when is_number(total) and is_number(risk) do
+  def bits(total, risk) do
     n =
       cond do
         total < 1000 ->
@@ -62,76 +64,9 @@ defmodule Puid.Entropy do
   end
 
   @doc """
+  Entropy bits per `chars` character.
 
-  Entropy bits of a string of `len` generated from characters `charset`, where `charset` is
-  either an pre-defined `Puid.CharSet` or a string of unique characters.
-
-  The character set must be comprised of unique symbols, and it is assumed each symbol in the
-  character set has equal probability of occurrence (which maximizes entropy).
-
-  ## Example
-
-      iex> Puid.Entropy.bits_for_len(14, :alphanum)
-      {:ok, 83}
-
-      iex> Puid.Entropy.bits_for_len(14, "dingosky")
-      {:ok, 42}
-
-  """
-  @spec bits_for_len(non_neg_integer(), atom() | String.t()) ::
-          {:ok, non_neg_integer()} | {:error, Error.reason()}
-
-  def bits_for_len(len, charset) when -1 < len and (is_atom(charset) or is_binary(charset)) do
-    case bits_per_char(charset) do
-      {:ok, ebpc} ->
-        {:ok, (len * ebpc) |> trunc()}
-
-      error ->
-        error
-    end
-  end
-
-  @doc """
-
-  Same as `Puid.Entropy.bits_for_len/2` but either returns the integer __bits__ or raises a
-  `Puid.Error`
-
-  ## Example
-
-      iex> Puid.Entropy.bits_for_len!(14, :alphanum)
-      83
-
-      iex> Puid.Entropy.bits_for_len!(14, "dingosky")
-      42
-
-  """
-  @spec bits_for_len!(non_neg_integer(), atom() | String.t()) :: non_neg_integer()
-  def bits_for_len!(len, charset) when -1 < len and (is_atom(charset) or is_binary(charset)) do
-    case(bits_for_len(len, charset)) do
-      {:ok, ebpc} ->
-        ebpc
-
-      {:error, reason} ->
-        raise Puid.Error, reason
-    end
-  end
-
-  @deprecated "Use Puid.Entropy.bits_for_len"
-  defdelegate bits_for_length(len, charset), to: Puid.Entropy, as: :bits_for_len
-
-  @deprecated "Use Puid.Entropy.bits_for_len!"
-  defdelegate bits_for_length!(len, charset), to: Puid.Entropy, as: :bits_for_len!
-
-  @doc """
-
-  Entropy bits per character where `charset` is either an pre-defined `Puid.CharSet` or a string of
-  unique characters.
-
-  The character set must be comprised of unique symbols, and it is assumed each symbol in the
-  character set has equal probability of occurrence (which maximizes entropy).
-
-  Returns `{:ok, bits}`; or `{:error, reason}` if `arg` is either an unrecognized pre-defined
-  `Puid.CharSet` or a string of non-unique characters.
+  `chars` must be valid as per `Chars.charlist/1`.
 
   ## Example
 
@@ -142,27 +77,18 @@ defmodule Puid.Entropy do
       {:ok, 3.0}
 
   """
-  @spec bits_per_char(atom() | String.t()) :: {:ok, float()} | {:error, Error.reason()}
-  def bits_per_char(charset)
-
-  def bits_per_char(charset) when is_atom(charset) do
-    case CharSet.chars(charset) do
-      :undefined ->
-        {:error, "Invalid: charset not recognized"}
-
-      chars ->
-        {:ok, ebpc(chars)}
+  @spec bits_per_char(puid_chars()) :: {:ok, float()} | Puid.Error.t()
+  def bits_per_char(chars) do
+    with {:ok, charlist} <- chars |> Puid.Chars.charlist() do
+      {:ok, charlist |> length() |> :math.log2()}
+    else
+      error ->
+        error
     end
   end
 
-  def bits_per_char(chars) when is_binary(chars) do
-    if CharSet.unique?(chars),
-      do: {:ok, ebpc(chars)},
-      else: {:error, "Invalid: chars not unique"}
-  end
-
   @doc """
-  Same as `bits_per_char/1` but either returns the `bits` or raises a `Puid.Error`
+  Same as `bits_per_char/1` but either returns __bits__ or raises a `Puid.Error`
 
   ## Example
 
@@ -173,46 +99,35 @@ defmodule Puid.Entropy do
        3.0
 
   """
-  @spec bits_per_char!(atom() | String.t()) :: float()
-  def bits_per_char!(charset)
-
-  def bits_per_char!(arg) do
-    case bits_per_char(arg) do
-      {:ok, ebpc} ->
-        ebpc
-
+  @spec bits_per_char!(puid_chars()) :: float()
+  def bits_per_char!(chars) do
+    with {:ok, ebpc} <- bits_per_char(chars) do
+      ebpc
+    else
       {:error, reason} ->
-        raise Puid.Error, reason
+        raise(Puid.Error, reason)
     end
   end
 
-  defp ebpc(chars) do
-    chars |> String.length() |> :math.log2()
-  end
-
   @doc """
+  Entropy bits for a binary of length `len` comprised of `chars` characters.
 
-  Length needed for a string generated from `charset` to have `bits` of entropy.
-
-  The character set must be comprised of unique symbols, and it is assumed each symbol in the
-  character set has equal probability of occurrence (which maximizes entropy).
+  `chars` must be valid as per `Chars.charlist/1`.
 
   ## Example
 
-      iex> Puid.Entropy.len_for_bits(128, :alphanum)
-      {:ok, 22}
+      iex> Puid.Entropy.bits_for_len(:alphanum, 14)
+      {:ok, 83}
 
-      iex> Puid.Entropy.len_for_bits(128, "dingosky")
-      {:ok, 43}
+      iex> Puid.Entropy.bits_for_len('dingosky', 14)
+      {:ok, 42}
 
   """
-  @spec len_for_bits(non_neg_integer(), atom() | String.t()) ::
-          {:ok, non_neg_integer()} | {:error, Error.reason()}
-  def len_for_bits(bits, charset) when -1 < bits and (is_atom(charset) or is_binary(charset)) do
-    case bits_per_char(charset) do
-      {:ok, ebpc} ->
-        {:ok, (bits / ebpc) |> :math.ceil() |> round()}
-
+  @spec bits_for_len(puid_chars(), non_neg_integer()) :: {:ok, non_neg_integer()} | Puid.Error.t()
+  def bits_for_len(chars, len) do
+    with {:ok, ebpc} <- bits_per_char(chars) do
+      {:ok, (len * ebpc) |> trunc()}
+    else
       error ->
         error
     end
@@ -220,26 +135,74 @@ defmodule Puid.Entropy do
 
   @doc """
 
-  Same as `Puid.Entropy.len_for_bits/2` but either returns the integer __len__ or raises a
+  Same as `Puid.Entropy.bits_for_len/2` but either returns __bits__ or raises a
   `Puid.Error`
 
   ## Example
 
-      iex> Puid.Entropy.len_for_bits!(128, :alphanum)
+      iex> Puid.Entropy.bits_for_len!(:alphanum, 14)
+      83
+
+      iex> Puid.Entropy.bits_for_len!("dingosky", 14)
+      42
+
+  """
+  @spec bits_for_len!(puid_chars(), non_neg_integer()) :: non_neg_integer()
+  def bits_for_len!(chars, len) do
+    with {:ok, ebpc} <- bits_for_len(chars, len) do
+      ebpc
+    else
+      {:error, reason} ->
+        raise(Puid.Error, reason)
+    end
+  end
+
+  @doc """
+
+  Length needed for a string generated from `chars` to have entropy `bits`.
+
+  `chars` must be valid as per `Chars.charlist/1`.
+
+  ## Example
+
+      iex> Puid.Entropy.len_for_bits(:alphanum, 128)
+      {:ok, 22}
+
+      iex> Puid.Entropy.len_for_bits("dingosky", 128)
+      {:ok, 43}
+
+  """
+  @spec len_for_bits(puid_chars(), non_neg_integer()) :: {:ok, non_neg_integer()} | Puid.Error.t()
+  def len_for_bits(chars, bits) do
+    with {:ok, ebpc} <- bits_per_char(chars) do
+      {:ok, (bits / ebpc) |> :math.ceil() |> round()}
+    else
+      error ->
+        error
+    end
+  end
+
+  @doc """
+
+  Same as `Puid.Entropy.len_for_bits/2` but either returns __len__ or raises a
+  `Puid.Error`
+
+  ## Example
+
+      iex> Puid.Entropy.len_for_bits!(:alphanum, 128)
       22
 
-      iex> Puid.Entropy.len_for_bits!(128, "dingosky")
+      iex> Puid.Entropy.len_for_bits!('dingosky', 128)
       43
 
   """
-  @spec len_for_bits!(non_neg_integer(), atom() | String.t()) :: non_neg_integer()
-  def len_for_bits!(bits, charset) when -1 < bits and (is_atom(charset) or is_binary(charset)) do
-    case len_for_bits(bits, charset) do
-      {:ok, len} ->
-        len
-
+  @spec len_for_bits!(puid_chars(), non_neg_integer()) :: non_neg_integer() | Puid.Error.t()
+  def len_for_bits!(chars, bits) do
+    with {:ok, len} <- len_for_bits(chars, bits) do
+      len
+    else
       {:error, reason} ->
-        raise Puid.Error, reason
+        raise(Puid.Error, reason)
     end
   end
 end

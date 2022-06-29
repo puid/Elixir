@@ -20,14 +20,22 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-defmodule Puid.Error do
-  @moduledoc """
-  Raised when defining a Puid module with invalid options
-  """
-  defexception message: "Puid error"
+defmodule Puid.Util do
+  @moduledoc false
 
-  @typedoc """
-  `Puid.Error` type
-  """
-  @type t() :: Puid.Error
+  import Bitwise
+
+  @doc false
+  def bit_zero?(n, bit), do: (n &&& 1 <<< (bit - 1)) === 0
+
+  @doc false
+  def log_ceil(n), do: n |> :math.log2() |> r_ceil()
+
+  @doc false
+  def pow2(n), do: 1 <<< n
+
+  @doc false
+  def pow2?(n), do: n |> :math.log2() |> round() |> pow2() |> Kernel.==(n)
+
+  defp r_ceil(n), do: n |> :math.ceil() |> round()
 end

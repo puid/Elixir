@@ -1,6 +1,6 @@
 # MIT License
 #
-# Copyright (c) 2019 Knoxen
+# Copyright (c) 2019-2022 Knoxen
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,29 +28,31 @@ defmodule Puid.Info do
 
   | Field | Description |
   | ----- | ----------- |
-  | chars | source character set |
-  | charset | pre-defined `Puid.Charset` or :custom |
-  | entropy_bits | entropy bits for generated **puid**s |
+  | char_set | pre-defined `Puid.Chars` atom or :custom |
+  | characters | source characters |
+  | entropy_bits | entropy bits for generated **puid** |
   | entropy_bits_per_char | entropy bits per character for generated **puid**s |
   | ere | **puid** entropy string representation efficiency |
   | length | **puid** string length |
   | rand_bytes | entropy source function |
 
-      iex> defmodule(SafeId, do: use(Puid, total: 1.0e04, risk: 1.0e12, chars: "thequickbrownfxjmpsvlazydg"))
-      iex> SafeId.info()
-      %Puid.Info{
-        chars: "thequickbrownfxjmpsvlazydg",
-        charset: :custom,
-        entropy_bits: 65.81,
-        entropy_bits_per_char: 4.7,
-        ere: 0.59,
-        length: 14,
-        rand_bytes: &:crypto.strong_rand_bytes/1
-      }
+  ```elixir
+  iex> defmodule(CustomId, do: use(Puid, total: 1.0e04, risk: 1.0e12, chars: "thequickbrownfxjmpsvlazydg"))
+  iex> CustomId.info()
+  %Puid.Info{
+    char_set: :custom,
+    characters: "thequickbrownfxjmpsvlazydg",
+    entropy_bits: 65.81,
+    entropy_bits_per_char: 4.7,
+    ere: 0.59,
+    length: 14,
+    rand_bytes: &:crypto.strong_rand_bytes/1
+  }
+  ```
   """
 
-  defstruct chars: Puid.CharSet.chars(:safe64),
-            charset: :safe64,
+  defstruct characters: Puid.Chars.charlist!(:safe64) |> to_string(),
+            char_set: :safe64,
             entropy_bits: 128,
             entropy_bits_per_char: 0,
             ere: 0,

@@ -1,14 +1,47 @@
-defmodule Puid.Entropy.Test do
+# MIT License
+#
+# Copyright (c) 2019-2022 Knoxen
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+defmodule Puid.Test.Entropy do
   use ExUnit.Case, async: true
 
   doctest Puid.Entropy
 
   import Puid.Entropy
 
-  def i_bits(total, risk), do: round(bits(total, risk))
-  def d_bits(total, risk, d), do: Float.round(bits(total, risk), d)
+  defp i_bits(total, risk), do: round(bits(total, risk))
+  defp d_bits(total, risk, d), do: Float.round(bits(total, risk), d)
+
+  defp assert_error_matches({:error, reason}, snippet),
+    do: assert(reason |> String.contains?(snippet))
 
   test "bits" do
+    assert bits(0, 1.0e12) === 0
+    assert bits(1, 1.0e12) === 0
+
+    assert bits(500, 0) === 0
+    assert bits(500, 1) === 0
+
+    assert bits(10_500, 0) === 0
+    assert bits(10_500, 1) === 0
+
     assert d_bits(100, 100, 2) === 18.92
     assert d_bits(999, 1000, 2) === 28.89
     assert d_bits(1000, 1000, 2) === 28.90
@@ -76,109 +109,140 @@ defmodule Puid.Entropy.Test do
     assert i_bits(1.71e15, 1.0e18) === 160
   end
 
-  test "entropy bits per char" do
+  #
+  # bits_per_char
+  #
+  test "valid bits_per_char" do
+    assert bits_per_char(:hex) === {:ok, 4.0}
+    {:ok, ebpc} = bits_per_char(:alphanum)
+    assert ebpc |> Float.round(2) == 5.95
+
+    assert bits_per_char('dingosky') === {:ok, 3.0}
+    assert bits_per_char('0123456789') === {:ok, 10 |> :math.log2()}
+
     assert bits_per_char("0123") === {:ok, 2.0}
-    assert bits_per_char("0123456789") === {:ok, 10 |> :math.log2()}
+    assert bits_per_char("0123456789ok") === {:ok, 12 |> :math.log2()}
+  end
+
+  test "valid bits_per_char!" do
+    assert bits_per_char!(:hex) === 4.0
+    assert bits_per_char!(:alphanum) |> Float.round(2) == 5.95
+
+    assert bits_per_char!('dingosky') === 3.0
+    assert bits_per_char!('0123456789') === 10 |> :math.log2()
 
     assert bits_per_char!("0123") === 2.0
-    assert bits_per_char!("0123456789") === 10 |> :math.log2()
+    assert bits_per_char!("0123456789ok") === 12 |> :math.log2()
   end
 
-  test "entropy bits per char Error" do
-    assert bits_per_char("0103") == {:error, "Invalid: chars not unique"}
+  test "invalid pre-defined bits_per_char" do
+    :invalid |> bits_per_char() |> assert_error_matches("pre-defined")
 
-    assert_raise Puid.Error, fn ->
-      bits_per_char!("0103")
-    end
+    assert_raise Puid.Error, fn -> bits_per_char!(:invalid) end
   end
 
-  test "entropy bits for string of len" do
-    assert bits_for_len(14, :alphanum) === {:ok, 83}
-    assert bits_for_len!(14, :alphanum) === 83
-
-    assert bits_for_len(14, :dingosky) === {:error, "Invalid: charset not recognized"}
-    assert bits_for_len(14, "dingodog") === {:error, "Invalid: chars not unique"}
-
-    assert_raise Puid.Error, fn ->
-      bits_for_len!(14, :dingosky)
-    end
-
-    assert_raise Puid.Error, fn ->
-      bits_for_len!(14, "dingodog")
-    end
+  test "non-unique bits_per_char" do
+    'unique' |> bits_per_char() |> assert_error_matches("unique")
+    assert_raise Puid.Error, fn -> bits_per_char!('unique') end
   end
 
-  # This test knowningly issues warnings regarding the use of deprecated functions
-  test "delegate functions" do
-    assert bits_for_length(14, :alphanum) === {:ok, 83}
-    assert bits_for_length!(14, :alphanum) === 83
+  @tag :debug
+  test "too short bits_per_char" do
+    'u' |> bits_per_char() |> assert_error_matches("least 2")
+    "" |> bits_per_char() |> assert_error_matches("least 2")
+
+    assert_raise Puid.Error, fn -> bits_per_char!('') end
+    assert_raise Puid.Error, fn -> bits_per_char!("u") end
   end
 
-  def test_mod_len_charset(len, charset) do
-    mod =
-      "Puid.Entropy.Test.#{len}_#{charset |> to_string() |> String.capitalize()}"
-      |> String.to_atom()
+  test "too long bits_per_char" do
+    ascii = Puid.Chars.charlist!(:safe_ascii)
+    too_long = ascii ++ ascii ++ ascii
 
-    bits = bits_for_len!(len, charset)
-    defmodule(mod, do: use(Puid, bits: bits, charset: charset))
-    assert mod.generate() |> String.length() === len
+    too_long |> bits_per_char() |> assert_error_matches("count")
+
+    assert_raise Puid.Error, fn -> bits_per_char!(too_long) end
   end
 
-  test "entropy bits for string using mod charset" do
-    2..20
-    |> Enum.each(fn len ->
-      [:alpha_lower, :alpha, :alphanum, :safe32]
-      |> Enum.each(fn charset ->
-        test_mod_len_charset(len, charset)
-      end)
-    end)
+  #
+  # bits_for_len
+  #
+  test "valid bits_for_len" do
+    assert :alphanum |> bits_for_len(14) === {:ok, 83}
+    assert 'dingosky' |> bits_for_len(14) === {:ok, 42}
+    assert "uncopyrightable" |> bits_for_len(14) === {:ok, 54}
   end
 
-  def test_mod_len_chars(len, chars) do
-    mod = "Puid.Entropy.Test.#{len}_#{chars |> String.length()}" |> String.to_atom()
-    bits = bits_for_len!(len, chars)
-    defmodule(mod, do: use(Puid, bits: bits, chars: chars))
-    assert mod.generate() |> String.length() === len
+  test "valid bits_for_len!" do
+    assert :alphanum |> bits_for_len!(14) === 83
+    assert 'uncopyrightable' |> bits_for_len!(14) === 54
+    assert "dingosky" |> bits_for_len!(14) === 42
   end
 
-  test "entropy bits for string using mod chars" do
-    2..20
-    |> Enum.each(fn len -> test_mod_len_chars(len, "dingosky") end)
+  test "invalid pre-defined bits_for_len" do
+    :invalid |> bits_for_len(10) |> assert_error_matches("pre-defined")
+
+    assert_raise Puid.Error, fn -> :invalid |> bits_for_len!(20) end
   end
 
-  def test_mod_bits_charset(bits, charset) do
-    mod =
-      "Puid.Entropy.Test.#{bits}_#{charset |> to_string() |> String.capitalize()}"
-      |> String.to_atom()
+  test "non-unique bits_for_len" do
+    'unique' |> bits_for_len(14) |> assert_error_matches("unique")
 
-    len = len_for_bits!(bits, charset)
-    defmodule(mod, do: use(Puid, bits: bits, charset: charset))
-    assert mod.info().length === len
+    assert_raise Puid.Error, fn -> 'unique' |> bits_for_len!(20) end
   end
 
-  test "len for string of bits using charset" do
-    [24, 32, 41, 50, 62, 64, 90, 101, 128]
-    |> Enum.each(fn bits ->
-      [:alpha_lower, :alpha, :alphanum, :safe32]
-      |> Enum.each(fn charset ->
-        test_mod_bits_charset(bits, charset)
-      end)
-    end)
+  test "too short bits_for_len" do
+    'u' |> bits_for_len(10) |> assert_error_matches("least 2")
+    "" |> bits_for_len(20) |> assert_error_matches("least 2")
+
+    assert_raise Puid.Error, fn -> 'u' |> bits_for_len!(10) end
   end
 
-  def test_mod_bits_chars(bits, chars) do
-    mod = "Puid.Entropy.Test.#{bits}_#{chars |> String.length()}" |> String.to_atom()
+  test "too long bits_for_len" do
+    ascii = Puid.Chars.charlist!(:safe_ascii)
+    too_long = ascii ++ ascii ++ ascii
 
-    len = len_for_bits!(bits, chars)
-    defmodule(mod, do: use(Puid, bits: bits, chars: chars))
-    assert mod.info().length === len
+    too_long |> bits_for_len(10) |> assert_error_matches("count")
+    assert_raise Puid.Error, fn -> too_long |> bits_for_len!(10) end
   end
 
-  @tag :tmp
-  test "len for entropy bits using mod chars" do
-    [24, 32, 41, 50, 62, 64, 90, 101, 128]
-    |> Enum.each(fn bits ->
-      test_mod_bits_chars(bits, "dingosky")
-    end)
+  #
+  # len_for_bits
+  #
+  test "valid len_for_bits" do
+    assert :alphanum |> len_for_bits(83) === {:ok, 14}
+    assert 'dingosky' |> len_for_bits(42) === {:ok, 14}
+    assert "uncopyrightable" |> len_for_bits(54) === {:ok, 14}
+  end
+
+  test "valid len_for_bits!" do
+    assert :alphanum |> len_for_bits!(83) === 14
+    assert 'uncopyrightable' |> len_for_bits!(54) === 14
+    assert "dingosky" |> len_for_bits!(42) === 14
+  end
+
+  test "invalid pre-defined len_for_bits" do
+    :invalid |> len_for_bits(10) |> assert_error_matches("pre-defined")
+
+    assert_raise Puid.Error, fn -> :invalid |> len_for_bits!(20) end
+  end
+
+  test "non-unique len_for_bits" do
+    'unique' |> len_for_bits(14) |> assert_error_matches("unique")
+    assert_raise Puid.Error, fn -> 'unique' |> len_for_bits!(20) end
+  end
+
+  test "too short len_for_bits" do
+    'u' |> len_for_bits(10) |> assert_error_matches("least 2")
+    "" |> len_for_bits(20) |> assert_error_matches("least 2")
+    assert_raise Puid.Error, fn -> 'u' |> len_for_bits!(10) end
+  end
+
+  test "too long len_for_bits" do
+    ascii = Puid.Chars.charlist!(:safe_ascii)
+    too_long = ascii ++ ascii ++ ascii
+
+    too_long |> len_for_bits(10) |> assert_error_matches("count")
+    assert_raise Puid.Error, fn -> too_long |> len_for_bits!(10) end
   end
 end
