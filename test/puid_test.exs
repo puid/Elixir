@@ -177,6 +177,16 @@ defmodule Puid.Test do
     assert byte_size(DefaultId.generate()) === DefaultId.info().length
   end
 
+  test "total/risk" do
+    defmodule(TotalRiskId, do: use(Puid, total: 10_000, risk: 1.0e12, chars: :alpha))
+
+    info = TotalRiskId.info()
+    assert info.entropy_bits === 68.41
+    assert info.entropy_bits_per_char == 5.7
+    assert info.ere == 0.71
+    assert info.length == 12
+  end
+
   test "invalid chars" do
     assert_raise Puid.Error, fn ->
       defmodule(NoNoId, do: use(Puid, chars: 'unique'))

@@ -93,11 +93,11 @@ defmodule Puid do
   iex> defmodule(DingoskyPuid, do: use(Puid, chars: "dingosky"))
   iex> DingoskyPuid.generate()
   "yiidgidnygkgydkodggysonydodndsnkgksgonisnko"
-  
+
   iex> defmodule(DingoskyUnicodePuid, do: use(Puid, chars: "dîñgø$kyDÎÑGØßK¥", total: 2.5e6, risk: 1.0e15))
   iex> DingoskyUnicodePuid.generate()
   "øßK$ggKñø$dyGîñdyØøØÎîk"
-  
+
   ```
 
   ### ID Randomness
@@ -138,11 +138,11 @@ defmodule Puid do
   iex> AlphanumId.generate()
   "UKQHTmvASwyhcwGNA"
   ```
-	
+
   **`info/0`**
 
     Returns a `Puid.Info` structure consisting of
-    
+
     - Name of pre-defined `Puid.Chars` or `:custom`
     - Source characters
     - Entropy bits
@@ -154,7 +154,7 @@ defmodule Puid do
     - **`puid`** string length
     - Entropy source function
 
-  ```elixir      
+  ```elixir
   iex> AlphanumId.info()
    %Puid.Info{
      char_set: :alphanum,
@@ -204,7 +204,7 @@ defmodule Puid do
 
       puid_bits =
         cond do
-          is_nil(bits) and is_nil(total) and is_nil(risk) ->
+          is_nil(bits) and is_nil(total) ->
             puid_default.entropy_bits
 
           is_number(bits) and bits < 1 ->
