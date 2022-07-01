@@ -108,11 +108,20 @@ defmodule Puid.Test.Chars do
   end
 
   test "charlist with too many chars" do
-    ascii = Chars.charlist!(:safe_ascii)
-    too_long = ascii ++ ascii ++ ascii
+    too_long = 229..500 |> Enum.map(& &1) |> to_string()
     assert {:error, reason} = too_long |> Chars.charlist()
     assert reason |> String.contains?("count")
 
-    assert_raise(Puid.Error, fn -> too_long |> Chars.charlist!() end)
+    assert_raise(Puid.Error, fn -> Chars.charlist!(too_long) end)
+  end
+
+  test "ascii encoding" do
+    assert Chars.encoding("abc") == :ascii
+    assert Chars.encoding("abc∂ef") == :utf8
+  end
+
+  test "invalid encoding" do
+    assert_raise(Puid.Error, fn -> Chars.encoding("ab cd") end)
+    assert_raise(Puid.Error, fn -> Chars.encoding([?~, 127]) end)
   end
 end

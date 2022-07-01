@@ -262,7 +262,7 @@ defmodule Puid.Chars do
   end
 
   #
-  # Non-escaped chars are ?! thru ?~, omitting backslash and single/double-quotes
+  # Safa ascii chars are ?! thru ?~, omitting backslash, backtick and single/double-quotes
   #
   defp safe_ascii?(?!), do: true
   defp safe_ascii?(c) when c < ?#, do: false

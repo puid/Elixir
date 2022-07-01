@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.0.1 (2022-07-01)
+
+### Tests
+
+- Added test for 100% coverage. 
+
+
 ## v2.0.0 (2022-06-30)
 
 ### Added
@@ -27,18 +34,18 @@
 
 ### Breaking Changes
 
-- Reverse argument order for `Puid.Entropy` helper functions
+- Removed `charset` option for pre-defined characters
+    - Use the `chars` option instead
+- Removed pre-defined `printable_ascii`
+    - Replaced by `safe_ascii` (no backslash, backtick, single-quote or double-quote)
+- Reverse argument order for `Puid.Entropy` utility functions
     - Allows idiomatic Elixir use. Note these functions are rarely used directly.
 
-### Removed 
+### Deprecated
 
-- Deprecated functions
+- Removed deprecated functions
     - `Puid.Entropy.bits_for_length/2`
     - `Puid.Entropy.bits_for_length!/2`
-- `charset` option for pre-defined characters
-    - Use the `chars` option instead
-- Pre-defined `printable_ascii`
-    - Replaced by `safe_ascii` (no backslash, backtick, single-quote or double-quote)
 
 ## v1.1.2 (2021-09-15)
 
