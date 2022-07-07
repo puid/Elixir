@@ -2,7 +2,13 @@
 
 Simple, fast, flexible and efficient generation of probably unique identifiers (`puid`, aka random strings) of intuitively specified entropy using pre-defined or custom characters.
 
-[![Build Status](https://travis-ci.org/puid/Elixir.svg?branch=master)](https://travis-ci.org/puid/Elixir) &nbsp; [![Hex Version](https://img.shields.io/hexpm/v/puid.svg "Hex Version")](https://hex.pm/packages/puid) &nbsp; [![License: MIT](https://img.shields.io/npm/l/express.svg)]()
+```elixir
+  iex> defmodule(RandId, do: use(Puid))
+  iex> RandId.generate()
+  "mP1jKyRGdL71l1QYgnE0NZ"
+```
+
+[![Hex Version](https://img.shields.io/hexpm/v/puid.svg "Hex Version")](https://hex.pm/packages/puid) &nbsp; [![License: MIT](https://img.shields.io/npm/l/express.svg)]()
 
 ## <a name="TOC"></a>TOC
 - [Overview](#Overview)
@@ -34,17 +40,20 @@ Simple, fast, flexible and efficient generation of probably unique identifiers (
 
 Random string generation can be thought of as a _transformation_ of some random source of entropy into a string _representation_ of randomness. A general purpose random string library used for random IDs should therefore provide user specification for each of the following three key aspects:
 
-1. **Entropy source**
+1. **Entropy Source**
 
-    What source of randomness is being transformed? `Puid` allows easy specification of the function used for source randomness.
+    What source of randomness is being transformed?
+    >`Puid` allows easy specification of the function used for source randomness
 
-2. **ID characters**
+2. **ID Characters**
 
-    What characters are used in the ID? `Puid` provides 16 pre-defined character sets, as well as allows custom character designation, including Unicode
+    What characters are used in the ID?
+    > `Puid` provides 16 pre-defined character sets, as well as allows custom character designation, including Unicode
 
-3. **ID randomness**
+3. **ID Randomness**
 
-    What is the resulting “randomness” of the IDs? Note this isn't necessarily the same as the randomness of the entropy source. `Puid` allows explicit specification of ID randomness in an intuitive manner.
+    What is the resulting “randomness” of the IDs?
+    > `Puid` allows an intuitive, explicit specification of ID randomness
 
 [TOC](#TOC)
 
@@ -143,7 +152,7 @@ Update dependencies
   - Source characters
   - Name of pre-defined `Puid.Chars` or `:custom`
   - Entropy bits per character
-  - Rotal entropy bits
+  - Total entropy bits
     - May be larger than the specified `bits` since it is a multiple of the entropy bits per
      character
   - Entropy representation efficiency
@@ -202,20 +211,22 @@ Rather, a random string represents _captured_ entropy, entropy that was produced
   "18f6303a"
 ```
 
-In this case, the entropy of the string **`"18f6303a"`** is 1 bit. That's it; 1 bit. The same entropy as when the outcome **`"1"`** is observed. In either case, there are only two possible, equally likely outcomes and the resulting entropy is therefore 1 bit. It's important to have this clear understanding: entropy is a measure in the uncertainty of the event, _**not**_ of the representation of that uncertainty.
+In this case, the entropy of the string **`"18f6303a"`** is 1 bit. That's it; 1 bit. The same entropy as when the outcome **`"1"`** is observed. In either case, there are only two possible, equally likely outcomes and the resulting entropy is therefore 1 bit. It's important to have this clear understanding:
 
-In information theory you would state the above process has two symbols, **`18f6303a`** and **`1`**, and the outcome is equally likely to be either symbol. Hence there is 1 bit of entropy in the process. But note, the symbols don't really matter. It would be much more likely to see the symbols **`T`** and **`F`**, or **`0`** and **`1`**, or even **`ON`** and **`OFF`**, but regardless, the process _produces_ 1 bit of entropy and symbols used to _represent_ that entropy does not effect the entropy itself.
+ > _**Entropy is a measure in the uncertainty of an event, independent of the representation of that uncertainty**_
+
+In information theory you would state the above process has two symbols, **`18f6303a`** and **`1`**, and the outcome is equally likely to be either symbol. Hence there is 1 bit of entropy in the process. The symbols don't really matter. It would be much more likely to see the symbols **`T`** and **`F`**, or **`0`** and **`1`**, or even **`ON`** and **`OFF`**, but regardless, the process _produces_ 1 bit of entropy and symbols used to _represent_ that entropy does not effect the entropy itself.
 
 #### Entropy source
 
-Random string generators need an external source of entropy and typically use a system resource for that entropy. In Elixir, this could be a [:rand](https://www.erlang.org/doc/man/rand.html) module function or [:crypto.strong_rand_bytes/1](https://www.erlang.org/doc/man/crypto.html#strong_rand_bytes-1). Nonetheless, it is important to appreciate that the properties of the generated random strings depend on the characteristics of the entropy source. For example, whether a random string is suitable for use as a secure token depends on the security characteristics of the entropy source, not the string representation of the token.
+Random string generators need an external source of entropy and typically use a system resource for that entropy. In Elixir, this could be a [:rand](https://www.erlang.org/doc/man/rand.html) module function or [:crypto.strong_rand_bytes/1](https://www.erlang.org/doc/man/crypto.html#strong_rand_bytes-1). Nonetheless, it is important to appreciate that the properties of the generated random strings depend on the characteristics of the entropy source. For example, whether a random string is suitable for use as a secure token depends on the security characteristics of the entropy source, not on the string representation of the token.
 
-#### Characters
+#### ID characters
 
-As noted, the characters (symbols) used for a random string do not determine the entropy. However, the number of unique characters does. Under the assumption that each character is equally probable (which maximizes randomness) it is easy to show the entropy per character is a constant log<sub>2</sub>(N), where `N` is of the number of characters available.
+As noted, the characters (symbols) used for a random string do not determine the entropy. However, the number of unique characters does. Under the assumption that each character is equally probable (which maximizes entropy) it is easy to show the entropy per character is a constant log<sub>2</sub>(N), where `N` is of the number of characters available.
 
 
-#### String randomness
+#### ID randomness
 
 String randomness is determined by the entropy per character times the number of characters in the string. The *quality* of that randomness is directly tied to the quality of the entropy source. The *randomness* depends on the number of available characters and the length of the string.
 
@@ -246,9 +257,9 @@ To recap, random string generation does not produce unique IDs, but rather, IDs 
 
 So what does the statement "*these IDs have 122 bits of entropy*" actually mean? Entropy is a measure of uncertainty after all, and we're concerned that our IDs be unique, probably unique anyway. So what does "122 bits of entropy" mean for the probable uniqueness of IDs?
 
-First, let's be clear what it _doesn't_ mean. We're concerned with uniqueness of a bunch of IDs in a certain context. The uniqueness of _any one_ of those ID isn't the real concern. Yes, we can say "*given 122 bits of entropy*" each ID has a probability of 2<sup>-122</sup> of occurring. And yes, that certainly makes the occurrence of any particular ID rare. But with respect to the uniqueness of IDs, it isn't "enough" to tell the whole story.
+First, let's be clear what it _doesn't_ mean. We're concerned with uniqueness of a bunch of IDs in a certain context. The randomness of _any one_ of those ID isn't the real concern. Yes, we can say "*given 122 bits of entropy*" each ID has a probability of 2<sup>-122</sup> of occurring. And yes, that certainly makes the occurrence of any particular ID rare. But with respect to the uniqueness of IDs, it isn't "enough" to tell the whole story.
 
-And here, we hit another subtlety. It turns out the question, as posed, is underspecified, i.e. it is not specific enough to be answered. To properly determine how entropy relates to the probable uniqueness of IDs, we need to specify *how many* IDs are to be generated in a certain context. Only then can we determine the probability of generating unique IDs. So our question really needs to be: given **N** bits of entropy, what is the probability of uniqueness in **T** random IDs?
+And here again we hit another subtlety. It turns out the question, as posed, is underspecified, i.e. it is not specific enough to be answered. To properly determine how entropy relates to the probable uniqueness of IDs, we need to specify *how many* IDs are to be generated in a certain context. Only then can we determine the probability of generating unique IDs. So our question really needs to be: given **N** bits of entropy, what is the probability of uniqueness in **T** random IDs?
 
 Fortunately, there is a mathematical correlation between entropy and the probability of uniqueness. This correlation is often explored via the [Birthday Paradox](https://en.wikipedia.org/wiki/Birthday_problem#Cast_as_a_collision_problem). Why paradox? Because the relationship, when cast as a problem of unique birthdays in some number of people, is initially quite surprising. But nonetheless, the relationship exists, it is well-known, and `Puid` will take care of the math for us.
 
@@ -292,13 +303,11 @@ Note: Kudos to the Elixir team's implementation of `Base`. The strategies used f
 
 #### Characters
 
-As previous noted, the entropy of a random string is equal to the entropy per character times the
-length of the string. Using this value leads to an easy calculation of **entropy representation
-efficiency** (`ere`). We can define `ere` as the ratio of random string entropy to the number of bits required to represent the string. As example, the lower case alphabet has an entropy per character of 4.7, so an ID of length 8 using those characters has 37.6 bits of entropy. Since each lower case character requires 1 byte, this leads to an `ere` of 37.6 / 64 = 0.59, or 59%. (Note: Elixir strings are UTF-8 encoded, so non-ascii characters occupy more than 1 byte).
+As previous noted, the entropy of a random string is equal to the entropy per character times the length of the string. Using this value leads to an easy calculation of **entropy representation efficiency** (`ere`). We can define `ere` as the ratio of random string entropy to the number of bits required to represent the string. As example, the lower case alphabet has an entropy per character of 4.7, so an ID of length 8 using those characters has 37.6 bits of entropy. Since each lower case character requires 1 byte, this leads to an `ere` of 37.6 / 64 = 0.59, or 59%. (Note: Elixir strings are UTF-8 encoded, so non-ascii characters occupy more than 1 byte).
 
 <a name="UUIDCharacters"></a>
 
-However, the total entropy of a string is the product of the entropy per character times the string length *only* if each character in the final string is equally probable. This is always the case for `Puid`, and is usually the case for other random string generators. There is, however, a notable exception: the version 4 string representation of a `uuid`. As defined in [RFC 4122, Section 4.4](https://tools.ietf.org/html/rfc4122#section-4.4), a v4 `uuid` uses a total of 32 hex and 4 hyphen characters. Although a hex character can represent 4 bits of entropy, 6 bits of the hex representation are actually fixed, so there is only `32*4 - 6 = 122`-bits of entropy in the ID (not 128). The 4 fixed-position hyphen characters represent zero entropy. So a 36 character `uuid` has an `ere` of `122 / (36*8) = 0.40`, or **40%**. Compare that to, say, the default `Puid` generator, which has slightly higher entropy (128 bits) and yet yields an `ere` of 0.75, or **75%**. Who doesn't love efficiency?
+However, the total entropy of a string is the product of the entropy per character times the string length *only* if each character in the final string is equally probable. This is always the case for `Puid`, and is usually the case for other random string generators. There is, however, a notable exception: the version 4 string representation of a `uuid`. As defined in [RFC 4122, Section 4.4](https://tools.ietf.org/html/rfc4122#section-4.4), a v4 `uuid` uses a total of 32 hex and 4 hyphen characters. Although the hex characters can represent 4 bits of entropy each, 6 bits of the hex representation in a `uuid` are actually fixed, so there is only `32*4 - 6 = 122`-bits of entropy (not 128). The 4 fixed-position hyphen characters contribute zero entropy. So a 36 character `uuid` has an `ere` of `122 / (36*8) = 0.40`, or **40%**. Compare that to, say, the default `Puid` generator, which has slightly higher entropy (128 bits) and yet yields an `ere` of 0.75, or **75%**. Who doesn't love efficiency?
 
 [TOC](#TOC)
 
