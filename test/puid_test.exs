@@ -224,7 +224,12 @@ defmodule Puid.Test do
   defp test_mod(puid_mod, expect, rand_bytes_mod) do
     assert puid_mod.generate() === expect
 
+    bits_mod =
+      ("Elixir." <> (puid_mod |> to_string()) <> ".Bits")
+      |> String.to_atom()
+
     rand_bytes_mod.reset()
+    bits_mod.reset()
   end
 
   test "26 lower alpha chars (5 bits)" do
@@ -299,10 +304,19 @@ defmodule Puid.Test do
     bits_expect.(32, "c7c9002a")
   end
 
-  test "32 safe32 chars (5 bits)" do
+  @tag :only
+  test "safe32 chars (5 bits)" do
     defmodule(FixedSafe32Bytes,
-      do: use(Puid.Test.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xDA, 0x19, 0x00>>)
+      do: use(Puid.Test.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xDA, 0x19, 0x03, 0xB7, 0x3C>>)
     )
+
+    #    D    2    E    3    E    9    D    A    1    9    0    3    B    7    3    C
+    # 1101 0010 1110 0011 1110 1001 1101 1010 0001 1001 0000 0011 1011 0111 0011 1100
+    #
+    # 11010 01011 10001 11110 10011 10110 10000 11001 00000 01110 11011 10011 1100
+    # |---| |---| |---| |---| |---| |---| |---| |---| |---| |---| |---| |---|
+    #  26    11    17    30    19    22    16    25     0    14    27    19
+    #   M     h     r     R     B     G     q     L     2     n     N     B
 
     bits_expect = &test_predefined_chars_mod("Safe32", :safe32, &1, FixedSafe32Bytes, &2)
 
@@ -324,14 +338,15 @@ defmodule Puid.Test do
     bits_expect.(40, "MhrRBGqL")
     bits_expect.(41, "MhrRBGqL2")
     bits_expect.(45, "MhrRBGqL2")
-    bits_expect.(46, "MhrRBGqL22")
-    bits_expect.(50, "MhrRBGqL22")
-    bits_expect.(52, "MhrRBGqL222")
+    bits_expect.(46, "MhrRBGqL2n")
+    bits_expect.(50, "MhrRBGqL2n")
+    bits_expect.(52, "MhrRBGqL2nN")
+    bits_expect.(58, "MhrRBGqL2nNB")
   end
 
-  test "32 base32 chars (5 bits)" do
+  test "base32 chars (5 bits)" do
     defmodule(FixedBase32Bytes,
-      do: use(Puid.Test.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xDA, 0x19, 0x00>>)
+      do: use(Puid.Test.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xDA, 0x19, 0x00, 0x22>>)
     )
 
     bits_expect = &test_predefined_chars_mod("Base32", :base32, &1, FixedBase32Bytes, &2)
@@ -341,7 +356,7 @@ defmodule Puid.Test do
     bits_expect.(46, "2LR6TWQZAA")
   end
 
-  test "64 safe64 chars (6 bits)" do
+  test "safe64 chars (6 bits)" do
     defmodule(FixedSafe64Bytes,
       do: use(Puid.Test.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xFA, 0x19, 0x00>>)
     )
@@ -468,7 +483,7 @@ defmodule Puid.Test do
     assert DingoskyUtf8CarryId.generate() == "ksk"
   end
 
-  test "32 safe32 with carry" do
+  test "safe32 with carry" do
     defmodule(FixedSafe32NoCarryBytes,
       do: use(Puid.Test.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xDA, 0x19, 0x03, 0xB7, 0x3C>>)
     )
@@ -583,7 +598,6 @@ defmodule Puid.Test do
     bits_expect.(40, "x/WRbQx")
   end
 
-  @tag :only
   test "256 chars" do
     single_byte = Chars.charlist!(:safe64)
     n_single = length(single_byte)

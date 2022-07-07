@@ -26,24 +26,18 @@ defmodule Puid.Test.FixedBytes do
 
   defmacro __using__(opts) do
     quote do
-      @puid_fixed_bytes unquote(opts)[:bytes]
-      @puid_n_bytes byte_size(@puid_fixed_bytes)
+      @agent_name String.to_atom("#{__MODULE__}Agent")
+      Agent.start_link(fn -> {0, unquote(opts)[:bytes]} end, name: @agent_name)
 
       def rand_bytes(count) do
-        bytes =
-          if count <= @puid_n_bytes do
-            @puid_fixed_bytes
-          else
-            pad = 8 * (count - @puid_n_bytes)
-            <<@puid_fixed_bytes::binary, 0::size(pad)>>
-          end
-
-        byte_offset = Process.get(:fixed_bytes_offset, 0)
-        Process.put(:fixed_bytes_offset, byte_offset + count)
-        binary_part(bytes, byte_offset, count)
+        {byte_offset, fixed_bytes} = state()
+        @agent_name |> Agent.update(fn {_, bytes} -> {byte_offset + count, bytes} end)
+        binary_part(fixed_bytes, byte_offset, count)
       end
 
-      def reset(), do: Process.put(:fixed_bytes_offset, 0)
+      def state(), do: @agent_name |> Agent.get(& &1)
+
+      def reset(), do: @agent_name |> Agent.update(fn {_, bytes} -> {0, bytes} end)
     end
   end
 end
