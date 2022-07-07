@@ -57,7 +57,7 @@ defmodule Puid.Bits do
       {:module, mod} = rand_bytes |> Function.info(:module)
       {:name, name} = rand_bytes |> Function.info(:name)
 
-      @puid_carried_bits String.to_atom("puid_#{mod}_#{name}")
+      @puid_carried_bits String.to_atom("#{mod}_#{name}_puid_carried_bits")
       @puid_bit_shifts bit_shifts
       @puid_bits_per_char bits_per_char
       @puid_bits_per_puid bits_per_puid
@@ -104,6 +104,8 @@ defmodule Puid.Bits do
             generate(char_count - sliced_count, unused_bits, acc_bits)
           end
       end
+
+      def reset(), do: Process.put(@puid_carried_bits, <<>>)
 
       defp generate_bits(char_count, carried_bits) do
         num_bits_needed = char_count * @puid_bits_per_char - bit_size(carried_bits)
