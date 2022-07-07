@@ -559,7 +559,7 @@ defmodule Puid.Test do
   end
 
   test "safe ascii (7 bits)" do
-    defmodule(FixedNoEscapeAsciiBytes,
+    defmodule(FixedSafeAsciiBytes,
       do: use(Puid.Test.FixedBytes, bytes: <<0xA6, 0x33, 0xF6, 0x9E, 0xBD, 0xED, 0xD7, 0x53>>)
     )
 
@@ -574,7 +574,7 @@ defmodule Puid.Test do
     #     x       /                   W                R       b              Q       x
 
     bits_expect =
-      &test_predefined_chars_mod("No escape", :safe_ascii, &1, FixedNoEscapeAsciiBytes, &2)
+      &test_predefined_chars_mod("No escape", :safe_ascii, &1, FixedSafeAsciiBytes, &2)
 
     bits_expect.(12, "x/")
     bits_expect.(25, "x/WR")

@@ -32,7 +32,7 @@ defmodule Puid.Test.Histogram do
   test ":alphanum", do: test_chars("Alphanumeric", "AlphanumId", :alphanum)
 
   @tag :safe_ascii
-  test ":safe_ascii", do: test_chars("All ASCII", "NoEscapeId", :safe_ascii)
+  test ":safe_ascii", do: test_chars("All ASCII", "SafeAsciiId", :safe_ascii)
 
   @tag :unicode
   test "unicode", do: test_chars("Unicode characters", "DingoSkyUnicodeId", "dîñgø$kyDÎÑGØßK¥")
@@ -43,7 +43,7 @@ defmodule Puid.Test.Histogram do
     mod_name = String.to_atom(id_name)
 
     IO.write("#{descr} ... ")
-    
+
     defmodule(mod_name, do: use(Puid, chars: chars, total: trials, risk: risk))
 
     {passed, expect, histogram} = chi_square_test(mod_name, trials)

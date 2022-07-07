@@ -198,7 +198,7 @@ defmodule Puid.Test.Timing do
     trials = 50_000
 
     defmodule(AlphanumPuid128_NQ, do: use(Puid, chars: :alphanum))
-    defmodule(NoEscapePuid128_NQ, do: use(Puid, chars: :safe_ascii))
+    defmodule(SafeAsciiPuid128_NQ, do: use(Puid, chars: :safe_ascii))
 
     IO.puts("\n--- NotQwerty123 ---")
 
@@ -227,7 +227,7 @@ defmodule Puid.Test.Timing do
       )
     end
 
-    puid = fn -> for(_ <- 1..trials, do: NoEscapePuid128_NQ.generate()) end
+    puid = fn -> for(_ <- 1..trials, do: SafeAsciiPuid128_NQ.generate()) end
 
     IO.puts("")
     time(not_querty_printable, "    NotQwerty123 (CSPRNG) ")
