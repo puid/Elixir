@@ -66,8 +66,6 @@ defmodule Puid.Bits do
       @puid_len puid_len
       @puid_rand_bytes rand_bytes
 
-      Process.put(@puid_carried_bits, <<>>)
-
       # If chars count is a power of 2, sliced bits always yield a valid char
       is_pow2? = pow2?(chars_count)
 
@@ -79,7 +77,7 @@ defmodule Puid.Bits do
         is_pow2? ->
           # Sliced bits always valid with carried bits
           def generate() do
-            carried_bits = Process.get(@puid_carried_bits)
+            carried_bits = Process.get(@puid_carried_bits, <<>>)
 
             <<puid_bits::size(@puid_bits_per_puid), unused_bits::bits>> =
               generate_bits(@puid_len, carried_bits)
@@ -91,7 +89,7 @@ defmodule Puid.Bits do
 
         true ->
           # Always manage carried bits since bit slices can be rejected with variable sift
-          def generate(), do: generate(@puid_len, Process.get(@puid_carried_bits), <<>>)
+          def generate(), do: generate(@puid_len, Process.get(@puid_carried_bits, <<>>), <<>>)
 
           defp generate(0, unused_bits, puid_bits) do
             Process.put(@puid_carried_bits, unused_bits)
