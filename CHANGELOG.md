@@ -1,5 +1,15 @@
 # Changelog
 
+## v2.0.2 (2022-07-07)
+
+### Fix
+ - Issue #10: Error 1st argument not a bitstring raised when just defining 
+
+### Testing
+ - Added tests for above fix
+ - Reworked fixed bytes mock entropy source
+ - Added __MODULE__.Bits.reset/1 to facilitate fixed bytes testing
+
 ## v2.0.1 (2022-07-01)
 
 ### Tests

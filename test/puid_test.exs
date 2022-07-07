@@ -648,4 +648,40 @@ defmodule Puid.Test do
       defmodule(InvalidChars, do: use(Puid, chars: "1"))
     end
   end
+
+  test "Calling process not the same as creating process" do
+    defmodule(HereId, do: use(Puid))
+    assert String.length(HereId.generate()) === HereId.info().length
+    spawn(fn -> assert String.length(HereId.generate()) === HereId.info().length end)
+
+    defmodule(HereAlphanumId, do: use(Puid, chars: :alphanum))
+    assert String.length(HereAlphanumId.generate()) === HereAlphanumId.info().length
+
+    spawn(fn ->
+      assert String.length(HereAlphanumId.generate()) === HereAlphanumId.info().length
+    end)
+  end
+
+  test "Calling process not the same as creating process: fixed bytes" do
+    defmodule(FixedHereVowelBytes,
+      do:
+        use(Puid.Test.FixedBytes,
+          bytes: <<0xA6, 0x33, 0xF6, 0x9E, 0xBD, 0xEE, 0xA7, 0x54, 0x9F, 0x2D>>
+        )
+    )
+
+    defmodule(HereVowelId,
+      do: use(Puid, bits: 15, chars: "aeiouAEIOU", rand_bytes: &FixedHereVowelBytes.rand_bytes/1)
+    )
+
+    assert HereVowelId.generate() === "EooEU"
+    assert HereVowelId.generate() === "IUAuU"
+
+    spawn(fn -> assert HereVowelId.generate() === "EooEU" end)
+
+    spawn(fn ->
+      assert HereVowelId.generate() === "EooEU"
+      assert HereVowelId.generate() === "IUAuU"
+    end)
+  end
 end
