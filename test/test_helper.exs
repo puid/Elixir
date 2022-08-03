@@ -31,21 +31,19 @@ defmodule Puid.Test.FixedBytes do
 
       def rand_bytes(count) do
         {byte_offset, fixed_bytes} = state()
-        @agent_name |> Agent.update(fn {_, bytes} -> {byte_offset + count, bytes} end)
+        @agent_name |> Agent.update(fn _ -> {byte_offset + count, fixed_bytes} end)
         binary_part(fixed_bytes, byte_offset, count)
       end
 
       def state(), do: @agent_name |> Agent.get(& &1)
 
-      def reset(), do: @agent_name |> Agent.update(fn {_, bytes} -> {0, bytes} end)
+      def reset(), do: @agent_name |> Agent.update(fn {_, fixed_bytes} -> {0, fixed_bytes} end)
     end
   end
 end
 
 defmodule Puid.Test.Util do
   @moduledoc false
-
-  use ExUnit.Case
 
   def binary_digits(bits, group \\ 4) when is_bitstring(bits) and 0 < group,
     do: binary_digits(bits, "", group)
