@@ -89,10 +89,12 @@ end
 defmodule Puid.Test.Data do
   @moduledoc false
 
+  use ExUnit.Case, async: true
+
   def path(file_name), do: Path.join([Path.absname(""), "test", "data", file_name])
 
-  def test_params(data_dir) do
-    params = File.open!(Puid.Test.Data.path(Path.join(data_dir, "params")))
+  def test_params(data_name) do
+    params = File.open!(Puid.Test.Data.path(Path.join(data_name, "params")))
     next_param = fn -> params |> IO.read(:line) |> String.trim_trailing() end
 
     bin_file = Puid.Test.Data.path(next_param.())
@@ -110,7 +112,7 @@ defmodule Puid.Test.Data do
           string
       end
 
-    ids_count = String.to_integer(next_param.())
+    id_count = String.to_integer(next_param.())
 
     %{
       bin_file: bin_file,
@@ -118,23 +120,23 @@ defmodule Puid.Test.Data do
       total: total,
       risk: risk,
       chars: chars,
-      ids_count: ids_count
+      id_count: id_count
     }
   end
 
-  def data_id_mod(data_dir) do
+  def data_id_mod(data_name) do
     %{
       :bin_file => bin_file,
       :test_name => test_name,
       :total => total,
       :risk => risk,
       :chars => chars
-    } = test_params(data_dir)
+    } = test_params(data_name)
 
     data_bytes_mod = "#{test_name}Bytes" |> String.to_atom()
 
     defmodule(data_bytes_mod,
-      do: use(Puid.Test.FixedBytes, data_path: path(bin_file))
+      do: use(Puid.Test.FixedBytes, data_path: bin_file)
     )
 
     data_id_mod = "#{test_name}Id" |> String.to_atom()
@@ -151,4 +153,15 @@ defmodule Puid.Test.Data do
 
     data_id_mod
   end
+
+  def test(data_name) do
+    data_id_mod = data_id_mod(data_name)
+
+    path(Path.join(data_name, "ids"))
+    |> File.stream!()
+    |> Stream.map(&String.trim_trailing/1)
+    |> Stream.each(fn id -> assert data_id_mod.generate() == id end)
+    |> Stream.run()
+  end
+
 end

@@ -262,7 +262,7 @@ defmodule Puid.Chars do
   end
 
   #
-  # Safa ascii chars are ?! thru ?~, omitting backslash, backtick and single/double-quotes
+  # Safe ascii chars are ?! thru ?~, omitting backslash, backtick and single/double-quotes
   #
   defp safe_ascii?(?!), do: true
   defp safe_ascii?(c) when c < ?#, do: false

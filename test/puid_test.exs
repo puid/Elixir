@@ -682,20 +682,8 @@ defmodule Puid.Test do
     end)
   end
 
-  defp test_data(data_dir) do
-    data_id_mod = Puid.Test.Data.data_id_mod(data_dir)
-
-    ids_file = Puid.Test.Data.path(Path.join(data_dir, "ids"))
-
-    Puid.Test.Util.data_path(ids_file)
-    |> File.stream!()
-    |> Stream.map(&String.trim_trailing/1)
-    |> Stream.each(fn id -> assert data_id_mod.generate() == id end)
-    |> Stream.run()
-  end
-
   @tag :debug
   test "test alphanum using random.bin" do
-    test_data("alphanum")
+    Puid.Test.Data.test("alphanum")
   end
 end
