@@ -164,4 +164,16 @@ defmodule Puid.Test.Data do
     |> Stream.run()
   end
 
+  def write_test_data(data_name) do
+    data_id_mod = Puid.Test.Data.data_id_mod(data_name)
+
+    %{:id_count => id_count} = test_params(data_name)
+
+    ids_file = File.stream!(path(Path.join(data_name, "ids")))
+
+    1..id_count
+    |> Stream.map(fn _ -> data_id_mod.generate() end)
+    |> Stream.map(&[&1, "\n"])
+    |> Enum.into(ids_file)
+  end
 end
