@@ -26,8 +26,17 @@ defmodule Puid.Test.FixedBytes do
 
   defmacro __using__(opts) do
     quote do
+      fixed_bytes =
+        case unquote(opts)[:bytes] do
+          nil ->
+            File.read!(unquote(opts[:data_path]))
+
+          bytes ->
+            bytes
+        end
+
       @agent_name String.to_atom("#{__MODULE__}Agent")
-      Agent.start_link(fn -> {0, unquote(opts)[:bytes]} end, name: @agent_name)
+      Agent.start_link(fn -> {0, fixed_bytes} end, name: @agent_name)
 
       def rand_bytes(count) do
         {byte_offset, fixed_bytes} = state()
@@ -74,5 +83,72 @@ defmodule Puid.Test.Util do
   def print_bits(bits, msg, group) do
     bits |> binary_digits(group) |> IO.inspect(label: msg)
     bits
+  end
+end
+
+defmodule Puid.Test.Data do
+  @moduledoc false
+
+  def path(file_name), do: Path.join([Path.absname(""), "test", "data", file_name])
+
+  def test_params(data_dir) do
+    params = File.open!(Puid.Test.Data.path(Path.join(data_dir, "params")))
+    next_param = fn -> params |> IO.read(:line) |> String.trim_trailing() end
+
+    bin_file = Puid.Test.Data.path(next_param.())
+    test_name = next_param.()
+    total = String.to_integer(next_param.())
+    risk = String.to_float(next_param.())
+
+    chars =
+      String.split(next_param.(), ":")
+      |> case do
+        ["predefined", atom] ->
+          String.to_atom(atom)
+
+        ["custom", string] ->
+          string
+      end
+
+    ids_count = String.to_integer(next_param.())
+
+    %{
+      bin_file: bin_file,
+      test_name: test_name,
+      total: total,
+      risk: risk,
+      chars: chars,
+      ids_count: ids_count
+    }
+  end
+
+  def data_id_mod(data_dir) do
+    %{
+      :bin_file => bin_file,
+      :test_name => test_name,
+      :total => total,
+      :risk => risk,
+      :chars => chars
+    } = test_params(data_dir)
+
+    data_bytes_mod = "#{test_name}Bytes" |> String.to_atom()
+
+    defmodule(data_bytes_mod,
+      do: use(Puid.Test.FixedBytes, data_path: path(bin_file))
+    )
+
+    data_id_mod = "#{test_name}Id" |> String.to_atom()
+
+    defmodule(data_id_mod,
+      do:
+        use(Puid,
+          total: total,
+          risk: risk,
+          chars: chars,
+          rand_bytes: &data_bytes_mod.rand_bytes/1
+        )
+    )
+
+    data_id_mod
   end
 end
