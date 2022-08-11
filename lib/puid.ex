@@ -242,24 +242,6 @@ defmodule Puid do
 
       bits_per_char = log_ceil(chars_count)
 
-      shifts =
-        if pow2?(chars_count) do
-          [{chars_count, bits_per_char}]
-        else
-          (bits_per_char - 1)..2
-          |> Enum.reduce(
-            [],
-            fn bit, shifts ->
-              if bit_zero?(chars_count, bit) do
-                [{chars_count ||| pow2(bit) - 1, bits_per_char - bit + 1} | shifts]
-              else
-                shifts
-              end
-            end
-          )
-          |> List.insert_at(0, {chars_count, bits_per_char})
-        end
-
       defmodule __MODULE__.Bits,
         do:
           use(Puid.Bits,
