@@ -682,8 +682,24 @@ defmodule Puid.Test do
     end)
   end
 
-  @tag :debug
-  test "test alphanum using random.bin" do
+  @tag :test_data
+  test "test data alphanum" do
     Puid.Test.Data.test("alphanum")
+  end
+
+  @tag :test_data
+  test "test data alpha 10 lower" do
+    Puid.Test.Data.test("alpha_10_lower")
+  end
+
+  @tag :test_data
+  test "test data safe32" do
+    Puid.Test.Data.test("safe32")
+    # Puid.Test.Data.write_test_data("safe32")
+  end
+
+  @tag :test_data
+  test "test data unicode" do
+    Puid.Test.Data.test("unicode")
   end
 end

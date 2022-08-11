@@ -94,7 +94,7 @@ defmodule Puid.Test.Data do
   def path(file_name), do: Path.join([Path.absname(""), "test", "data", file_name])
 
   def test_params(data_name) do
-    params = File.open!(Puid.Test.Data.path(Path.join(data_name, "params")))
+    params = File.open!(Puid.Test.Data.path(Path.join(data_name, "params")), [:utf8])
     next_param = fn -> params |> IO.read(:line) |> String.trim_trailing() end
 
     bin_file = Puid.Test.Data.path(next_param.())
