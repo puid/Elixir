@@ -37,6 +37,9 @@ defmodule Puid.Test.Histogram do
   @tag :unicode
   test "unicode", do: test_chars("Unicode characters", "DingoSkyUnicodeId", "dîñgø$kyDÎÑGØßK¥")
 
+  @tag :alpha_10_lower
+  test "alpha 10 lower", do: test_chars("10 alpha lower chars", "Alpha10LowerId", "abcdefghij")
+
   defp test_chars(descr, id_name, chars) do
     trials = 500_000
     risk = 1.0e12
