@@ -693,9 +693,13 @@ defmodule Puid.Test do
   end
 
   @tag :test_data
+  test "test data dingosky" do
+    Puid.Test.Data.test("dingosky")
+  end
+
+  @tag :test_data
   test "test data safe32" do
     Puid.Test.Data.test("safe32")
-    # Puid.Test.Data.write_test_data("safe32")
   end
 
   @tag :test_data
