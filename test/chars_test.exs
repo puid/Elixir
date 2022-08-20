@@ -115,6 +115,13 @@ defmodule Puid.Test.Chars do
     assert_raise(Puid.Error, fn -> Chars.charlist!(too_long) end)
   end
 
+  test "charlist of non-ascii String" do
+    assert {:error, reason} = Chars.charlist("dingo sky")
+    assert reason |> String.contains?("Invalid ascii")
+
+    assert_raise(Puid.Error, fn -> Chars.charlist!('dingosky\n') end)
+  end
+
   test "ascii encoding" do
     assert Chars.encoding("abc") == :ascii
     assert Chars.encoding("abc∂ef") == :utf8

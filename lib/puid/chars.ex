@@ -158,9 +158,8 @@ defmodule Puid.Chars do
   @doc """
   `charlist` for a pre-defined `Puid.Chars`, a String.t() or a charlist.
 
-  The characters for either String.t() or charlist types must be unique and must have more than
-  one character. It is assumed each character has equal probability of occurrence, which
-  maximizes entropy.
+  The characters for either String.t() or charlist types must be unique, have more than one
+  character, and not be invalid ascii.
 
   ## Example
 
@@ -201,19 +200,10 @@ defmodule Puid.Chars do
   @spec charlist!(puid_chars()) :: charlist() | Puid.Error.t()
   def charlist!(chars)
 
-  def charlist!(chars) when is_binary(chars), do: chars |> to_charlist() |> charlist!()
+  def charlist!(chars) when is_binary(chars),
+    do: chars |> validate_chars() |> validate_charlist(false)
 
-  def charlist!(charlist) when is_list(charlist) do
-    len = length(charlist)
-    if len < 2, do: raise(Puid.Error, "Need at least 2 characters")
-
-    if @chars_count_max < len,
-      do: raise(Puid.Error, "Character count cannot be greater than #{@chars_count_max}")
-
-    if !unique?(charlist, %{}), do: raise(Puid.Error, "Characters not unique")
-
-    charlist
-  end
+  def charlist!(charlist) when is_list(charlist), do: charlist |> validate_charlist(true)
 
   def charlist!(:alpha), do: charlist!(:alpha_upper) ++ charlist!(:alpha_lower)
   def charlist!(:alpha_lower), do: Enum.to_list(?a..?z)
@@ -240,6 +230,33 @@ defmodule Puid.Chars do
 
   def charlist!(charlist) when is_atom(charlist),
     do: raise(Puid.Error, "Invalid pre-defined charlist: :#{charlist}")
+
+  def validate_chars(chars) when is_binary(chars) do
+    valid =
+      chars
+      |> String.graphemes()
+      |> Enum.reduce(true, fn symbol, acc ->
+        acc and (1 < byte_size(symbol) or safe_ascii?(symbol |> to_charlist() |> Enum.at(0)))
+      end)
+
+    if !valid, do: raise(Puid.Error, "Invalid ascii char")
+
+    chars |> to_charlist()
+  end
+
+  def validate_charlist(charlist, check_ascii? \\ true) when is_list(charlist) do
+    len = length(charlist)
+    if len < 2, do: raise(Puid.Error, "Need at least 2 characters")
+
+    if @chars_count_max < len,
+      do: raise(Puid.Error, "Character count cannot be greater than #{@chars_count_max}")
+
+    if !unique?(charlist, %{}), do: raise(Puid.Error, "Characters not unique")
+
+    if check_ascii?, do: charlist |> to_string |> validate_chars()
+
+    charlist
+  end
 
   @doc false
   @spec encoding(charlist()) :: puid_encoding()
