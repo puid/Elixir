@@ -38,6 +38,27 @@ defmodule Puid.Encoding.Utf8 do
       @puid_char_count length(charlist)
       @puid_single_chunks_size single_chunks_size
 
+      cond do
+        puid_size < @puid_single_chunks_size ->
+          def encode(bits), do: encode_unchunked(bits)
+
+        puid_size == @puid_single_chunks_size ->
+          def encode(bits), do: encode_singles(bits)
+
+        true ->
+          def encode(bits) do
+            <<
+              single_chunks::size(@puid_single_chunks_size)-bits,
+              sub_chunk::bits
+            >> = bits
+
+            singles = encode_singles(single_chunks)
+            subchunk = encode_unchunked(sub_chunk)
+
+            <<singles::binary, subchunk::binary>>
+          end
+      end
+
       defmacrop single_encoding(value) do
         quote do
           case unquote(value) do
@@ -55,58 +76,41 @@ defmodule Puid.Encoding.Utf8 do
         end
       end
 
-      cond do
-        puid_size < @puid_single_chunks_size ->
-          defp chunk(bits), do: {<<>>, bits}
-
-        puid_size == @puid_single_chunks_size ->
-          defp chunk(bits), do: {bits, <<>>}
-
-        true ->
-          defp chunk(bits) do
-            <<
-              single_chunks::size(@puid_single_chunks_size)-bits,
-              unchunked::bits
-            >> = bits
-
-            {single_chunks, unchunked}
-          end
-      end
-
       def single_encode(char), do: single_encoding(char)
 
-      def encode(bits) do
-        {single_chunks, unchunked} = chunk(bits)
+      defp encode_singles(chunks) do
+        case chunks do
+          <<>> ->
+            <<>>
 
-        singles =
-          case single_chunks do
-            <<>> ->
-              <<>>
+          _ ->
+            for <<s1::@puid_bits_per_char, s2::@puid_bits_per_char, s3::@puid_bits_per_char,
+                  s4::@puid_bits_per_char, s5::@puid_bits_per_char, s6::@puid_bits_per_char,
+                  s7::@puid_bits_per_char, s8::@puid_bits_per_char <- chunks>>,
+                into: <<>> do
+              <<
+                single_encode(s1)::utf8,
+                single_encode(s2)::utf8,
+                single_encode(s3)::utf8,
+                single_encode(s4)::utf8,
+                single_encode(s5)::utf8,
+                single_encode(s6)::utf8,
+                single_encode(s7)::utf8,
+                single_encode(s8)::utf8
+              >>
+            end
+        end
+      end
 
-            _ ->
-              for <<s1::@puid_bits_per_char, s2::@puid_bits_per_char, s3::@puid_bits_per_char,
-                    s4::@puid_bits_per_char, s5::@puid_bits_per_char, s6::@puid_bits_per_char,
-                    s7::@puid_bits_per_char, s8::@puid_bits_per_char <- single_chunks>>,
-                  into: <<>> do
-                <<
-                  single_encode(s1)::utf8,
-                  single_encode(s2)::utf8,
-                  single_encode(s3)::utf8,
-                  single_encode(s4)::utf8,
-                  single_encode(s5)::utf8,
-                  single_encode(s6)::utf8,
-                  single_encode(s7)::utf8,
-                  single_encode(s8)::utf8
-                >>
-              end
-          end
+      defp encode_unchunked(chunk) do
+        case chunk do
+          <<>> ->
+            <<>>
 
-        case unchunked do
           <<s1::@puid_bits_per_char, s2::@puid_bits_per_char, s3::@puid_bits_per_char,
             s4::@puid_bits_per_char, s5::@puid_bits_per_char, s6::@puid_bits_per_char,
             s7::@puid_bits_per_char>> ->
             <<
-              singles::binary,
               single_encode(s1)::utf8,
               single_encode(s2)::utf8,
               single_encode(s3)::utf8,
@@ -119,7 +123,6 @@ defmodule Puid.Encoding.Utf8 do
           <<s1::@puid_bits_per_char, s2::@puid_bits_per_char, s3::@puid_bits_per_char,
             s4::@puid_bits_per_char, s5::@puid_bits_per_char, s6::@puid_bits_per_char>> ->
             <<
-              singles::binary,
               single_encode(s1)::utf8,
               single_encode(s2)::utf8,
               single_encode(s3)::utf8,
@@ -131,7 +134,6 @@ defmodule Puid.Encoding.Utf8 do
           <<s1::@puid_bits_per_char, s2::@puid_bits_per_char, s3::@puid_bits_per_char,
             s4::@puid_bits_per_char, s5::@puid_bits_per_char>> ->
             <<
-              singles::binary,
               single_encode(s1)::utf8,
               single_encode(s2)::utf8,
               single_encode(s3)::utf8,
@@ -142,7 +144,6 @@ defmodule Puid.Encoding.Utf8 do
           <<s1::@puid_bits_per_char, s2::@puid_bits_per_char, s3::@puid_bits_per_char,
             s4::@puid_bits_per_char>> ->
             <<
-              singles::binary,
               single_encode(s1)::utf8,
               single_encode(s2)::utf8,
               single_encode(s3)::utf8,
@@ -151,7 +152,6 @@ defmodule Puid.Encoding.Utf8 do
 
           <<s1::@puid_bits_per_char, s2::@puid_bits_per_char, s3::@puid_bits_per_char>> ->
             <<
-              singles::binary,
               single_encode(s1)::utf8,
               single_encode(s2)::utf8,
               single_encode(s3)::utf8
@@ -159,19 +159,14 @@ defmodule Puid.Encoding.Utf8 do
 
           <<s1::@puid_bits_per_char, s2::@puid_bits_per_char>> ->
             <<
-              singles::binary,
               single_encode(s1)::utf8,
               single_encode(s2)::utf8
             >>
 
           <<s1::@puid_bits_per_char>> ->
             <<
-              singles::binary,
               single_encode(s1)::utf8
             >>
-
-          <<>> ->
-            singles
         end
       end
     end
