@@ -1,12 +1,18 @@
 # Changelog
 
-## v2.0.3 (2022-08-21)
+## v2.0.4 (2022-12-10)
 
-# Changelog
+### Fix issue #12
+
+- Prevent macro generated `encode` function from encoding bit chunks known to be `<<>>`. Prior code resulted in dialyzer warnings.
+- This change does not effect functionality.
+
+## v2.0.3 (2022-08-21)
 
 ### Fix
 
-- Fix FixBytes test helper. Only effected deterministic "random" bytes testing.
+- Fix FixBytes test helper. Only effects deterministic "random" bytes testing.
+- This change does not effect functionality.
 
 ### Add
 
