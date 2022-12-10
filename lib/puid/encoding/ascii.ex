@@ -41,6 +41,58 @@ defmodule Puid.Encoding.ASCII do
       @puid_pair_chunks_size pair_chunks_size
       @puid_single_chunk_size single_chunk_size
 
+      cond do
+        puid_size < @puid_single_chunk_size ->
+          def encode(bits), do: encode_unchunked(bits)
+
+        puid_size == @puid_single_chunk_size ->
+          def encode(bits), do: encode_single(bits)
+
+        puid_size == @puid_pair_chunks_size ->
+          def encode(bits), do: encode_pairs(bits)
+
+        puid_size < @puid_pair_chunks_size ->
+          def encode(bits) do
+            <<
+              single_chunk::size(@puid_single_chunk_size)-bits,
+              sub_chunk::bits
+            >> = bits
+
+            single = encode_single(single_chunk)
+            subchunk = encode_unchunked(sub_chunk)
+
+            <<single::binary, subchunk::binary>>
+          end
+
+        puid_size < @puid_pair_chunks_size + @puid_single_chunk_size ->
+          def encode(bits) do
+            <<
+              pair_chunks::size(@puid_pair_chunks_size)-bits,
+              sub_chunk::bits
+            >> = bits
+
+            pairs = encode_pairs(pair_chunks)
+            subchunk = encode_unchunked(sub_chunk)
+
+            <<pairs::binary, subchunk::binary>>
+          end
+
+        true ->
+          def encode(bits) do
+            <<
+              pair_chunks::size(@puid_pair_chunks_size)-bits,
+              single_chunk::size(@puid_single_chunk_size)-bits,
+              sub_chunk::bits
+            >> = bits
+
+            pairs = encode_pairs(pair_chunks)
+            single = encode_single(single_chunk)
+            subchunk = encode_unchunked(sub_chunk)
+
+            <<pairs::binary, single::binary, subchunk::binary>>
+          end
+      end
+
       defmacrop pair_encoding(value) do
         quote do
           case unquote(value) do
@@ -79,62 +131,19 @@ defmodule Puid.Encoding.ASCII do
         end
       end
 
-      cond do
-        puid_size < @puid_single_chunk_size ->
-          defp chunk(bits), do: {<<>>, <<>>, bits}
-
-        puid_size == @puid_single_chunk_size ->
-          defp chunk(bits), do: {<<>>, bits, <<>>}
-
-        puid_size < @puid_pair_chunks_size ->
-          defp chunk(bits) do
-            <<single_chunk::size(@puid_single_chunk_size)-bits, unchunked::bits>> = bits
-            {<<>>, single_chunk, unchunked}
-          end
-
-        puid_size == @puid_pair_chunks_size ->
-          defp chunk(bits), do: {bits, <<>>, <<>>}
-
-        puid_size < @puid_pair_chunks_size + @puid_single_chunk_size ->
-          defp chunk(bits) do
-            <<pair_chunks::size(@puid_pair_chunks_size)-bits, unchunked::bits>> = bits
-            {pair_chunks, <<>>, unchunked}
-          end
-
-        true ->
-          defp chunk(bits) do
-            <<
-              pair_chunks::size(@puid_pair_chunks_size)-bits,
-              single_chunk::size(@puid_single_chunk_size)-bits,
-              unchunked::bits
-            >> = bits
-
-            {pair_chunks, single_chunk, unchunked}
-          end
-      end
-
       defp pair_encode(char), do: pair_encoding(char)
 
       defp single_encode(char), do: single_encoding(char)
 
-      def encode(bits) do
-        {pair_chunks, single_chunk, sub_chunk} = chunk(bits)
-        pairs = encode_pairs(pair_chunks)
-        single = encode_single(single_chunk)
-        unchunked = encode_unchunked(sub_chunk)
-
-        <<pairs::binary, single::binary, unchunked::binary>>
-      end
-
-      defp encode_pairs(pair_chunks) do
-        case pair_chunks do
+      defp encode_pairs(chunks) do
+        case chunks do
           <<>> ->
             <<>>
 
           _ ->
             for <<p1::@puid_bits_per_pair, p2::@puid_bits_per_pair, p3::@puid_bits_per_pair,
                   p4::@puid_bits_per_pair, p5::@puid_bits_per_pair, p6::@puid_bits_per_pair,
-                  p7::@puid_bits_per_pair, p8::@puid_bits_per_pair <- pair_chunks>>,
+                  p7::@puid_bits_per_pair, p8::@puid_bits_per_pair <- chunks>>,
                 into: <<>> do
               <<
                 pair_encode(p1)::16,
@@ -150,8 +159,8 @@ defmodule Puid.Encoding.ASCII do
         end
       end
 
-      defp encode_single(single_chunk) do
-        case single_chunk do
+      defp encode_single(chunk) do
+        case chunk do
           <<>> ->
             <<>>
 
@@ -171,8 +180,8 @@ defmodule Puid.Encoding.ASCII do
         end
       end
 
-      defp encode_unchunked(unchunked) do
-        case unchunked do
+      defp encode_unchunked(chunk) do
+        case chunk do
           <<>> ->
             <<>>
 
