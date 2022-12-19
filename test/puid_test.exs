@@ -617,6 +617,19 @@ defmodule Puid.Test do
     assert info.ere == 0.5
   end
 
+  # This doesn't actually test the modules, but defines each case as per issue #12
+  test "Cover all chunk sizings" do
+    defmodule(LessSingleId, do: use(Puid, bits: 5, chars: :safe64))
+    defmodule(SingleId, do: use(Puid, bits: 40, chars: :safe32))
+    defmodule(LessPairId, do: use(Puid, bits: 40, chars: "dingoskyme"))
+    defmodule(EqualPairId, do: use(Puid, bits: 64, chars: :hex))
+    defmodule(EqualPairsId, do: use(Puid, bits: 128, chars: :hex))
+    defmodule(LessPairsPlusSingleId, do: use(Puid, bits: 148, chars: :hex))
+    defmodule(EqualPairPlusSingleId, do: use(Puid, bits: 140, chars: :alphanum))
+    defmodule(EqualPairsPlusSingleId, do: use(Puid, bits: 196, chars: :safe32))
+    defmodule(GreaterPairsPlusSingleId, do: use(Puid, bits: 220, chars: :safe32))
+  end
+
   test "Invalid total,risk: one missing" do
     assert_raise Puid.Error, fn ->
       defmodule(InvalidTotalRisk, do: use(Puid, total: 100))

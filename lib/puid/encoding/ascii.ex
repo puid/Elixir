@@ -32,26 +32,28 @@ defmodule Puid.Encoding.ASCII do
       puid_size = puid_len * bits_per_char
       single_chunk_size = 8 * bits_per_char
       pair_chunk_size = 2 * single_chunk_size
-      pair_chunks_size = div(puid_size, pair_chunk_size) * pair_chunk_size
+      pair_chunks_size = max(div(puid_size, pair_chunk_size) * pair_chunk_size, pair_chunk_size)
 
       @puid_bits_per_char bits_per_char
       @puid_bits_per_pair 2 * bits_per_char
       @puid_charlist charlist
       @puid_char_count length(charlist)
-      @puid_pair_chunks_size pair_chunks_size
+
       @puid_single_chunk_size single_chunk_size
+      @puid_pair_chunk_size pair_chunk_size
+      @puid_pair_chunks_size pair_chunks_size
 
       cond do
+        # Less than a single chunk
         puid_size < @puid_single_chunk_size ->
           def encode(bits), do: encode_unchunked(bits)
 
+        # Equal to a single chunk
         puid_size == @puid_single_chunk_size ->
           def encode(bits), do: encode_single(bits)
 
-        puid_size == @puid_pair_chunks_size ->
-          def encode(bits), do: encode_pairs(bits)
-
-        puid_size < @puid_pair_chunks_size ->
+        # Less than a pair chunk
+        puid_size < @puid_pair_chunk_size ->
           def encode(bits) do
             <<
               single_chunk::size(@puid_single_chunk_size)-bits,
@@ -64,6 +66,11 @@ defmodule Puid.Encoding.ASCII do
             <<single::binary, subchunk::binary>>
           end
 
+        # Equal to one or more pair chunks
+        puid_size == @puid_pair_chunks_size ->
+          def encode(bits), do: encode_pairs(bits)
+
+        # Less than one or more pair chunks plus a single chunk
         puid_size < @puid_pair_chunks_size + @puid_single_chunk_size ->
           def encode(bits) do
             <<
@@ -77,6 +84,21 @@ defmodule Puid.Encoding.ASCII do
             <<pairs::binary, subchunk::binary>>
           end
 
+        # Equal to one or more pair chunks plus a single chunk
+        puid_size == @puid_pair_chunks_size + @puid_single_chunk_size ->
+          def encode(bits) do
+            <<
+              pair_chunks::size(@puid_pair_chunks_size)-bits,
+              single_chunk::size(@puid_single_chunk_size)-bits
+            >> = bits
+
+            pairs = encode_pairs(pair_chunks)
+            single = encode_single(single_chunk)
+
+            <<pairs::binary, single::binary>>
+          end
+
+        # Greater than one or more pair chunks plus a single chunk
         true ->
           def encode(bits) do
             <<

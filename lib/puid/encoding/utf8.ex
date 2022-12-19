@@ -39,12 +39,15 @@ defmodule Puid.Encoding.Utf8 do
       @puid_single_chunks_size single_chunks_size
 
       cond do
+        # Less than a single chunk
         puid_size < @puid_single_chunks_size ->
           def encode(bits), do: encode_unchunked(bits)
 
+        # Equal to one or more a single chunks
         puid_size == @puid_single_chunks_size ->
           def encode(bits), do: encode_singles(bits)
 
+        # Not a multiple of a single chunks
         true ->
           def encode(bits) do
             <<
