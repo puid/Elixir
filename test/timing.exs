@@ -188,11 +188,6 @@ defmodule Puid.Test.Timing do
     time(puid, "    Puid        (CSPRNG) ")
   end
 
-  @tag :debug
-  test "CxDebug" do
-    NotQwerty123.RandomPassword.gen_password() |> IO.inspect(label: "?")
-  end
-
   @tag :not_qwerty123
   test "compare to NotQwerty123" do
     trials = 50_000

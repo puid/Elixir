@@ -146,7 +146,6 @@ defmodule Puid.Test.Entropy do
     assert_raise Puid.Error, fn -> bits_per_char!('unique') end
   end
 
-  @tag :debug
   test "too short bits_per_char" do
     'u' |> bits_per_char() |> assert_error_matches("least 2")
     "" |> bits_per_char() |> assert_error_matches("least 2")

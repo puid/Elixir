@@ -303,7 +303,6 @@ defmodule Puid.Test do
     bits_expect.(32, "c7c9002a")
   end
 
-  @tag :only
   test "safe32 chars (5 bits)" do
     defmodule(Safe32Bytes,
       do: use(Puid.Test.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xDA, 0x19, 0x03, 0xB7, 0x3C>>)
