@@ -1,5 +1,13 @@
 # Changelog
 
+## v2.0.5 (2022-12-19)
+
+### Further prevention of issue #12
+
+- Further prevention of macro generated `encode` function dialyzer warnings.
+  - All combinations of pairs/single/unchunked encoding chunk sizes are now covered.
+- This change does not effect functionality.
+
 ## v2.0.4 (2022-12-10)
 
 ### Fix issue #12
