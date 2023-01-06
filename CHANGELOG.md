@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.0.6 (2023-01-06)
+
+### code point validation
+
+- Reject utf8 code points between tilde and inverse bang
+- General code cleanup regarding code point validation
+
 ## v2.0.5 (2022-12-19)
 
 ### Further prevention of issue #12
