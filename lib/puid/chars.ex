@@ -200,11 +200,6 @@ defmodule Puid.Chars do
   @spec charlist!(puid_chars()) :: charlist() | Puid.Error.t()
   def charlist!(chars)
 
-  def charlist!(chars) when is_binary(chars),
-    do: chars |> validate_chars() |> validate_charlist(false)
-
-  def charlist!(charlist) when is_list(charlist), do: charlist |> validate_charlist(true)
-
   def charlist!(:alpha), do: charlist!(:alpha_upper) ++ charlist!(:alpha_lower)
   def charlist!(:alpha_lower), do: Enum.to_list(?a..?z)
   def charlist!(:alpha_upper), do: Enum.to_list(?A..?Z)
@@ -231,20 +226,42 @@ defmodule Puid.Chars do
   def charlist!(charlist) when is_atom(charlist),
     do: raise(Puid.Error, "Invalid pre-defined charlist: :#{charlist}")
 
-  def validate_chars(chars) when is_binary(chars) do
-    valid =
-      chars
-      |> String.graphemes()
-      |> Enum.reduce(true, fn symbol, acc ->
-        acc and (1 < byte_size(symbol) or safe_ascii?(symbol |> to_charlist() |> Enum.at(0)))
-      end)
+  def charlist!(chars) when is_binary(chars),
+    do: chars |> to_charlist() |> validate_charlist()
 
-    if !valid, do: raise(Puid.Error, "Invalid ascii char")
+  def charlist!(charlist) when is_list(charlist), do: validate_charlist(charlist)
 
-    chars |> to_charlist()
+  @doc false
+  @spec encoding(charlist() | binary()) :: puid_encoding()
+  def encoding(charlist_or_chars)
+
+  def encoding(chars) when is_binary(chars) do
+    chars |> to_charlist() |> encoding()
   end
 
-  def validate_charlist(charlist, check_ascii? \\ true) when is_list(charlist) do
+  def encoding(charlist) when is_list(charlist) do
+    charlist
+    |> Enum.reduce(:ascii, fn code_point, encoding ->
+      cond do
+        code_point < 0x007F and safe_ascii?(code_point) ->
+          encoding
+
+        safe_code_point?(code_point) ->
+          :utf8
+
+        true ->
+          raise(Puid.Error, "Invalid char")
+      end
+    end)
+  end
+
+  @doc false
+  # Validate that:
+  #  - at least 2 code points
+  #  - no more than max code points
+  #  - unique code points
+  #  - valid code points
+  def validate_charlist(charlist) when is_list(charlist) do
     len = length(charlist)
     if len < 2, do: raise(Puid.Error, "Need at least 2 characters")
 
@@ -253,45 +270,39 @@ defmodule Puid.Chars do
 
     if !unique?(charlist, %{}), do: raise(Puid.Error, "Characters not unique")
 
-    if check_ascii?, do: charlist |> to_string |> validate_chars()
-
     charlist
-  end
-
-  @doc false
-  @spec encoding(charlist()) :: puid_encoding()
-  def encoding(chars) do
-    chars
-    |> to_string()
-    |> String.graphemes()
-    |> Enum.reduce(:ascii, fn symbol, encoding ->
-      cond do
-        1 < byte_size(symbol) ->
-          :utf8
-
-        safe_ascii?(symbol |> to_charlist() |> Enum.at(0)) ->
-          encoding
-
-        true ->
-          raise(Puid.Error, "Invalid ascii char")
-      end
+    |> Enum.reduce(true, fn code_point, acc ->
+      acc and safe_code_point?(code_point)
     end)
+    |> case do
+      false ->
+        raise(Puid.Error, "Invalid code point")
+
+      _ ->
+        charlist
+    end
   end
 
-  #
-  # Safe ascii chars are ?! thru ?~, omitting backslash, backtick and single/double-quotes
-  #
-  defp safe_ascii?(?!), do: true
-  defp safe_ascii?(c) when c < ?#, do: false
-  defp safe_ascii?(?'), do: false
-  defp safe_ascii?(?\\), do: false
-  defp safe_ascii?(?`), do: false
-  defp safe_ascii?(c) when ?~ < c, do: false
-  defp safe_ascii?(_), do: true
+  # Prevent "unsafe" code points
+  defp safe_code_point?(cp) when cp < 0x007F, do: safe_ascii?(cp)
+  defp safe_code_point?(cp), do: safe_utf8?(cp)
 
-  #
+  # Safe ascii code points are chars from ?! to ?~,
+  #   omitting backslash, backtick and single/double-quotes
+  defp safe_ascii?(cp) when cp < 0x0021, do: false
+  defp safe_ascii?(0x0022), do: false
+  defp safe_ascii?(0x0027), do: false
+  defp safe_ascii?(0x005C), do: false
+  defp safe_ascii?(0x0060), do: false
+  defp safe_ascii?(cp) when cp < 0x007F, do: true
+  defp safe_ascii?(_), do: false
+
+  # Reject code points between tilde and inverse bang
+  # CxNote There may be other utf8 code points that should be invalid.
+  defp safe_utf8?(g) when g < 0x00A1, do: false
+  defp safe_utf8?(_), do: true
+
   # Are charlist characters unique?
-  #
   defp unique?([], no_repeat?), do: no_repeat?
 
   defp unique?([char | charlist], seen) do

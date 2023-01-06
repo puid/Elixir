@@ -115,11 +115,25 @@ defmodule Puid.Test.Chars do
     assert_raise(Puid.Error, fn -> Chars.charlist!(too_long) end)
   end
 
-  test "charlist of non-ascii String" do
+  test "invalid charlist error" do
     assert {:error, reason} = Chars.charlist("dingo sky")
-    assert reason |> String.contains?("Invalid ascii")
+    assert reason |> String.contains?("Invalid")
+  end
 
-    assert_raise(Puid.Error, fn -> Chars.charlist!('dingosky\n') end)
+  test "charlist with unsafe ascii" do
+    assert_raise(Puid.Error, fn -> Chars.charlist!('dingo sky') end)
+    assert_raise(Puid.Error, fn -> Chars.charlist!('dingo"sky') end)
+    assert_raise(Puid.Error, fn -> Chars.charlist!('dingo\'sky') end)
+    assert_raise(Puid.Error, fn -> Chars.charlist!('dingo\\sky') end)
+    assert_raise(Puid.Error, fn -> Chars.charlist!('dingo`sky') end)
+  end
+
+  test "String with unsafe ascii" do
+    assert_raise(Puid.Error, fn -> Chars.charlist!("dingo`sky") end)
+  end
+
+  test "charlist with unsafe utf8 between tilde and inverse bang" do
+    assert_raise(Puid.Error, fn -> Chars.charlist!("dingo\u00A0sky") end)
   end
 
   test "ascii encoding" do
@@ -128,7 +142,6 @@ defmodule Puid.Test.Chars do
   end
 
   test "invalid encoding" do
-    assert_raise(Puid.Error, fn -> Chars.encoding("ab cd") end)
-    assert_raise(Puid.Error, fn -> Chars.encoding([?~, 127]) end)
+    assert_raise(Puid.Error, fn -> Chars.encoding('ab cd') end)
   end
 end

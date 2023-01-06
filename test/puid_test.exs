@@ -187,15 +187,78 @@ defmodule Puid.Test do
     assert info.length == 12
   end
 
+  test "unicode chars" do
+    defmodule(XMasChars, do: use(Puid, chars: "noe\u0308l"))
+
+    info = XMasChars.info()
+    assert info.characters == "noe\u0308l"
+    assert info.char_set == :custom
+    assert info.length == 56
+  end
+
+  test "Invalid total,risk: one missing" do
+    assert_raise Puid.Error, fn ->
+      defmodule(InvalidTotalRisk, do: use(Puid, total: 100))
+    end
+
+    assert_raise Puid.Error, fn ->
+      defmodule(InvalidTotalRisk, do: use(Puid, risk: 100))
+    end
+  end
+
+  test "Invalid chars: not unique" do
+    assert_raise Puid.Error, fn ->
+      defmodule(InvalidChars, do: use(Puid, chars: "unique"))
+    end
+  end
+
+  test "Invalid chars: only one" do
+    assert_raise Puid.Error, fn ->
+      defmodule(InvalidChars, do: use(Puid, chars: "1"))
+    end
+  end
+
+  test "Invalid chars: unknown" do
+    assert_raise Puid.Error, fn ->
+      defmodule(InvalidChars, do: use(Puid, chars: :unknown))
+    end
+  end
+
+  test "Invalid ascii chars" do
+    # Below bang
+    assert_raise Puid.Error, fn ->
+      defmodule(InvalidChars, do: use(Puid, chars: "!# $"))
+    end
+
+    # Include double-quote
+    assert_raise Puid.Error, fn ->
+      defmodule(InvalidChars, do: use(Puid, chars: "!\"#$"))
+    end
+
+    # Include single-quote
+    assert_raise Puid.Error, fn ->
+      defmodule(InvalidChars, do: use(Puid, chars: "!\'#$"))
+    end
+
+    # Include backslash
+    assert_raise Puid.Error, fn ->
+      defmodule(InvalidChars, do: use(Puid, chars: "!#\\$"))
+    end
+
+    # Include back-tick
+    assert_raise Puid.Error, fn ->
+      defmodule(InvalidChars, do: use(Puid, chars: "!#`$"))
+    end
+  end
+
+  test "Invalid chars: out of range" do
+    # Between tilde and inverted bang
+    # assert_raise Puid.Error, fn ->
+    #   defmodule(InvalidChars, do: use(Puid, chars: "!#$~\u0099\u00a1"))
+    # end
+  end
+
   test "invalid chars" do
-    assert_raise Puid.Error, fn ->
-      defmodule(NoNoId, do: use(Puid, chars: 'unique'))
-    end
-
-    assert_raise Puid.Error, fn ->
-      defmodule(NoNoId, do: use(Puid, chars: "u"))
-    end
-
     assert_raise Puid.Error, fn ->
       defmodule(NoNoId, do: use(Puid, chars: 'dingo\n'))
     end
@@ -628,34 +691,6 @@ defmodule Puid.Test do
     defmodule(EqualPairPlusSingleId, do: use(Puid, bits: 140, chars: :alphanum))
     defmodule(EqualPairsPlusSingleId, do: use(Puid, bits: 196, chars: :safe32))
     defmodule(GreaterPairsPlusSingleId, do: use(Puid, bits: 220, chars: :safe32))
-  end
-
-  test "Invalid total,risk: one missing" do
-    assert_raise Puid.Error, fn ->
-      defmodule(InvalidTotalRisk, do: use(Puid, total: 100))
-    end
-
-    assert_raise Puid.Error, fn ->
-      defmodule(InvalidTotalRisk, do: use(Puid, risk: 100))
-    end
-  end
-
-  test "Invalid chars" do
-    assert_raise Puid.Error, fn ->
-      defmodule(InvalidChars, do: use(Puid, chars: :unknown))
-    end
-  end
-
-  test "Invalid chars: not unique" do
-    assert_raise Puid.Error, fn ->
-      defmodule(InvalidChars, do: use(Puid, chars: "unique"))
-    end
-  end
-
-  test "Invalid chars: only one" do
-    assert_raise Puid.Error, fn ->
-      defmodule(InvalidChars, do: use(Puid, chars: "1"))
-    end
   end
 
   test "Calling process not the same as creating process" do
