@@ -188,12 +188,26 @@ defmodule Puid.Test do
   end
 
   test "unicode chars" do
-    defmodule(XMasChars, do: use(Puid, chars: "noe\u0308l"))
+    chars = "noe\u0308l"
+    defmodule(XMasChars, do: use(Puid, chars: chars))
 
     info = XMasChars.info()
-    assert info.characters == "noe\u0308l"
+    assert info.characters == chars
     assert info.char_set == :custom
     assert info.length == 56
+  end
+
+  test "unicode dog" do
+    chars = "dîngøsky:\u{1F415}"
+    defmodule(DingoSkyDog, do: use(Puid, total: 1.0e9, risk: 1.0e15, chars: chars))
+
+    info = DingoSkyDog.info()
+    assert info.characters == chars
+    assert info.char_set == :custom
+    assert info.entropy_bits == 109.62
+    assert info.entropy_bits_per_char == 3.32
+    assert info.ere == 0.28
+    assert info.length == 33
   end
 
   test "Invalid total,risk: one missing" do
@@ -253,9 +267,9 @@ defmodule Puid.Test do
 
   test "Invalid chars: out of range" do
     # Between tilde and inverted bang
-    # assert_raise Puid.Error, fn ->
-    #   defmodule(InvalidChars, do: use(Puid, chars: "!#$~\u0099\u00a1"))
-    # end
+    assert_raise Puid.Error, fn ->
+      defmodule(InvalidChars, do: use(Puid, chars: "!#$~\u0099\u00a1"))
+    end
   end
 
   test "invalid chars" do
