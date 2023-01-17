@@ -36,9 +36,11 @@ defmodule Puid.Bits do
       bits_per_puid = puid_len * bits_per_char
       bytes_per_puid = trunc(:math.ceil(bits_per_puid / 8))
 
+      base_shift = {chars_count, bits_per_char}
+
       bit_shifts =
         if pow2?(chars_count) do
-          []
+          [base_shift]
         else
           (bits_per_char - 1)..2
           |> Enum.reduce(
@@ -52,7 +54,7 @@ defmodule Puid.Bits do
             end
           )
         end
-        |> List.insert_at(0, {chars_count, bits_per_char})
+        |> List.insert_at(0, base_shift)
 
       {:module, mod} = rand_bytes |> Function.info(:module)
       {:name, name} = rand_bytes |> Function.info(:name)
@@ -88,7 +90,7 @@ defmodule Puid.Bits do
           end
 
         true ->
-          # Always manage carried bits since bit slices can be rejected with variable sift
+          # Always manage carried bits since bit slices can be rejected with variable shift
           def generate(), do: generate(@puid_len, Process.get(@puid_carried_bits, <<>>), <<>>)
 
           defp generate(0, unused_bits, puid_bits) do
@@ -140,13 +142,17 @@ defmodule Puid.Bits do
           )
         else
           bit_shift =
-            case @puid_bit_shifts
-                 |> Enum.find(nil, fn {bits_value, _} -> value <= bits_value end) do
-              nil ->
-                @puid_bits_per_char
+            if Enum.count(@puid_bit_shifts) == 1 do
+              @puid_bits_per_char
+            else
+              case @puid_bit_shifts
+                   |> Enum.find(nil, fn {bits_value, _} -> value <= bits_value end) do
+                nil ->
+                  @puid_bits_per_char
 
-              {_, shift} ->
-                shift
+                {_, shift} ->
+                  shift
+              end
             end
 
           <<_used::size(bit_shift), rest::bits>> = bits
