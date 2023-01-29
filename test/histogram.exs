@@ -22,11 +22,14 @@
 defmodule Puid.Test.Histogram do
   use ExUnit.Case
 
-  @tag :custom_8
-  test "ascii", do: test_chars("8 custom ASCII", "DingoSkyId", "dingosky")
-
   @tag :hex
   test ":hex", do: test_chars("Hex", "HexId", :hex)
+
+  @tag :safe32
+  test ":safe32", do: test_chars("Safe32", "Safe32Id", :safe32)
+
+  @tag :alpha_lower
+  test ":alpha_lower", do: test_chars("AlphaLower", "AlphaLowerId", :alpha_lower)
 
   @tag :alphanum
   test ":alphanum", do: test_chars("Alphanumeric", "AlphanumId", :alphanum)
@@ -34,11 +37,17 @@ defmodule Puid.Test.Histogram do
   @tag :safe_ascii
   test ":safe_ascii", do: test_chars("All ASCII", "SafeAsciiId", :safe_ascii)
 
-  @tag :unicode
-  test "unicode", do: test_chars("Unicode characters", "DingoSkyUnicodeId", "dîñgø$kyDÎÑGØßK¥")
+  @tag :custom_8
+  test "ascii", do: test_chars("8 custom ASCII", "DingoSkyId", "dingosky")
+
+  @tag :alpha_9_lower
+  test "alpha 9 lower", do: test_chars("9 alpha lower chars", "Alpha9LowerId", "abcdefghi")
 
   @tag :alpha_10_lower
   test "alpha 10 lower", do: test_chars("10 alpha lower chars", "Alpha10LowerId", "abcdefghij")
+
+  @tag :unicode
+  test "unicode", do: test_chars("Unicode characters", "DingoSkyUnicodeId", "dîñgø$kyDÎÑGØßK¥")
 
   defp test_chars(descr, id_name, chars) do
     trials = 500_000
