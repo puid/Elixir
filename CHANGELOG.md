@@ -1,8 +1,23 @@
 # Changelog
 
+## v2.1.0 (2023-01-29)
+
+### Improve bit slicing optimization
+
+- Bit slice shifts for a few character counts were missing a single bit optimization
+- Update effected fixed byte tests and add histogram tests for correctness validation
+- This change is an optimization and does not effect previous correctness
+
+Note: This change warrants a minor version bump as any fixed byte testing using effected character counts must be updated. Any non-fixed-byte entropy source usage is uneffected.
+
+### Address issue #13
+
+- Add specified comparison notes
+- Revamp README comparisons
+
 ## v2.0.6 (2023-01-06)
 
-### code point validation
+### Improve code point validation
 
 - Reject utf8 code points between tilde and inverse bang
 - General code cleanup regarding code point validation
