@@ -301,9 +301,9 @@ Generate 500000 random IDs with 128 bits of entropy using safe64 characters
 
 #### Comments
 
-Entropy source: No control. Fixed to CSPRNG (per spec)
-Characters: No control. Fixed to :base32
-Captured entropy: 80-bits per timestamp context
+- Entropy source: No control. Fixed to CSPRNG (per spec)
+- Characters: No control. Fixed to :base32
+- Captured entropy: 80-bits per timestamp context
 
 A significant characteristic of **ulid** is the generation of lexicographically sortable IDs. This is not a goal for **PUID**; however, one could use **PUID** to generate such IDs by prefixing a timestamp to a generated **puid**. Such a solution would be similar to **ulid** while still providing full control to **entropy source**, **characters**, and **captured entropy** per timestamp context.
 
