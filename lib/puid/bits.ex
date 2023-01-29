@@ -36,7 +36,8 @@ defmodule Puid.Bits do
       bits_per_puid = puid_len * bits_per_char
       bytes_per_puid = trunc(:math.ceil(bits_per_puid / 8))
 
-      base_shift = {chars_count, bits_per_char}
+      base_value = if even?(chars_count), do: chars_count - 1, else: chars_count
+      base_shift = {base_value, bits_per_char}
 
       bit_shifts =
         if pow2?(chars_count) do
@@ -46,15 +47,17 @@ defmodule Puid.Bits do
           |> Enum.reduce(
             [],
             fn bit, shifts ->
-              if bit_zero?(chars_count, bit) do
-                [{chars_count ||| pow2(bit) - 1, bits_per_char - bit + 1} | shifts]
+              if bit_zero?(base_value, bit) do
+                [{base_value ||| pow2(bit) - 1, bits_per_char - bit + 1} | shifts]
               else
                 shifts
               end
             end
           )
+          |> List.insert_at(0, base_shift)
         end
-        |> List.insert_at(0, base_shift)
+
+      # |> IO.inspect(label: "bit_shifts")
 
       {:module, mod} = rand_bytes |> Function.info(:module)
       {:name, name} = rand_bytes |> Function.info(:name)
@@ -134,6 +137,8 @@ defmodule Puid.Bits do
         if value < @puid_char_count do
           <<_used::@puid_bits_per_char, rest::bits>> = bits
 
+          # IO.puts("accept #{value}")
+
           slice(
             count - 1,
             sliced + 1,
@@ -141,19 +146,11 @@ defmodule Puid.Bits do
             <<acc_bits::bits, value::size(@puid_bits_per_char)>>
           )
         else
-          bit_shift =
-            if Enum.count(@puid_bit_shifts) == 1 do
-              @puid_bits_per_char
-            else
-              case @puid_bit_shifts
-                   |> Enum.find(nil, fn {bits_value, _} -> value <= bits_value end) do
-                nil ->
-                  @puid_bits_per_char
+          {_, bit_shift} =
+            @puid_bit_shifts
+            |> Enum.find(fn {shift_value, _} -> value <= shift_value end)
 
-                {_, shift} ->
-                  shift
-              end
-            end
+          # IO.puts("reject #{value} --> #{bit_shift}")
 
           <<_used::size(bit_shift), rest::bits>> = bits
 

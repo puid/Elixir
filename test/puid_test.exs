@@ -322,22 +322,23 @@ defmodule Puid.Test.Puid do
     assert Alpha14Id.generate() === "AVn"
   end
 
+  @tag :debug
   test "26 lower alpha chars (5 bits)" do
     defmodule(LowerAlphaBytes,
-      do: use(Puid.Test.FixedBytes, bytes: <<0xF1, 0xB1, 0x78, 0x0A, 0xCE>>)
+      do: use(Puid.Test.FixedBytes, bytes: <<0xF1, 0xB1, 0x78, 0x0B, 0xAA>>)
     )
 
     bits_expect = &test_predefined_chars_mod("LowerAlpha", :alpha_lower, &1, LowerAlphaBytes, &2)
 
-    # shifts: [{26, 5}, {31, 3}]
+    # shifts:[{25, 5}, {27, 4}, {31, 3}]
     #
-    #    F    1    B    1    7    8    0    A    C    E
-    # 1111 0001 1011 0001 0111 1000 0000 1010 1100 1110
+    #    F    1    B    1    7    8    0    B    A    A
+    # 1111 0001 1011 0001 0111 1000 0000 1011 1010 1010
     #
-    # 111 10001 10110 00101 111 00000 00101 01100 1110
-    # xxx |---| |---| |---| xxx |---| |---| |---|
-    #  30   17    22     5   30    0     5    12
-    #        r     w     f         a     f     m
+    # 111 10001 10110 00101 111 00000 00101 1101 01010
+    # xxx |---| |---| |---| xxx |---| |---| xxxx |---|
+    #  30   17    22     5   30    0     5    26   10
+    #        r     w     f         a     f          k
     #
     bits_expect.(4, "r")
     bits_expect.(5, "rw")
@@ -346,7 +347,7 @@ defmodule Puid.Test.Puid do
     bits_expect.(15, "rwfa")
     bits_expect.(18, "rwfa")
     bits_expect.(19, "rwfaf")
-    bits_expect.(24, "rwfafm")
+    bits_expect.(24, "rwfafk")
   end
 
   test "lower alpha carry (26 chars, 5 bits)" do
@@ -393,39 +394,40 @@ defmodule Puid.Test.Puid do
 
     bits_expect = &test_predefined_chars_mod("AlphaNum", :alphanum, &1, AlphaNumBytes, &2)
 
-    # shifts: [{62, 6}]
+    # shifts: [{61, 6}, {63, 5}]
     #
     #    D    2    E    3    E    9    F    A    1    9    0    0
     # 1101 0010 1110 0011 1110 1001 1111 1010 0001 1001 0000 0000
     #
-    # 110100 101110 001111 101001 111110 100001 100100 000000
-    # |----| |----| |----| |----| xxxxxx |----| |----| |----|
-    #   52     46     15     41     62     33     36      0
-    #    0      u      P      p             h      k      A
+    # 110100 101110 001111 101001 11111 010000 110010 000000 0
+    # |----| |----| |----| |----| xxxxx |----| |----| |----|
+    #   52     46     15     41     62     16     50      0
+    #    0      u      P      p             Q      y      A
     #
-    bits_expect.(41, "0uPphkA")
+    bits_expect.(41, "0uPpQyA")
   end
 
   test "alphanum chars (62 chars, 6 bits) carry" do
     defmodule(AlphaNumCarryBytes,
-      do: use(Puid.Test.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xFA, 0x19, 0x00>>)
+      do: use(Puid.Test.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xFA, 0x1F, 0xAC>>)
     )
 
     defmodule(AlphaNumCarryId,
       do: use(Puid, bits: 12, chars: :alphanum, rand_bytes: &AlphaNumCarryBytes.rand_bytes/1)
     )
 
+    # shifts: [{61, 6}, {63, 5}]
     #
-    #    D    2    E    3    E    9    F    A    1    9    0    0
-    # 1101 0010 1110 0011 1110 1001 1111 1010 0001 1001 0000 0000
+    #    D    2    E    3    E    9    F    A    1    F    A    C
+    # 1101 0010 1110 0011 1110 1001 1111 1010 0001 1111 1010 1100
     #
-    # 110100 101110 001111 101001 111110 100001 100100 000000
-    # |----| |----| |----| |----| xxxxxx |----| |----| |----|
-    #   52     46     15     41     62     33     36      0
-    #    0      u      P      p             h      k      A
+    # 110100 101110 001111 101001 11111 010000 11111 101011 00
+    # |----| |----| |----| |----| xxxxx |----| xxxxx |----|
+    #   52     46     15     41     62     16    63     43
+    #    0      u      P      p             Q            r
     #
     assert AlphaNumCarryId.generate() == "0uP"
-    assert AlphaNumCarryId.generate() == "phk"
+    assert AlphaNumCarryId.generate() == "pQr"
   end
 
   test "alphanum lower" do
@@ -513,8 +515,8 @@ defmodule Puid.Test.Puid do
       do: use(Puid, bits: 16, chars: :decimal, rand_bytes: &DecimalBytes.rand_bytes/1)
     )
 
-    assert DecimalId.generate() == "48768"
-    assert DecimalId.generate() == "64073"
+    assert DecimalId.generate() == "41402"
+    assert DecimalId.generate() == "07699"
   end
 
   test "hex chars without carry" do
@@ -592,28 +594,31 @@ defmodule Puid.Test.Puid do
     assert HexUpperId.generate() == "1632"
   end
 
-  test "safe ascii (7 bits)" do
+  test "safe ascii" do
     defmodule(SafeAsciiBytes,
-      do: use(Puid.Test.FixedBytes, bytes: <<0xA6, 0x33, 0xF6, 0x9E, 0xBD, 0xED, 0xD7, 0x53>>)
+      do:
+        use(Puid.Test.FixedBytes, bytes: <<0xA6, 0x33, 0x2A, 0xBE, 0xE6, 0x2D, 0xB3, 0x68, 0x41>>)
     )
 
-    # shifts: [{90, 7}, {95, 5}, {127, 2}]
+    # shifts: [{89, 7}, {91, 6}, {95, 5}, {127, 2}]
     #
-    #    A    6    3    3    F    6    9    E    B    D    E    D    D    7    5    3
-    # 1010 0110 0011 0011 1111 0110 1001 1110 1011 1101 1110 1101 1101 0111 0101 0011
+    #    A    6    3    3   2    A    B    E    E    6    2    D    B    3    6    8
+    # 1010 0110 0011 0011 0010 1010 1011 1110 1110 0110 0010 1101 1011 0011 0110 1000 0100 0001
     #
-    # 1010011 0001100  11  11  11  0110100  11  11 0101111 0111101  10111 0101110 1010011
-    # |-----| |-----|  xx  xx  xx  |-----|  xx  xx |-----| |-----|  xxxxx |-----| |-----|
-    #    83      12   126 123 109    52    122 107    47      61      93     46      83
-    #     x       /                   W                R       b              Q       x
+    # 1010011 0001100  11 0010010 0101111 10111 0011000 101101 1011001 101101 0000100 0001
+    # |-----| |-----|  xx |-----| |-----| xxxxx |-----| xxxxxx |-----| xxxxxx |-----|
+    #    83      12   101    21      47     92     24      91     89      90      4
+    #     x       /           8       R             ;              ~              &
 
-    bits_expect = &test_predefined_chars_mod("No escape", :safe_ascii, &1, SafeAsciiBytes, &2)
+    bits_expect = &test_predefined_chars_mod("SafeAscii", :safe_ascii, &1, SafeAsciiBytes, &2)
 
+    bits_expect.(6, "x")
     bits_expect.(12, "x/")
-    bits_expect.(25, "x/WR")
-    bits_expect.(28, "x/WRb")
-    bits_expect.(34, "x/WRbQ")
-    bits_expect.(40, "x/WRbQx")
+    bits_expect.(18, "x/8")
+    bits_expect.(22, "x/8R")
+    bits_expect.(26, "x/8R;")
+    bits_expect.(34, "x/8R;~")
+    bits_expect.(40, "x/8R;~&")
   end
 
   test "safe32 chars (5 bits)" do
@@ -691,6 +696,19 @@ defmodule Puid.Test.Puid do
     bits_expect.(48, "0uPp-hkA")
   end
 
+  test "TF chars without carry" do
+    defmodule(TFNoCarryBytes,
+      do: use(Puid.Test.FixedBytes, bytes: <<0b11111011, 0b00000100, 0b00101100, 0b10110011>>)
+    )
+
+    defmodule(TFNoCarryId,
+      do: use(Puid, bits: 16, chars: 'FT', rand_bytes: &TFNoCarryBytes.rand_bytes/1)
+    )
+
+    assert TFNoCarryId.generate() == "TTTTTFTTFFFFFTFF"
+    assert TFNoCarryId.generate() == "FFTFTTFFTFTTFFTT"
+  end
+
   test "DingoSky chars without carry" do
     defmodule(DingoSkyNoCarryBytes,
       do: use(Puid.Test.FixedBytes, bytes: <<0xC7, 0xC9, 0x00, 0x2A, 0xBD, 0x72>>)
@@ -709,19 +727,6 @@ defmodule Puid.Test.Puid do
 
     assert DingoSkyNoCarryId.generate() == "kiyooodd"
     assert DingoSkyNoCarryId.generate() == "insgkskn"
-  end
-
-  test "TF chars without carry" do
-    defmodule(TFNoCarryBytes,
-      do: use(Puid.Test.FixedBytes, bytes: <<0b11111011, 0b00000100, 0b00101100, 0b10110011>>)
-    )
-
-    defmodule(TFNoCarryId,
-      do: use(Puid, bits: 16, chars: 'FT', rand_bytes: &TFNoCarryBytes.rand_bytes/1)
-    )
-
-    assert TFNoCarryId.generate() == "TTTTTFTTFFFFFTFF"
-    assert TFNoCarryId.generate() == "FFTFTTFFTFTTFFTT"
   end
 
   test "dingosky chars with carry" do
@@ -784,9 +789,9 @@ defmodule Puid.Test.Puid do
       do: use(Puid, bits: 24, chars: 'dîngøsky:🐕', rand_bytes: &DogBytes.rand_bytes/1)
     )
 
-    assert DogId.generate() == "g🐕kygggø"
-    assert DogId.generate() == ":ksdd🐕n:"
-    assert DogId.generate() == "dyøsyînd"
+    assert DogId.generate() == "🐕gî🐕🐕nî🐕"
+    assert DogId.generate() == "ydkîsnsd"
+    assert DogId.generate() == "îøsîndøk"
   end
 
   test "10 custom vowels chars (4 bits)" do
@@ -796,23 +801,24 @@ defmodule Puid.Test.Puid do
 
     bits_expect = &test_custom_chars_mod("Vowels", "aeiouAEIOU", &1, VowelBytes, &2)
 
-    # shifts: [{10, 4}, {15, 2}]
+    # shifts: [{10, 4}, {12, 3}, {16, 2}]
     #
     #    A    6    3    3    F    6    9    E    B    D    E    E    A    7
     # 1010 0110 0011 0011 1111 0110 1001 1110 1011 1101 1110 1110 1010 0111
     #
-    # xxxx |--| |--| |--| xx xx |--| |--| xx xxxx xx xx |--| xx xx xxxx |--|
-    # 1010 0110 0011 0011 11 11 0110 1001 11 1010 11 11 0111 10 11 1010 1001 11
-    #  10    6    3    3  15 13   6    9  14  10  15 13   7  11 14  10    9
-    #        E    o    o          E    U                  I               U
+    # 101 0011 0001 1001 11 11 101 101 0011 11 0101 11 101 11 101 11 0101 0011 1
+    # xxx |--| |--| |--| xx xx xxx xxx |--| xx |--| xx xxx xx xxx xx |--| |--|
+    #  10   3    1    9  15 14  11  10   3  13   5  14  11 14  11 13   5    3
+    #       o    e    U                  o       A                     A    o
+    #
 
-    bits_expect.(3, "E")
-    bits_expect.(6, "Eo")
-    bits_expect.(9, "Eoo")
-    bits_expect.(12, "EooE")
-    bits_expect.(15, "EooEU")
-    bits_expect.(18, "EooEUI")
-    bits_expect.(20, "EooEUIU")
+    bits_expect.(3, "o")
+    bits_expect.(6, "oe")
+    bits_expect.(9, "oeU")
+    bits_expect.(12, "oeUo")
+    bits_expect.(15, "oeUoA")
+    bits_expect.(18, "oeUoAA")
+    bits_expect.(20, "oeUoAAo")
   end
 
   test "256 chars" do
@@ -890,14 +896,14 @@ defmodule Puid.Test.Puid do
       do: use(Puid, bits: 15, chars: "aeiouAEIOU", rand_bytes: &HereVowelBytes.rand_bytes/1)
     )
 
-    assert HereVowelId.generate() === "EooEU"
-    assert HereVowelId.generate() === "IUAuU"
+    assert HereVowelId.generate() === "oeUoA"
+    assert HereVowelId.generate() === "AoAiI"
 
-    spawn(fn -> assert HereVowelId.generate() === "EooEU" end)
+    spawn(fn -> assert HereVowelId.generate() === "oeUoA" end)
 
     spawn(fn ->
-      assert HereVowelId.generate() === "EooEU"
-      assert HereVowelId.generate() === "IUAuU"
+      assert HereVowelId.generate() === "oeUoA"
+      assert HereVowelId.generate() === "AoAiI"
     end)
   end
 end

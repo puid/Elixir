@@ -88,12 +88,11 @@ end
 
 defmodule Puid.Test.Data do
   @moduledoc false
-
   use ExUnit.Case, async: true
 
   def path(file_name), do: Path.join([Path.absname(""), "test", "data", file_name])
 
-  def test_params(data_name) do
+  def params(data_name) do
     params = File.open!(Puid.Test.Data.path(Path.join(data_name, "params")), [:utf8])
     next_param = fn -> params |> IO.read(:line) |> String.trim_trailing() end
 
@@ -131,7 +130,7 @@ defmodule Puid.Test.Data do
       :total => total,
       :risk => risk,
       :chars => chars
-    } = test_params(data_name)
+    } = params(data_name)
 
     data_bytes_mod = "#{test_name}Bytes" |> String.to_atom()
 
@@ -167,7 +166,7 @@ defmodule Puid.Test.Data do
   def write_file_data(data_name) do
     data_id_mod = Puid.Test.Data.data_id_mod(data_name)
 
-    %{:id_count => id_count} = test_params(data_name)
+    %{:id_count => id_count} = params(data_name)
 
     ids_file = File.stream!(path(Path.join(data_name, "ids")))
 

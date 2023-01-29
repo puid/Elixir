@@ -29,6 +29,9 @@ defmodule Puid.Util do
   def bit_zero?(n, bit), do: (n &&& 1 <<< (bit - 1)) === 0
 
   @doc false
+  def even?(n), do: bit_zero?(n, 1)
+
+  @doc false
   def log_ceil(n), do: n |> :math.log2() |> r_ceil()
 
   @doc false
