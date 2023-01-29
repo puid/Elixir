@@ -24,10 +24,11 @@ defmodule Puid.Mixfile do
       {:earmark, "~> 1.4", only: :dev},
       {:ex_doc, "~> 0.28", only: :dev},
       {:entropy_string, "~> 1.3", only: :test},
-      {:not_qwerty123, "~> 2.3", only: :test},
       {:misc_random, "~> 0.2", only: :test},
+      {:nanoid, "~> 2.0", only: :test},
       {:randomizer, "~> 1.1", only: :test},
       {:secure_random, "~> 0.5", only: :test},
+      {:ulid, "~> 0.2", only: :test},
       {:uuid, "~> 1.1", only: :test}
     ]
   end

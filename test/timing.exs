@@ -188,45 +188,51 @@ defmodule Puid.Test.Timing do
     time(puid, "    Puid        (CSPRNG) ")
   end
 
-  @tag :not_qwerty123
-  test "compare to NotQwerty123" do
-    trials = 50_000
+  @tag :nanoid
+  test "compare to nanoid" do
+    trials = 100_000
 
-    defmodule(AlphanumPuid128_NQ, do: use(Puid, chars: :alphanum))
-    defmodule(SafeAsciiPuid128_NQ, do: use(Puid, chars: :safe_ascii))
-
-    IO.puts("\n--- NotQwerty123 ---")
+    IO.puts("\n--- nanoid ---")
 
     IO.puts(
-      "\n  Generate #{trials} random IDs with 128 bits of entropy using #{:alphanum} characters"
+      "\n  Generate #{trials} random IDs with 126 bits of entropy using #{:safe64} characters"
     )
 
-    not_querty_alphanum = fn ->
-      for(_ <- 1..trials, do: NotQwerty123.RandomPassword.gen_password(length: 22))
+    defmodule(Safe64Puid126, do: use(Puid, bits: 126, chars: :safe64))
+
+    defmodule(Safe64Puid126_prng,
+      do: use(Puid, bits: 126, chars: :safe64, rand_bytes: &:rand.bytes/1)
+    )
+
+    defmodule(Safe32Puid195, do: use(Puid, bits: 195, chars: :safe32))
+
+    puid_safe64_126 = fn -> for(_ <- 1..trials, do: Safe64Puid126.generate()) end
+    nanoid_safe64_126 = fn -> for(_ <- 1..trials, do: Nanoid.generate()) end
+
+    puid_safe64_126_prng = fn -> for(_ <- 1..trials, do: Safe64Puid126_prng.generate()) end
+    nanoid_safe64_126_prng = fn -> for(_ <- 1..trials, do: Nanoid.generate_non_secure()) end
+
+    puid_safe32_195 = fn -> for(_ <- 1..trials, do: Safe32Puid195.generate()) end
+
+    nanoid_safe32_195 = fn ->
+      for(_ <- 1..trials, do: Nanoid.generate(39, "2346789bdfghjmnpqrtBDFGHJLMNPQRT"))
     end
 
-    puid = fn -> for(_ <- 1..trials, do: AlphanumPuid128_NQ.generate()) end
+    IO.puts("")
+    time(nanoid_safe64_126, "    Nanoid (CSPRNG) ")
+    time(puid_safe64_126, "    Puid   (CSPRNG) ")
 
     IO.puts("")
-    time(not_querty_alphanum, "    NotQwerty123 (CSPRNG) ")
-    time(puid, "    Puid         (CSPRNG) ")
+    time(nanoid_safe64_126_prng, "    Nanoid (PRNG) ")
+    time(puid_safe64_126_prng, "    Puid   (PRNG) ")
 
     IO.puts(
-      "\n  Generate #{trials} random IDs with 128 bits of entropy using #{:safe_ascii} characters"
+      "\n  Generate #{trials} random IDs with 195 bits of entropy using #{:safe32} characters"
     )
 
-    not_querty_printable = fn ->
-      for(
-        _ <- 1..trials,
-        do: NotQwerty123.RandomPassword.gen_password(length: 20, characters: :letters_digits_punc)
-      )
-    end
-
-    puid = fn -> for(_ <- 1..trials, do: SafeAsciiPuid128_NQ.generate()) end
-
     IO.puts("")
-    time(not_querty_printable, "    NotQwerty123 (CSPRNG) ")
-    time(puid, "    Puid         (CSPRNG) ")
+    time(nanoid_safe32_195, "    Nanoid (CSPRNG) ")
+    time(puid_safe32_195, "    Puid   (CSPRNG) ")
   end
 
   @tag :randomizer
