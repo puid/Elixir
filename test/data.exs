@@ -42,6 +42,11 @@ defmodule Puid.Test.File.Data do
     Puid.Test.Data.test("safe32")
   end
 
+  @tag :safe_ascii
+  test "test safe_ascii file data" do
+    Puid.Test.Data.test("safe_ascii")
+  end
+
   @tag :unicode
   test "test unicode file data " do
     Puid.Test.Data.test("unicode")
