@@ -322,7 +322,6 @@ defmodule Puid.Test.Puid do
     assert Alpha14Id.generate() === "AVn"
   end
 
-  @tag :debug
   test "26 lower alpha chars (5 bits)" do
     defmodule(LowerAlphaBytes,
       do: use(Puid.Test.FixedBytes, bytes: <<0xF1, 0xB1, 0x78, 0x0B, 0xAA>>)
@@ -510,6 +509,16 @@ defmodule Puid.Test.Puid do
           bytes: <<0xD2, 0xE3, 0xE9, 0xDA, 0x19, 0x03, 0xB7, 0x3C, 0xFF, 0x22>>
         )
     )
+
+    # shifts: [{9, 4}, {11, 3}, {15, 2}]
+    #
+    #    D    2    E    3    E    9    D    A    1    9    0    3    B    7    3    C    F    F
+    # 1101 0010 1110 0011 1110 1001 1101 1010 0001 1001 0000 0011 1011 0111 0011 1100 1111 1111
+    #
+    # 11 0100 101 11 0001 11 11 0100 11 101 101 0000 11 0010 0000 0111 0110 11 1001 11 1001 111 1111
+    # xx |--| xxx xx |--| xx xx |--| xx xxx xxx |--| xx |--| |--| |--| |--| xx |--| xx |--|
+    # 13   4   11 12   1  15 13   4  14  11  10   0  12   2    0    7    6  14   9  14   9
+    #      4           1          4               0       2    0    7    6       9       9
 
     defmodule(DecimalId,
       do: use(Puid, bits: 16, chars: :decimal, rand_bytes: &DecimalBytes.rand_bytes/1)
@@ -801,7 +810,7 @@ defmodule Puid.Test.Puid do
 
     bits_expect = &test_custom_chars_mod("Vowels", "aeiouAEIOU", &1, VowelBytes, &2)
 
-    # shifts: [{10, 4}, {12, 3}, {16, 2}]
+    # shifts: [{9, 4}, {11, 3}, {15, 2}]
     #
     #    A    6    3    3    F    6    9    E    B    D    E    E    A    7
     # 1010 0110 0011 0011 1111 0110 1001 1110 1011 1101 1110 1110 1010 0111
