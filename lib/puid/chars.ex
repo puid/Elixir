@@ -37,42 +37,49 @@ defmodule Puid.Chars do
   ```none
   ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
   ```
+  bits per character: `5.7`
 
   ### :alpha_lower
   Lower case alphabet
   ```none
   abcdefghijklmnopqrstuvwxyz
   ```
+  bits per character: `4.7`
 
   ### :alpha_upper
   Upper case alphabet
   ```none
   ABCDEFGHIJKLMNOPQRSTUVWXYZ
   ```
+  bits per character: `4.7`
 
   ### :alphanum
   Upper/lower case alphabet and numbers
   ```none
   ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789
   ```
+  bits per character: `5.95`
 
   ### :alphanum_lower
   Lower case alphabet and numbers
   ```none
   abcdefghijklmnopqrstuvwxyz0123456789
   ```
+  bits per character: `5.17`
 
   ### :alphanum_upper
   Upper case alphabet and numbers
   ```none
   ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789
   ```
+  bits per character: `5.17`
 
   ### :base32
   [RFC 4648](https://tools.ietf.org/html/rfc4648#section-6) base32 character set
   ```none
   ABCDEFGHIJKLMNOPQRSTUVWXYZ234567
   ```
+  bits per character: `5`
 
   ### :base32_hex
   [RFC 4648](https://tools.ietf.org/html/rfc4648#section-7) base32 extended hex character set
@@ -80,30 +87,35 @@ defmodule Puid.Chars do
   ```none
   0123456789abcdefghijklmnopqrstuv
   ```
+  bits per character: `5`
 
   ### :base32_hex_upper
   [RFC 4648](https://tools.ietf.org/html/rfc4648#section-7) base32 extended hex character set
   ```none
   0123456789ABCDEFGHIJKLMNOPQRSTUV
   ```
+  bits per character: `5`
 
   ### :decimal
   Decimal digits
   ```none
   0123456789
   ```
+  bits per character: `3.32`
 
   ### :hex
   Lowercase hexadecimal
   ```none
   0123456789abcdef
   ```
+  bits per character: `4`
 
   ### :hex_upper
   Uppercase hexadecimal
   ```none
   0123456789ABCDEF
   ```
+  bits per character: `4`
 
   ### :safe_ascii
   ASCII characters from `?!` to `?~`, minus backslash, backtick, single-quote and double-quote
@@ -111,6 +123,7 @@ defmodule Puid.Chars do
   ```none
   `!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_\abcdefghijklmnopqrstuvwxyz{|}~`
   ```
+  bits per character: `6.49`
 
   ### :safe32
   Strings that don't look like English words and are easy to parse visually
@@ -122,11 +135,14 @@ defmodule Puid.Chars do
     - remove all letters that look like numbers
     - remove all letters that have poor distinction between upper and lower case values
 
+  bits per character: `6.49`
+
   ### :safe64
   [RFC 4648](https://tools.ietf.org/html/rfc4648#section-5) file system and URL safe character set
   ```none
   ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_
   ```
+  bits per character: `6`
 
   ### :symbol
   :safe_ascii characters not in :alphanum
@@ -134,6 +150,7 @@ defmodule Puid.Chars do
   ```none
   `!#$%&()*+,-./:;<=>?@[]^_{|}~`
   ```
+  bits per character: `4.81`
 
   """
 
