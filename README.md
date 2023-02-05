@@ -16,7 +16,7 @@ Simple, fast, flexible and efficient generation of probably unique identifiers (
 - [Usage](#Usage)
 - [Installation](#Installation)
 - [Module API](#ModuleAPI)
-- [Chars](#Chars)
+- [Characters](#Characters)
 - [Comparisons](#Comparisons)
   - [Common Solution](#Common_Solution)
   - [gen_reference](#gen_reference)
@@ -44,7 +44,7 @@ Creating a random ID generator using `Puid` is a simple as:
   "8nGA2UaIfaawX-Og61go5A"
 ```
 
-Options allow easy and complete control of ID generation.
+Using default parameters, `Puid` generates IDs suitable for use as session IDs. Options allow easy and complete control of all important facets of ID generation.
 
 **Entropy Source**
 
@@ -136,30 +136,31 @@ Returns a `Puid.Info` structure consisting of
 - Entropy source function
 - **`puid`** string length
 
-### <a name="Chars"></a>Chars
+### <a name="Characters"></a>Characters
 
-There are 16 pre-defined character sets:
+There are 17 pre-defined character sets:
 
-| Name              | Characters                                                                                    |
-| :---------------- | :-------------------------------------------------------------------------------------------- |
-| :alpha            | ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz                                          |
-| :alpha_lower      | abcdefghijklmnopqrstuvwxyz                                                                    |
-| :alpha_upper      | ABCDEFGHIJKLMNOPQRSTUVWXYZ                                                                    |
-| :alphanum         | ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789                                |
-| :alphanum_lower   | abcdefghijklmnopqrstuvwxyz0123456789                                                          |
-| :alphanum_upper   | ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789                                                          |
-| :base32           | ABCDEFGHIJKLMNOPQRSTUVWXYZ234567                                                              |
-| :base32_hex       | 0123456789abcdefghijklmnopqrstuv                                                              |
-| :base32_hex_upper | 0123456789ABCDEFGHIJKLMNOPQRSTUV                                                              |
-| :decimal          | 0123456789                                                                                    |
-| :hex              | 0123456789abcdef                                                                              |
-| :hex_upper        | 0123456789ABCDEF                                                                              |
-| :safe_ascii       | !#$%&()\*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^\_abcdefghijklmnopqrstuvwxyz{\|}~ |
-| :safe32           | 2346789bdfghjmnpqrtBDFGHJLMNPQRT                                                              |
-| :safe64           | ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-\_                             |
-| :symbol           | !#$%&()\*+,-./:;<=>?@[]^\_{\|}~                                                               |
+| Name                | Characters                                                                                    |
+| :------------------ | :-------------------------------------------------------------------------------------------- |
+| :alpha              | ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz                                          |
+| :alpha\_lower       | abcdefghijklmnopqrstuvwxyz                                                                    |
+| :alpha\_upper       | ABCDEFGHIJKLMNOPQRSTUVWXYZ                                                                    |
+| :alphanum           | ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789                                |
+| :alphanum\_lower    | abcdefghijklmnopqrstuvwxyz0123456789                                                          |
+| :alphanum\_upper    | ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789                                                          |
+| :base32             | ABCDEFGHIJKLMNOPQRSTUVWXYZ234567                                                              |
+| :base32\_hex        | 0123456789abcdefghijklmnopqrstuv                                                              |
+| :base32\_hex\_upper | 0123456789ABCDEFGHIJKLMNOPQRSTUV                                                              |
+| :crockford32        | 0123456789ABCDEFGHJKMNPQRSTVWXYZ                                                              |
+| :decimal            | 0123456789                                                                                    |
+| :hex                | 0123456789abcdef                                                                              |
+| :hex\_upper         | 0123456789ABCDEF                                                                              |
+| :safe\_ascii        | !#$%&()\*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^\_abcdefghijklmnopqrstuvwxyz{\|}~ |
+| :safe32             | 2346789bdfghjmnpqrtBDFGHJLMNPQRT                                                              |
+| :safe64             | ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-\_                             |
+| :symbol             | !#$%&()\*+,-./:;<=>?@[]^\_{\|}~                                                               |
 
-Any `String` or `charlist` of up to 256 unique characters can be used for **`puid`** generation. Custom characters set are optimized in the same manner as the pre-defined character sets.
+Any `String` or `charlist` of up to 256 unique characters can be used for **`puid`** generation. Custom characters are optimized in the same manner as the pre-defined character sets.
 
 [TOC](#TOC)
 
@@ -231,18 +232,21 @@ Generate 50000 random IDs with 128 bits of entropy using alphanum characters
 **nanoid** is much slower than **PUID**
 
 ```
-  Generate 100000 random IDs with 126 bits of entropy using safe64 characters
+  Generate 75000 random IDs with 126 bits of entropy using safe64 characters
 
-    Nanoid (CSPRNG) : 8.480194
-    Puid   (CSPRNG) : 0.353484
+    Nanoid (CSPRNG) : 6.354221
+    Puid   (CSPRNG) : 0.226448
 
-    Nanoid (PRNG) : 1.603285
-    Puid   (PRNG) : 0.425961
+    Nanoid (PRNG) : 1.229842
+    Puid   (PRNG) : 0.31025
 
-  Generate 100000 random IDs with 195 bits of entropy using safe32 characters
+  Generate 75000 random IDs with 195 bits of entropy using alphanum characters
 
-    Nanoid (CSPRNG) : 6.117834
-    Puid   (CSPRNG) : 0.366509
+    Nanoid (CSPRNG) : 10.295134
+    Puid   (CSPRNG) : 0.809756
+
+    Nanoid (PRNG) : 1.678025
+    Puid   (PRNG) : 0.808203
 ```
 
 [TOC](#TOC)

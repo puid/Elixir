@@ -190,7 +190,7 @@ defmodule Puid.Test.Timing do
 
   @tag :nanoid
   test "compare to nanoid" do
-    trials = 100_000
+    trials = 75_000
 
     IO.puts("\n--- nanoid ---")
 
@@ -204,7 +204,8 @@ defmodule Puid.Test.Timing do
       do: use(Puid, bits: 126, chars: :safe64, rand_bytes: &:rand.bytes/1)
     )
 
-    defmodule(Safe32Puid195, do: use(Puid, bits: 195, chars: :safe32))
+    defmodule(AlphaNumPuid195, do: use(Puid, bits: 195, chars: :alphanum))
+    defmodule(AlphaNumPuid195_prng, do: use(Puid, bits: 195, chars: :alphanum))
 
     puid_safe64_126 = fn -> for(_ <- 1..trials, do: Safe64Puid126.generate()) end
     nanoid_safe64_126 = fn -> for(_ <- 1..trials, do: Nanoid.generate()) end
@@ -212,10 +213,14 @@ defmodule Puid.Test.Timing do
     puid_safe64_126_prng = fn -> for(_ <- 1..trials, do: Safe64Puid126_prng.generate()) end
     nanoid_safe64_126_prng = fn -> for(_ <- 1..trials, do: Nanoid.generate_non_secure()) end
 
-    puid_safe32_195 = fn -> for(_ <- 1..trials, do: Safe32Puid195.generate()) end
+    puid_alphanum_195 = fn -> for(_ <- 1..trials, do: AlphaNumPuid195.generate()) end
+    nanoid_alphanum_195 = fn ->
+      for(_ <- 1..trials, do: Nanoid.generate(33, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"))
+    end
 
-    nanoid_safe32_195 = fn ->
-      for(_ <- 1..trials, do: Nanoid.generate(39, "2346789bdfghjmnpqrtBDFGHJLMNPQRT"))
+    puid_alphanum_195_prng = fn -> for(_ <- 1..trials, do: AlphaNumPuid195_prng.generate()) end
+    nanoid_alphanum_195_prng = fn ->
+      for(_ <- 1..trials, do: Nanoid.generate_non_secure(33, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"))
     end
 
     IO.puts("")
@@ -227,12 +232,17 @@ defmodule Puid.Test.Timing do
     time(puid_safe64_126_prng, "    Puid   (PRNG) ")
 
     IO.puts(
-      "\n  Generate #{trials} random IDs with 195 bits of entropy using #{:safe32} characters"
+      "\n  Generate #{trials} random IDs with 195 bits of entropy using #{:alphanum} characters"
     )
 
     IO.puts("")
-    time(nanoid_safe32_195, "    Nanoid (CSPRNG) ")
-    time(puid_safe32_195, "    Puid   (CSPRNG) ")
+    time(nanoid_alphanum_195, "    Nanoid (CSPRNG) ")
+    time(puid_alphanum_195, "    Puid   (CSPRNG) ")
+
+    IO.puts("")
+    time(nanoid_alphanum_195_prng, "    Nanoid (PRNG) ")
+    time(puid_alphanum_195_prng, "    Puid   (PRNG) ")
+
   end
 
   @tag :randomizer

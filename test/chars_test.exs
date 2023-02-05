@@ -35,6 +35,7 @@ defmodule Puid.Test.Chars do
       :base32,
       :base32_hex,
       :base32_hex_upper,
+      :crockford32,
       :decimal,
       :hex,
       :hex_upper,

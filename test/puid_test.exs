@@ -115,6 +115,12 @@ defmodule Puid.Test.Puid do
     test_char_set(:base32_hex_upper, 52, 256)
   end
 
+  test "pre-defined crockford32" do
+    test_char_set(:crockford32, 26)
+    test_char_set(:crockford32, 13, 64)
+    test_char_set(:crockford32, 52, 256)
+  end
+
   test "pre-defined safe32" do
     test_char_set(:safe32, 26)
     test_char_set(:safe32, 13, 64)
@@ -155,6 +161,7 @@ defmodule Puid.Test.Puid do
       :base32,
       :base32_hex,
       :base32_hex_upper,
+      :crockford32,
       :decimal,
       :hex,
       :hex_upper,
@@ -311,7 +318,7 @@ defmodule Puid.Test.Puid do
 
   test "alpha" do
     defmodule(AlphaBytes,
-      do: use(Puid.Test.FixedBytes, bytes: <<0xF1, 0xB1, 0x78, 0x0A, 0xCE, 0x2B>>)
+      do: use(Puid.Util.FixedBytes, bytes: <<0xF1, 0xB1, 0x78, 0x0A, 0xCE, 0x2B>>)
     )
 
     defmodule(Alpha14Id,
@@ -324,7 +331,7 @@ defmodule Puid.Test.Puid do
 
   test "26 lower alpha chars (5 bits)" do
     defmodule(LowerAlphaBytes,
-      do: use(Puid.Test.FixedBytes, bytes: <<0xF1, 0xB1, 0x78, 0x0B, 0xAA>>)
+      do: use(Puid.Util.FixedBytes, bytes: <<0xF1, 0xB1, 0x78, 0x0B, 0xAA>>)
     )
 
     bits_expect = &test_predefined_chars_mod("LowerAlpha", :alpha_lower, &1, LowerAlphaBytes, &2)
@@ -351,7 +358,7 @@ defmodule Puid.Test.Puid do
 
   test "lower alpha carry (26 chars, 5 bits)" do
     defmodule(LowerAlphaCarryBytes,
-      do: use(Puid.Test.FixedBytes, bytes: <<0xF1, 0xB1, 0x78, 0x0A, 0xCE>>)
+      do: use(Puid.Util.FixedBytes, bytes: <<0xF1, 0xB1, 0x78, 0x0A, 0xCE>>)
     )
 
     defmodule(PuidWithAgent,
@@ -370,7 +377,7 @@ defmodule Puid.Test.Puid do
 
   test "upper alpha" do
     defmodule(UpperAlphaBytes,
-      do: use(Puid.Test.FixedBytes, bytes: <<0xF1, 0xB1, 0x78, 0x0A, 0xCE>>)
+      do: use(Puid.Util.FixedBytes, bytes: <<0xF1, 0xB1, 0x78, 0x0A, 0xCE>>)
     )
 
     defmodule(UpperAlphaId,
@@ -388,7 +395,7 @@ defmodule Puid.Test.Puid do
 
   test "62 alphanum chars (6 bits)" do
     defmodule(AlphaNumBytes,
-      do: use(Puid.Test.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xFA, 0x19, 0x00>>)
+      do: use(Puid.Util.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xFA, 0x19, 0x00>>)
     )
 
     bits_expect = &test_predefined_chars_mod("AlphaNum", :alphanum, &1, AlphaNumBytes, &2)
@@ -408,7 +415,7 @@ defmodule Puid.Test.Puid do
 
   test "alphanum chars (62 chars, 6 bits) carry" do
     defmodule(AlphaNumCarryBytes,
-      do: use(Puid.Test.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xFA, 0x1F, 0xAC>>)
+      do: use(Puid.Util.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xFA, 0x1F, 0xAC>>)
     )
 
     defmodule(AlphaNumCarryId,
@@ -431,7 +438,7 @@ defmodule Puid.Test.Puid do
 
   test "alphanum lower" do
     defmodule(AlphaNumLowerBytes,
-      do: use(Puid.Test.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xFA, 0x19, 0x00, 0xC8, 0x2D>>)
+      do: use(Puid.Util.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xFA, 0x19, 0x00, 0xC8, 0x2D>>)
     )
 
     defmodule(AlphaNumLowerId,
@@ -445,7 +452,7 @@ defmodule Puid.Test.Puid do
 
   test "alphanum upper" do
     defmodule(AlphaNumUpperBytes,
-      do: use(Puid.Test.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xFA, 0x19, 0x00, 0xC8, 0x2D>>)
+      do: use(Puid.Util.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xFA, 0x19, 0x00, 0xC8, 0x2D>>)
     )
 
     defmodule(AlphaNumUpperId,
@@ -459,7 +466,7 @@ defmodule Puid.Test.Puid do
 
   test "base32 chars (5 bits)" do
     defmodule(Base32Bytes,
-      do: use(Puid.Test.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xDA, 0x19, 0x00, 0x22>>)
+      do: use(Puid.Util.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xDA, 0x19, 0x00, 0x22>>)
     )
 
     bits_expect = &test_predefined_chars_mod("Base32", :base32, &1, Base32Bytes, &2)
@@ -471,7 +478,7 @@ defmodule Puid.Test.Puid do
 
   test "base32 hex" do
     defmodule(Base32HexBytes,
-      do: use(Puid.Test.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xDA, 0x19, 0x03, 0xB7, 0x3C>>)
+      do: use(Puid.Util.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xDA, 0x19, 0x03, 0xB7, 0x3C>>)
     )
 
     defmodule(Base32HexId,
@@ -484,7 +491,7 @@ defmodule Puid.Test.Puid do
 
   test "base32 hex upper" do
     defmodule(Base32HexUpperBytes,
-      do: use(Puid.Test.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xDA, 0x19, 0x03, 0xB7, 0x3C>>)
+      do: use(Puid.Util.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xDA, 0x19, 0x03, 0xB7, 0x3C>>)
     )
 
     defmodule(Base32HexUpperId,
@@ -502,10 +509,29 @@ defmodule Puid.Test.Puid do
     assert Base32HexUpperId.generate() == "ERJ"
   end
 
+  test "crockford 32" do
+    defmodule(Crockford32Bytes,
+      do: use(Puid.Util.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xDA, 0x19, 0x03, 0xB7, 0x3C>>)
+    )
+
+    defmodule(Crockford32Id,
+      do:
+        use(Puid,
+          bits: 20,
+          chars: :crockford32,
+          rand_bytes: &Crockford32Bytes.rand_bytes/1
+        )
+    )
+
+    assert Crockford32Id.generate() == "TBHY"
+    assert Crockford32Id.generate() == "KPGS"
+    assert Crockford32Id.generate() == "0EVK"
+  end
+
   test "decimal" do
     defmodule(DecimalBytes,
       do:
-        use(Puid.Test.FixedBytes,
+        use(Puid.Util.FixedBytes,
           bytes: <<0xD2, 0xE3, 0xE9, 0xDA, 0x19, 0x03, 0xB7, 0x3C, 0xFF, 0x22>>
         )
     )
@@ -530,7 +556,7 @@ defmodule Puid.Test.Puid do
 
   test "hex chars without carry" do
     defmodule(HexNoCarryBytes,
-      do: use(Puid.Test.FixedBytes, bytes: <<0xC7, 0xC9, 0x00, 0x2A, 0xBD>>)
+      do: use(Puid.Util.FixedBytes, bytes: <<0xC7, 0xC9, 0x00, 0x2A, 0xBD>>)
     )
 
     #    C    7    C    9    0    0    2    A    B    D
@@ -546,7 +572,7 @@ defmodule Puid.Test.Puid do
 
   test "hex chars with carry" do
     defmodule(HexCarryBytes,
-      do: use(Puid.Test.FixedBytes, bytes: <<0xC7, 0xC9, 0x00, 0x2A, 0xBD>>)
+      do: use(Puid.Util.FixedBytes, bytes: <<0xC7, 0xC9, 0x00, 0x2A, 0xBD>>)
     )
 
     #    C    7    C    9    0    0    2    A    B    D
@@ -563,7 +589,7 @@ defmodule Puid.Test.Puid do
 
   test "hex chars, variable bits" do
     defmodule(FixedHexBytes,
-      do: use(Puid.Test.FixedBytes, bytes: <<0xC7, 0xC9, 0x00, 0x2A>>)
+      do: use(Puid.Util.FixedBytes, bytes: <<0xC7, 0xC9, 0x00, 0x2A>>)
     )
 
     bits_expect = &test_predefined_chars_mod("Hex", :hex, &1, FixedHexBytes, &2)
@@ -589,7 +615,7 @@ defmodule Puid.Test.Puid do
   test "hex upper" do
     defmodule(HexUpperBytes,
       do:
-        use(Puid.Test.FixedBytes,
+        use(Puid.Util.FixedBytes,
           bytes: <<0xC7, 0xC9, 0x00, 0x2A, 0x16, 0x32>>
         )
     )
@@ -606,7 +632,7 @@ defmodule Puid.Test.Puid do
   test "safe ascii" do
     defmodule(SafeAsciiBytes,
       do:
-        use(Puid.Test.FixedBytes, bytes: <<0xA6, 0x33, 0x2A, 0xBE, 0xE6, 0x2D, 0xB3, 0x68, 0x41>>)
+        use(Puid.Util.FixedBytes, bytes: <<0xA6, 0x33, 0x2A, 0xBE, 0xE6, 0x2D, 0xB3, 0x68, 0x41>>)
     )
 
     # shifts: [{89, 7}, {91, 6}, {95, 5}, {127, 2}]
@@ -632,7 +658,7 @@ defmodule Puid.Test.Puid do
 
   test "safe32 chars (5 bits)" do
     defmodule(Safe32Bytes,
-      do: use(Puid.Test.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xDA, 0x19, 0x03, 0xB7, 0x3C>>)
+      do: use(Puid.Util.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xDA, 0x19, 0x03, 0xB7, 0x3C>>)
     )
 
     #    D    2    E    3    E    9    D    A    1    9    0    3    B    7    3    C
@@ -671,7 +697,7 @@ defmodule Puid.Test.Puid do
 
   test "safe32 with carry" do
     defmodule(Safe32NoCarryBytes,
-      do: use(Puid.Test.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xDA, 0x19, 0x03, 0xB7, 0x3C>>)
+      do: use(Puid.Util.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xDA, 0x19, 0x03, 0xB7, 0x3C>>)
     )
 
     #    D    2    E    3    E    9    D    A    1    9    0    3    B    7    3    C
@@ -693,7 +719,7 @@ defmodule Puid.Test.Puid do
 
   test "safe64 chars (6 bits)" do
     defmodule(Safe64Bytes,
-      do: use(Puid.Test.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xFA, 0x19, 0x00>>)
+      do: use(Puid.Util.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xFA, 0x19, 0x00>>)
     )
 
     bits_expect = &test_predefined_chars_mod("Safe64", :safe64, &1, Safe64Bytes, &2)
@@ -707,7 +733,7 @@ defmodule Puid.Test.Puid do
 
   test "TF chars without carry" do
     defmodule(TFNoCarryBytes,
-      do: use(Puid.Test.FixedBytes, bytes: <<0b11111011, 0b00000100, 0b00101100, 0b10110011>>)
+      do: use(Puid.Util.FixedBytes, bytes: <<0b11111011, 0b00000100, 0b00101100, 0b10110011>>)
     )
 
     defmodule(TFNoCarryId,
@@ -720,7 +746,7 @@ defmodule Puid.Test.Puid do
 
   test "DingoSky chars without carry" do
     defmodule(DingoSkyNoCarryBytes,
-      do: use(Puid.Test.FixedBytes, bytes: <<0xC7, 0xC9, 0x00, 0x2A, 0xBD, 0x72>>)
+      do: use(Puid.Util.FixedBytes, bytes: <<0xC7, 0xC9, 0x00, 0x2A, 0xBD, 0x72>>)
     )
 
     #    C    7    C    9    0    0    2    A    B    D    7    2
@@ -740,7 +766,7 @@ defmodule Puid.Test.Puid do
 
   test "dingosky chars with carry" do
     defmodule(DingoSkyCarryBytes,
-      do: use(Puid.Test.FixedBytes, bytes: <<0xC7, 0xC9, 0x00, 0x2A, 0xBD, 0x72>>)
+      do: use(Puid.Util.FixedBytes, bytes: <<0xC7, 0xC9, 0x00, 0x2A, 0xBD, 0x72>>)
     )
 
     #    C    7    C    9    0    0    2    A    B    D    7    2
@@ -763,7 +789,7 @@ defmodule Puid.Test.Puid do
 
   test "dîngøsky chars with carry" do
     defmodule(DingoSkyUtf8Bytes,
-      do: use(Puid.Test.FixedBytes, bytes: <<0xC7, 0xC9, 0x00, 0x2A, 0xBD, 0x72>>)
+      do: use(Puid.Util.FixedBytes, bytes: <<0xC7, 0xC9, 0x00, 0x2A, 0xBD, 0x72>>)
     )
 
     #    C    7    C    9    0    0    2    A    B    D    7    2
@@ -787,7 +813,7 @@ defmodule Puid.Test.Puid do
   test "dîngøsky:🐕" do
     defmodule(DogBytes,
       do:
-        use(Puid.Test.FixedBytes,
+        use(Puid.Util.FixedBytes,
           bytes:
             <<0xEC, 0xF9, 0xDB, 0x7A, 0x33, 0x3D, 0x21, 0x97, 0xA0, 0xC2, 0xBF, 0x92, 0x80, 0xDD,
               0x2F, 0x57, 0x12, 0xC1, 0x1A, 0xEF>>
@@ -805,7 +831,7 @@ defmodule Puid.Test.Puid do
 
   test "10 custom vowels chars (4 bits)" do
     defmodule(VowelBytes,
-      do: use(Puid.Test.FixedBytes, bytes: <<0xA6, 0x33, 0xF6, 0x9E, 0xBD, 0xEE, 0xA7>>)
+      do: use(Puid.Util.FixedBytes, bytes: <<0xA6, 0x33, 0xF6, 0x9E, 0xBD, 0xEE, 0xA7>>)
     )
 
     bits_expect = &test_custom_chars_mod("Vowels", "aeiouAEIOU", &1, VowelBytes, &2)
@@ -833,7 +859,7 @@ defmodule Puid.Test.Puid do
   test "256 chars" do
     defmodule(SomeBytes,
       do:
-        use(Puid.Test.FixedBytes,
+        use(Puid.Util.FixedBytes,
           bytes:
             <<0xEC, 0xF9, 0xDB, 0x7A, 0x33, 0x3D, 0x21, 0x97, 0xA0, 0xC2, 0xBF, 0x92, 0x80, 0xDD,
               0x2F, 0x57, 0x12, 0xC1, 0x1A, 0xEF>>
@@ -896,7 +922,7 @@ defmodule Puid.Test.Puid do
   test "Calling process not the same as creating process: fixed bytes" do
     defmodule(HereVowelBytes,
       do:
-        use(Puid.Test.FixedBytes,
+        use(Puid.Util.FixedBytes,
           bytes: <<0xA6, 0x33, 0xF6, 0x9E, 0xBD, 0xEE, 0xA7, 0x54, 0x9F, 0x2D>>
         )
     )
