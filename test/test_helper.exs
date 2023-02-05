@@ -21,36 +21,6 @@
 # SOFTWARE.
 ExUnit.start()
 
-defmodule Puid.Test.FixedBytes do
-  @moduledoc false
-
-  defmacro __using__(opts) do
-    quote do
-      fixed_bytes =
-        case unquote(opts)[:bytes] do
-          nil ->
-            File.read!(unquote(opts[:data_path]))
-
-          bytes ->
-            bytes
-        end
-
-      @agent_name String.to_atom("#{__MODULE__}Agent")
-      Agent.start_link(fn -> {0, fixed_bytes} end, name: @agent_name)
-
-      def rand_bytes(count) do
-        {byte_offset, fixed_bytes} = state()
-        @agent_name |> Agent.update(fn _ -> {byte_offset + count, fixed_bytes} end)
-        binary_part(fixed_bytes, byte_offset, count)
-      end
-
-      def state(), do: @agent_name |> Agent.get(& &1)
-
-      def reset(), do: @agent_name |> Agent.update(fn {_, fixed_bytes} -> {0, fixed_bytes} end)
-    end
-  end
-end
-
 defmodule Puid.Test.Util do
   @moduledoc false
 
@@ -135,7 +105,7 @@ defmodule Puid.Test.Data do
     data_bytes_mod = "#{test_name}Bytes" |> String.to_atom()
 
     defmodule(data_bytes_mod,
-      do: use(Puid.Test.FixedBytes, data_path: bin_file)
+      do: use(Puid.Util.FixedBytes, data_path: bin_file)
     )
 
     data_id_mod = "#{test_name}Id" |> String.to_atom()

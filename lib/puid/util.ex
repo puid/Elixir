@@ -42,3 +42,33 @@ defmodule Puid.Util do
 
   defp r_ceil(n), do: n |> :math.ceil() |> round()
 end
+
+defmodule Puid.Util.FixedBytes do
+  @moduledoc false
+
+  defmacro __using__(opts) do
+    quote do
+      fixed_bytes =
+        case unquote(opts)[:bytes] do
+          nil ->
+            File.read!(unquote(opts[:data_path]))
+
+          bytes ->
+            bytes
+        end
+
+      @agent_name String.to_atom("#{__MODULE__}Agent")
+      Agent.start_link(fn -> {0, fixed_bytes} end, name: @agent_name)
+
+      def rand_bytes(count) do
+        {byte_offset, fixed_bytes} = state()
+        @agent_name |> Agent.update(fn _ -> {byte_offset + count, fixed_bytes} end)
+        binary_part(fixed_bytes, byte_offset, count)
+      end
+
+      def state(), do: @agent_name |> Agent.get(& &1)
+
+      def reset(), do: @agent_name |> Agent.update(fn {_, fixed_bytes} -> {0, fixed_bytes} end)
+    end
+  end
+end
