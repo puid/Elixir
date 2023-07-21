@@ -133,6 +133,18 @@ defmodule Puid.Test.Puid do
     test_char_set(:safe64, 43, 256)
   end
 
+  # test "pre-defined symbol" do
+  #   test_char_set(:symbol, 26)
+  #   test_char_set(:symbol, 13, 64)
+  #   test_char_set(:symbol, 52, 256)
+  # end
+
+  test "pre-defined wordSafe32" do
+    test_char_set(:wordSafe32, 26)
+    test_char_set(:wordSafe32, 13, 64)
+    test_char_set(:wordSafe32, 52, 256)
+  end
+
   defp test_characters(chars) do
     puid_mod =
       "#{chars |> to_string() |> String.capitalize()}Puid"
@@ -717,6 +729,25 @@ defmodule Puid.Test.Puid do
     assert Safe32CarryId.generate() == "2nNB"
   end
 
+  @tag :only
+  test "wordSafe32 chars (5 bits)" do
+    defmodule(WordSafe32Bytes,
+      do: use(Puid.Util.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xDA, 0x19, 0x03, 0xB7, 0x3C>>)
+    )
+
+    #    D    2    E    3    E    9    D    A    1    9    0    3    B    7    3    C
+    # 1101 0010 1110 0011 1110 1001 1101 1010 0001 1001 0000 0011 1011 0111 0011 1100
+    #
+    # 11010 01011 10001 11110 10011 10110 10000 11001 00000 01110 11011 10011 1100
+    # |---| |---| |---| |---| |---| |---| |---| |---| |---| |---| |---| |---|
+    #  26    11    17    30    19    22    16    25     0    14    27    19
+    #   p     H     V     w     X     g     R     m     2     P     q     X
+
+    bits_expect = &test_predefined_chars_mod("WordSafe32", :wordSafe32, &1, WordSafe32Bytes, &2)
+
+    bits_expect.(58, "pHVwXgRm2PqX")
+  end
+
   test "safe64 chars (6 bits)" do
     defmodule(Safe64Bytes,
       do: use(Puid.Util.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xFA, 0x19, 0x00>>)
@@ -902,7 +933,7 @@ defmodule Puid.Test.Puid do
     defmodule(EqualPairsId, do: use(Puid, bits: 128, chars: :hex))
     defmodule(LessPairsPlusSingleId, do: use(Puid, bits: 148, chars: :hex))
     defmodule(EqualPairPlusSingleId, do: use(Puid, bits: 140, chars: :alphanum))
-    defmodule(EqualPairsPlusSingleId, do: use(Puid, bits: 196, chars: :safe32))
+    defmodule(EqualPairsPlusSingleId, do: use(Puid, bits: 196, chars: :wordSafe32))
     defmodule(GreaterPairsPlusSingleId, do: use(Puid, bits: 220, chars: :safe32))
   end
 

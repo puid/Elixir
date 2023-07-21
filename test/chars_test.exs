@@ -42,7 +42,8 @@ defmodule Puid.Test.Chars do
       :safe_ascii,
       :safe32,
       :safe64,
-      :symbol
+      :symbol,
+      :wordSafe32
     ]
 
   test "charlist of pre-defined chars" do

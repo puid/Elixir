@@ -132,7 +132,7 @@ defmodule Puid.Chars do
   bits per character: `6.49`
 
   ### :safe32
-  Strings that don't look like words and are easier to parse visually
+  Strings that don't look like English words and are easier to parse visually
   ```none
   2346789bdfghjmnpqrtBDFGHJLMNPQRT
   ```
@@ -157,6 +157,15 @@ defmodule Puid.Chars do
   `!#$%&()*+,-./:;<=>?@[]^_{|}~`
   ```
   bits per character: `4.81`
+
+  ### :wordSafe32
+  Strings that don't look like English words
+  ```none
+  23456789CFGHJMPQRVWXcfghjmpqrvwx
+  ```
+  Origin unknown
+
+  bits per character: `6.49`
 
   """
 
@@ -246,6 +255,8 @@ defmodule Puid.Chars do
     alphanum = charlist!(:alphanum)
     :safe_ascii |> charlist!() |> Enum.filter(&(!Enum.member?(alphanum, &1)))
   end
+
+  def charlist!(:wordSafe32), do: ~c"23456789CFGHJMPQRVWXcfghjmpqrvwx"
 
   def charlist!(charlist) when is_atom(charlist),
     do: raise(Puid.Error, "Invalid pre-defined charlist: :#{charlist}")
