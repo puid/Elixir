@@ -60,10 +60,10 @@ defmodule Puid.Test.Chars do
   end
 
   test "charlist of ascii charlist" do
-    {:ok, charlist} = Chars.charlist('dingosky')
+    {:ok, charlist} = Chars.charlist(~c"dingosky")
     assert is_list(charlist)
 
-    assert('dingosky' |> Chars.charlist!() |> is_list())
+    assert(~c"dingosky" |> Chars.charlist!() |> is_list())
   end
 
   test "charlist of ascii String" do
@@ -74,10 +74,10 @@ defmodule Puid.Test.Chars do
   end
 
   test "charlist of unicode charlist" do
-    {:ok, charlist} = Chars.charlist('dîngøsky')
+    {:ok, charlist} = Chars.charlist(~c"dîngøsky")
     assert is_list(charlist)
 
-    assert('dîngøsky' |> Chars.charlist!() |> is_list())
+    assert(~c"dîngøsky" |> Chars.charlist!() |> is_list())
   end
 
   test "charlist of unicode String" do
@@ -98,7 +98,7 @@ defmodule Puid.Test.Chars do
     assert {:error, reason} = Chars.charlist("unique")
     assert reason |> String.contains?("not unique")
 
-    assert_raise(Puid.Error, fn -> Chars.charlist!('unique') end)
+    assert_raise(Puid.Error, fn -> Chars.charlist!(~c"unique") end)
   end
 
   test "charlist of too short String" do
@@ -122,11 +122,11 @@ defmodule Puid.Test.Chars do
   end
 
   test "charlist with unsafe ascii" do
-    assert_raise(Puid.Error, fn -> Chars.charlist!('dingo sky') end)
-    assert_raise(Puid.Error, fn -> Chars.charlist!('dingo"sky') end)
-    assert_raise(Puid.Error, fn -> Chars.charlist!('dingo\'sky') end)
-    assert_raise(Puid.Error, fn -> Chars.charlist!('dingo\\sky') end)
-    assert_raise(Puid.Error, fn -> Chars.charlist!('dingo`sky') end)
+    assert_raise(Puid.Error, fn -> Chars.charlist!(~c"dingo sky") end)
+    assert_raise(Puid.Error, fn -> Chars.charlist!(~c"dingo\"sky") end)
+    assert_raise(Puid.Error, fn -> Chars.charlist!(~c"dingo'sky") end)
+    assert_raise(Puid.Error, fn -> Chars.charlist!(~c"dingo\\sky") end)
+    assert_raise(Puid.Error, fn -> Chars.charlist!(~c"dingo`sky") end)
   end
 
   test "String with unsafe ascii" do
@@ -143,6 +143,6 @@ defmodule Puid.Test.Chars do
   end
 
   test "invalid encoding" do
-    assert_raise(Puid.Error, fn -> Chars.encoding('ab cd') end)
+    assert_raise(Puid.Error, fn -> Chars.encoding(~c"ab cd") end)
   end
 end

@@ -281,7 +281,7 @@ defmodule Puid.Test.Puid do
 
   test "invalid chars" do
     assert_raise Puid.Error, fn ->
-      defmodule(NoNoId, do: use(Puid, chars: 'dingo\n'))
+      defmodule(NoNoId, do: use(Puid, chars: ~c"dingo\n"))
     end
   end
 
@@ -737,7 +737,7 @@ defmodule Puid.Test.Puid do
     )
 
     defmodule(TFNoCarryId,
-      do: use(Puid, bits: 16, chars: 'FT', rand_bytes: &TFNoCarryBytes.rand_bytes/1)
+      do: use(Puid, bits: 16, chars: ~c"FT", rand_bytes: &TFNoCarryBytes.rand_bytes/1)
     )
 
     assert TFNoCarryId.generate() == "TTTTTFTTFFFFFTFF"
@@ -757,7 +757,7 @@ defmodule Puid.Test.Puid do
     #  k   i   y   o   o   o   d   d   i   n   s   g   k   s   k   n
 
     defmodule(DingoSkyNoCarryId,
-      do: use(Puid, bits: 24, chars: 'dingosky', rand_bytes: &DingoSkyNoCarryBytes.rand_bytes/1)
+      do: use(Puid, bits: 24, chars: ~c"dingosky", rand_bytes: &DingoSkyNoCarryBytes.rand_bytes/1)
     )
 
     assert DingoSkyNoCarryId.generate() == "kiyooodd"
@@ -777,7 +777,7 @@ defmodule Puid.Test.Puid do
     #  k   i   y   o   o   o   d   d   i   n   s   g   k   s   k   n
 
     defmodule(DingoSkyCarryId,
-      do: use(Puid, bits: 9, chars: 'dingosky', rand_bytes: &DingoSkyCarryBytes.rand_bytes/1)
+      do: use(Puid, bits: 9, chars: ~c"dingosky", rand_bytes: &DingoSkyCarryBytes.rand_bytes/1)
     )
 
     assert DingoSkyCarryId.generate() == "kiy"
@@ -800,7 +800,7 @@ defmodule Puid.Test.Puid do
     #  k   î   y   ø   ø   ø   d   d   î   n   s   g   k   s   k   n
 
     defmodule(DingoskyUtf8CarryId,
-      do: use(Puid, bits: 9, chars: 'dîngøsky', rand_bytes: &DingoSkyUtf8Bytes.rand_bytes/1)
+      do: use(Puid, bits: 9, chars: ~c"dîngøsky", rand_bytes: &DingoSkyUtf8Bytes.rand_bytes/1)
     )
 
     assert DingoskyUtf8CarryId.generate() == "kîy"
@@ -821,7 +821,7 @@ defmodule Puid.Test.Puid do
     )
 
     defmodule(DogId,
-      do: use(Puid, bits: 24, chars: 'dîngøsky:🐕', rand_bytes: &DogBytes.rand_bytes/1)
+      do: use(Puid, bits: 24, chars: ~c"dîngøsky:🐕", rand_bytes: &DogBytes.rand_bytes/1)
     )
 
     assert DogId.generate() == "🐕gî🐕🐕nî🐕"

@@ -214,13 +214,25 @@ defmodule Puid.Test.Timing do
     nanoid_safe64_126_prng = fn -> for(_ <- 1..trials, do: Nanoid.generate_non_secure()) end
 
     puid_alphanum_195 = fn -> for(_ <- 1..trials, do: AlphaNumPuid195.generate()) end
+
     nanoid_alphanum_195 = fn ->
-      for(_ <- 1..trials, do: Nanoid.generate(33, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"))
+      for(
+        _ <- 1..trials,
+        do: Nanoid.generate(33, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789")
+      )
     end
 
     puid_alphanum_195_prng = fn -> for(_ <- 1..trials, do: AlphaNumPuid195_prng.generate()) end
+
     nanoid_alphanum_195_prng = fn ->
-      for(_ <- 1..trials, do: Nanoid.generate_non_secure(33, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"))
+      for(
+        _ <- 1..trials,
+        do:
+          Nanoid.generate_non_secure(
+            33,
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+          )
+      )
     end
 
     IO.puts("")
@@ -242,7 +254,6 @@ defmodule Puid.Test.Timing do
     IO.puts("")
     time(nanoid_alphanum_195_prng, "    Nanoid (PRNG) ")
     time(puid_alphanum_195_prng, "    Puid   (PRNG) ")
-
   end
 
   @tag :randomizer
@@ -375,8 +386,8 @@ defmodule Puid.Test.Timing do
 
     IO.puts("\n  Generate #{trials} random IDs")
 
-    defmodule(AsciiPuid, do: use(Puid, chars: 'dingoskyDINGOSKY'))
-    defmodule(Utf8Puid, do: use(Puid, chars: 'dîñgøskyDÎNGØSK¥'))
+    defmodule(AsciiPuid, do: use(Puid, chars: ~c"dingoskyDINGOSKY"))
+    defmodule(Utf8Puid, do: use(Puid, chars: ~c"dîñgøskyDÎNGØSK¥"))
 
     ascii = fn -> for(_ <- 1..trials, do: AsciiPuid.generate()) end
     utf8 = fn -> for(_ <- 1..trials, do: Utf8Puid.generate()) end

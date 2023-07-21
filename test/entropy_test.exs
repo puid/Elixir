@@ -117,8 +117,8 @@ defmodule Puid.Test.Entropy do
     {:ok, ebpc} = bits_per_char(:alphanum)
     assert ebpc |> Float.round(2) == 5.95
 
-    assert bits_per_char('dingosky') === {:ok, 3.0}
-    assert bits_per_char('0123456789') === {:ok, 10 |> :math.log2()}
+    assert bits_per_char(~c"dingosky") === {:ok, 3.0}
+    assert bits_per_char(~c"0123456789") === {:ok, 10 |> :math.log2()}
 
     assert bits_per_char("0123") === {:ok, 2.0}
     assert bits_per_char("0123456789ok") === {:ok, 12 |> :math.log2()}
@@ -128,8 +128,8 @@ defmodule Puid.Test.Entropy do
     assert bits_per_char!(:hex) === 4.0
     assert bits_per_char!(:alphanum) |> Float.round(2) == 5.95
 
-    assert bits_per_char!('dingosky') === 3.0
-    assert bits_per_char!('0123456789') === 10 |> :math.log2()
+    assert bits_per_char!(~c"dingosky") === 3.0
+    assert bits_per_char!(~c"0123456789") === 10 |> :math.log2()
 
     assert bits_per_char!("0123") === 2.0
     assert bits_per_char!("0123456789ok") === 12 |> :math.log2()
@@ -142,15 +142,15 @@ defmodule Puid.Test.Entropy do
   end
 
   test "non-unique bits_per_char" do
-    'unique' |> bits_per_char() |> assert_error_matches("unique")
-    assert_raise Puid.Error, fn -> bits_per_char!('unique') end
+    ~c"unique" |> bits_per_char() |> assert_error_matches("unique")
+    assert_raise Puid.Error, fn -> bits_per_char!(~c"unique") end
   end
 
   test "too short bits_per_char" do
-    'u' |> bits_per_char() |> assert_error_matches("least 2")
+    ~c"u" |> bits_per_char() |> assert_error_matches("least 2")
     "" |> bits_per_char() |> assert_error_matches("least 2")
 
-    assert_raise Puid.Error, fn -> bits_per_char!('') end
+    assert_raise Puid.Error, fn -> bits_per_char!(~c"") end
     assert_raise Puid.Error, fn -> bits_per_char!("u") end
   end
 
@@ -168,13 +168,13 @@ defmodule Puid.Test.Entropy do
   #
   test "valid bits_for_len" do
     assert :alphanum |> bits_for_len(14) === {:ok, 83}
-    assert 'dingosky' |> bits_for_len(14) === {:ok, 42}
+    assert ~c"dingosky" |> bits_for_len(14) === {:ok, 42}
     assert "uncopyrightable" |> bits_for_len(14) === {:ok, 54}
   end
 
   test "valid bits_for_len!" do
     assert :alphanum |> bits_for_len!(14) === 83
-    assert 'uncopyrightable' |> bits_for_len!(14) === 54
+    assert ~c"uncopyrightable" |> bits_for_len!(14) === 54
     assert "dingosky" |> bits_for_len!(14) === 42
   end
 
@@ -185,16 +185,16 @@ defmodule Puid.Test.Entropy do
   end
 
   test "non-unique bits_for_len" do
-    'unique' |> bits_for_len(14) |> assert_error_matches("unique")
+    ~c"unique" |> bits_for_len(14) |> assert_error_matches("unique")
 
-    assert_raise Puid.Error, fn -> 'unique' |> bits_for_len!(20) end
+    assert_raise Puid.Error, fn -> ~c"unique" |> bits_for_len!(20) end
   end
 
   test "too short bits_for_len" do
-    'u' |> bits_for_len(10) |> assert_error_matches("least 2")
+    ~c"u" |> bits_for_len(10) |> assert_error_matches("least 2")
     "" |> bits_for_len(20) |> assert_error_matches("least 2")
 
-    assert_raise Puid.Error, fn -> 'u' |> bits_for_len!(10) end
+    assert_raise Puid.Error, fn -> ~c"u" |> bits_for_len!(10) end
   end
 
   test "too long bits_for_len" do
@@ -210,13 +210,13 @@ defmodule Puid.Test.Entropy do
   #
   test "valid len_for_bits" do
     assert :alphanum |> len_for_bits(83) === {:ok, 14}
-    assert 'dingosky' |> len_for_bits(42) === {:ok, 14}
+    assert ~c"dingosky" |> len_for_bits(42) === {:ok, 14}
     assert "uncopyrightable" |> len_for_bits(54) === {:ok, 14}
   end
 
   test "valid len_for_bits!" do
     assert :alphanum |> len_for_bits!(83) === 14
-    assert 'uncopyrightable' |> len_for_bits!(54) === 14
+    assert ~c"uncopyrightable" |> len_for_bits!(54) === 14
     assert "dingosky" |> len_for_bits!(42) === 14
   end
 
@@ -227,14 +227,14 @@ defmodule Puid.Test.Entropy do
   end
 
   test "non-unique len_for_bits" do
-    'unique' |> len_for_bits(14) |> assert_error_matches("unique")
-    assert_raise Puid.Error, fn -> 'unique' |> len_for_bits!(20) end
+    ~c"unique" |> len_for_bits(14) |> assert_error_matches("unique")
+    assert_raise Puid.Error, fn -> ~c"unique" |> len_for_bits!(20) end
   end
 
   test "too short len_for_bits" do
-    'u' |> len_for_bits(10) |> assert_error_matches("least 2")
+    ~c"u" |> len_for_bits(10) |> assert_error_matches("least 2")
     "" |> len_for_bits(20) |> assert_error_matches("least 2")
-    assert_raise Puid.Error, fn -> 'u' |> len_for_bits!(10) end
+    assert_raise Puid.Error, fn -> ~c"u" |> len_for_bits!(10) end
   end
 
   test "too long len_for_bits" do

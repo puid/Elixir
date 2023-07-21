@@ -187,10 +187,10 @@ defmodule Puid.Chars do
   ## Example
 
       iex> Puid.Chars.charlist(:safe32)
-      {:ok, '2346789bdfghjmnpqrtBDFGHJLMNPQRT'}
+      {:ok, ~c"2346789bdfghjmnpqrtBDFGHJLMNPQRT"}
 
       iex> Puid.Chars.charlist("dingosky")
-      {:ok, 'dingosky'}
+      {:ok, ~c"dingosky"}
 
       iex> Puid.Chars.charlist("unique")
       {:error, "Characters not unique"}
@@ -212,10 +212,10 @@ defmodule Puid.Chars do
   ## Example
 
       iex> Puid.Chars.charlist!(:safe32)
-      '2346789bdfghjmnpqrtBDFGHJLMNPQRT'
+      ~c"2346789bdfghjmnpqrtBDFGHJLMNPQRT"
 
       iex> Puid.Chars.charlist!("dingosky")
-      'dingosky'
+      ~c"dingosky"
 
       iex> Puid.Chars.charlist!("unique")
       # (Puid.Error) Characters not unique
@@ -229,18 +229,18 @@ defmodule Puid.Chars do
   def charlist!(:alphanum), do: charlist!(:alpha) ++ charlist!(:decimal)
   def charlist!(:alphanum_lower), do: charlist!(:alpha_lower) ++ charlist!(:decimal)
   def charlist!(:alphanum_upper), do: charlist!(:alpha_upper) ++ charlist!(:decimal)
-  def charlist!(:base32), do: charlist!(:alpha_upper) ++ '234567'
+  def charlist!(:base32), do: charlist!(:alpha_upper) ++ ~c"234567"
   def charlist!(:base32_hex), do: charlist!(:decimal) ++ Enum.to_list(?a..?v)
   def charlist!(:base32_hex_upper), do: charlist!(:decimal) ++ Enum.to_list(?A..?V)
-  def charlist!(:crockford32), do: charlist!(:decimal) ++ (charlist!(:alpha_upper) -- 'ILOU')
+  def charlist!(:crockford32), do: charlist!(:decimal) ++ (charlist!(:alpha_upper) -- ~c"ILOU")
   def charlist!(:decimal), do: Enum.to_list(?0..?9)
   def charlist!(:hex), do: charlist!(:decimal) ++ Enum.to_list(?a..?f)
   def charlist!(:hex_upper), do: charlist!(:decimal) ++ Enum.to_list(?A..?F)
   def charlist!(:safe_ascii), do: ?!..?~ |> Enum.filter(&safe_ascii?(&1))
-  def charlist!(:safe32), do: '2346789bdfghjmnpqrtBDFGHJLMNPQRT'
+  def charlist!(:safe32), do: ~c"2346789bdfghjmnpqrtBDFGHJLMNPQRT"
 
   def charlist!(:safe64),
-    do: charlist!(:alpha_upper) ++ charlist!(:alpha_lower) ++ charlist!(:decimal) ++ '-_'
+    do: charlist!(:alpha_upper) ++ charlist!(:alpha_lower) ++ charlist!(:decimal) ++ ~c"-_"
 
   def charlist!(:symbol) do
     alphanum = charlist!(:alphanum)
