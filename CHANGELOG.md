@@ -1,5 +1,20 @@
 # Changelog
 
+## v2.2.0 (2023-08-23)
+
+### Add predefined chars
+
+- :base16
+- :crockford32
+- :wordSafe32
+
+### Minor
+
+- Move `FixedBytes` from `Puid.Test` to `Puid.Util`
+- Add bits per character to doc for predefined chars
+- Use sigil_c for charlists
+- Add a few more tests
+
 ## v2.1.0 (2023-01-29)
 
 ### Improve bit slicing optimization
