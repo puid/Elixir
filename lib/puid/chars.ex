@@ -74,6 +74,13 @@ defmodule Puid.Chars do
   ```
   bits per character: `5.17`
 
+  ### :base16
+  [RFC 4648](https://tools.ietf.org/html/rfc4648#section-8) base16 character set
+  ```
+  0123456789ABCDEF
+  ```
+  bits per character: `4`
+
   ### :base32
   [RFC 4648](https://tools.ietf.org/html/rfc4648#section-6) base32 character set
   ```none

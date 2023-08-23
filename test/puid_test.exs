@@ -448,6 +448,30 @@ defmodule Puid.Test.Puid do
     assert AlphaNumCarryId.generate() == "pQr"
   end
 
+  test "alpha lower" do
+    defmodule(AlphaLowerBytes,
+      do: use(Puid.Util.FixedBytes, bytes: <<0x53, 0xC8, 0x8D, 0xE6, 0x3E, 0x27, 0xEF>>)
+    )
+
+    defmodule(AlphaLower14Id,
+      do: use(Puid, bits: 14, chars: :alpha_lower, rand_bytes: &AlphaLowerBytes.rand_bytes/1)
+    )
+
+    # shifts: [{25, 5}, {27, 4}, {31, 3}])
+    #
+    #    5    3    c    8    8    d    e    6    3    e    2    7    e    f
+    # 0101 0011 1100 1000 1000 1101 1110 0110 0011 1110 0010 0111 1110 1111
+    #
+    # 01010 01111 00100 01000 1101 111 00110 00111 11000 10011 111 10111 1
+    # |---| |---| |---| |---| xxxx xxx |---| |---| |---| |---| xxx |---|
+    #   10    15     4     8   27   28    6     7    24    19   30   23
+    #    k     p     e     i              g     h     y     t         x
+
+    assert AlphaLower14Id.generate() == "kpe"
+    assert AlphaLower14Id.generate() == "igh"
+    assert AlphaLower14Id.generate() == "ytx"
+  end
+
   test "alphanum lower" do
     defmodule(AlphaNumLowerBytes,
       do: use(Puid.Util.FixedBytes, bytes: <<0xD2, 0xE3, 0xE9, 0xFA, 0x19, 0x00, 0xC8, 0x2D>>)
