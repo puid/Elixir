@@ -202,7 +202,7 @@ defmodule Puid do
       if is_nil(total) and !is_nil(risk),
         do: raise(Puid.Error, "Must specify total when specifying risk")
 
-      puid_bits =
+      entropy_bits =
         cond do
           is_nil(bits) and is_nil(total) ->
             puid_default.entropy_bits
@@ -229,7 +229,7 @@ defmodule Puid do
 
       chars_count = length(puid_charlist)
       ebpc = :math.log2(chars_count)
-      puid_len = (puid_bits / ebpc) |> :math.ceil() |> round()
+      puid_len = (entropy_bits / ebpc) |> :math.ceil() |> round()
 
       avg_rep_bits_per_char =
         puid_charlist
@@ -273,11 +273,23 @@ defmodule Puid do
       """
       def generate(), do: __MODULE__.Bits.generate() |> __MODULE__.Encoding.encode()
 
+      @entropy_bits ebpc * puid_len
+
+      @doc """
+      Approximation of `total` possible `puid`s which can be generated at the specified `risk`
+      """
+      def total(risk), do: round(Puid.Entropy.total(@entropy_bits, risk))
+
+      @doc """
+      Approximation of `risk` in genertating `total` `puid`s
+      """
+      def risk(total), do: round(Puid.Entropy.risk(@entropy_bits, total))
+
       mod_info = %Puid.Info{
         characters: puid_charlist |> to_string(),
         char_set: puid_char_set,
         entropy_bits_per_char: Float.round(ebpc, 2),
-        entropy_bits: Float.round(puid_len * ebpc, 2),
+        entropy_bits: Float.round(@entropy_bits, 2),
         ere: ere,
         length: puid_len,
         rand_bytes: rand_bytes

@@ -33,9 +33,10 @@ defmodule Puid.Entropy do
   @type puid_chars :: Puid.Chars.puid_chars()
 
   @doc """
-  Entropy bits for generating a `total` number of events with the given `risk` of repeat
+  Entropy bits necessary to generate `total` number of `puid`s with `risk` risk of repeat.
 
-  The total size of the event pool is 2<sup>bits</sup>.
+  The total number of possible `puid`s is 2<sup>bits</sup>.
+  Risk is expressed as a 1 in `risk` chance, so the probability of a repeat is `1/risk`.
 
   ## Example
 
@@ -61,6 +62,63 @@ defmodule Puid.Entropy do
       end
 
     n + :math.log2(risk) - 1
+  end
+
+  @doc """
+  Approximate total number of `puid`s which can be generated using `bits` bits entropy at a `risk` risk of repeat.
+
+  The total number of possible `puid`s is 2<sup>bits</sup>.
+  Risk is expressed as a 1 in `risk` chance, so the probability of a repeat is `1/risk`.
+
+  Due to approximations used in the entropy calculation this value is also approximate; the approximation is
+  conservative, however, so the calculated total will not exceed the specified `risk`.
+
+  ## Example
+
+      iex> bits = 64
+      iex> risk = 1.0e9
+      iex> Puid.Entropy.total(bits, risk)
+      192077
+
+  """
+  def total(0, _), do: 0
+  def total(1, _), do: 1
+
+  def total(_, 0), do: 1
+  def total(_, 1), do: 1
+
+  def total(bits, risk) do
+    round(2 ** ((bits + 1) / 2) * :math.sqrt(:math.log(risk / (risk - 1))))
+  end
+
+  @doc """
+  Risk of repeat in `total` number of events with `bits` bits entropy.
+
+  The total number of possible `puid`s is 2<sup>bits</sup>.
+  Risk is expressed as a 1 in `risk` chance, so the probability of a repeat is `1/risk`.
+
+  Due to approximations used in the entropy calculation this value is also approximate; the approximation is
+  conservative, however, so the calculated risk will not be exceed for the specified `total`.
+
+  ## Example
+
+      iex> bits = 96
+      iex> total = 1.0e7
+      iex> Puid.Entropy.risk(bits, total)
+      1501199875790165
+      iex> 1.0 / 1501199875790165
+      6.661338147750941e-16
+  """
+  def risk(0, _), do: 0
+  def risk(1, _), do: 1
+
+  def risk(_, 0), do: 1
+  def risk(_, 1), do: 1
+
+  def risk(bits, total) do
+    events = 2 ** bits
+    exponent = -1.0 * ((total - 1) * total) / (2 * events)
+    round(1 / (1 - :math.exp(exponent)))
   end
 
   @doc """
@@ -92,11 +150,11 @@ defmodule Puid.Entropy do
 
   ## Example
 
-       iex> Puid.Entropy.bits_per_char!(:alphanum)
-       5.954196310386875
+      iex> Puid.Entropy.bits_per_char!(:alphanum)
+      5.954196310386875
 
-       Puid.Entropy.bits_per_char!("dingosky")
-       3.0
+      Puid.Entropy.bits_per_char!("dingosky")
+      3.0
 
   """
   @spec bits_per_char!(puid_chars()) :: float()

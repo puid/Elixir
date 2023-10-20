@@ -26,8 +26,8 @@ defmodule Puid.Test.Entropy do
 
   import Puid.Entropy
 
-  defp i_bits(total, risk), do: round(bits(total, risk))
   defp d_bits(total, risk, d), do: Float.round(bits(total, risk), d)
+  defp i_bits(total, risk), do: round(bits(total, risk))
 
   defp assert_error_matches({:error, reason}, snippet),
     do: assert(reason |> String.contains?(snippet))
@@ -53,6 +53,17 @@ defmodule Puid.Test.Entropy do
     assert d_bits(1.0e9, 1.0e9, 2) === 88.69
     assert d_bits(1.0e9, 1.0e12, 2) === 98.66
     assert d_bits(1.0e9, 1.0e15, 2) === 108.62
+  end
+
+  test "total" do
+    assert total(96, 1.0e15) == 13_263_554
+    assert total(108.62, 1.0e15) == 1_052_347_509
+  end
+
+  @tag :risk
+  test "risk" do
+    assert risk(96, 10.0e6) == 1_501_199_875_790_165
+    assert risk(108.62, 1.0e9) == 1_000_799_917_193_444
   end
 
   test "preshing 32-bit" do

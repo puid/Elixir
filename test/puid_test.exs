@@ -206,6 +206,16 @@ defmodule Puid.Test.Puid do
     assert info.length == 12
   end
 
+  test "total/risk approximations" do
+    total = 1_000_000
+    risk = 1.0e12
+
+    defmodule(ApproxTotalRisk, do: use(Puid, total: total, risk: risk, chars: :safe32))
+
+    assert ApproxTotalRisk.total(risk) == 1_555_013
+    assert ApproxTotalRisk.risk(total) == 2_418_040_068_387
+  end
+
   test "unicode chars" do
     chars = "noe\u0308l"
     defmodule(XMasChars, do: use(Puid, chars: chars))
