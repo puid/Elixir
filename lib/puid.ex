@@ -243,6 +243,7 @@ defmodule Puid do
       puid_bits_per_char = log_ceil(chars_count)
 
       @entropy_bits entropy_bits_per_char * puid_len
+      @bits_per_puid puid_len * puid_bits_per_char
 
       defmodule __MODULE__.Bits,
         do:
@@ -274,6 +275,31 @@ defmodule Puid do
       Generate a `puid`
       """
       def generate(), do: __MODULE__.Bits.generate() |> __MODULE__.Encoder.encode()
+
+      @doc """
+      Encode `bits` into a `puid`.
+
+      `bits` must contain enough bits to create a `puid`. The rest are ignored.
+      """
+      def encode(bits)
+
+      def encode(<<_::size(@bits_per_puid)>> = bits) do
+        try do
+          __MODULE__.Encoder.encode(bits)
+        rescue
+          _ ->
+            {:error, "unable to encode"}
+        end
+      end
+
+      def encode(<<bits::size(@bits_per_puid), _::bits>>),
+        do: encode(<<bits::size(@bits_per_puid)>>)
+
+      def encode(bits) when is_bitstring(bits),
+        do: {:error, "not enough bits"}
+
+      def encode(_),
+        do: {:error, "invalid bits"}
 
       @doc """
       Approximation of `total` possible `puid`s which can be generated at the specified `risk`

@@ -133,11 +133,11 @@ defmodule Puid.Test.Puid do
     test_char_set(:safe64, 43, 256)
   end
 
-  # test "pre-defined symbol" do
-  #   test_char_set(:symbol, 26)
-  #   test_char_set(:symbol, 13, 64)
-  #   test_char_set(:symbol, 52, 256)
-  # end
+  test "pre-defined symbol" do
+    test_char_set(:symbol, 27)
+    test_char_set(:symbol, 14, 64)
+    test_char_set(:symbol, 54, 256)
+  end
 
   test "pre-defined wordSafe32" do
     test_char_set(:wordSafe32, 26)
@@ -194,6 +194,26 @@ defmodule Puid.Test.Puid do
     assert DefaultId.info().rand_bytes === (&:crypto.strong_rand_bytes/1)
     assert DefaultId.info().ere === 0.75
     assert byte_size(DefaultId.generate()) === DefaultId.info().length
+  end
+
+  test "encode" do
+    puid_bits = <<141, 138, 2, 168, 7, 11, 13, 0::size(4)>>
+    puid = "rwfafkahbmgq"
+
+    defmodule(IdEncoder, do: use(Puid, bits: 55, chars: :alpha_lower))
+
+    assert IdEncoder.encode(puid_bits) == puid
+    assert IdEncoder.encode(<<puid_bits::bits, 2::size(2)>>) == IdEncoder.encode(puid_bits)
+  end
+
+  test "encode fail" do
+    defmodule(FailEncoder, do: use(Puid, bits: 34, chars: :alpha))
+
+    puid_bits = <<76, 51, 24, 70, 2::size(4)>>
+    assert FailEncoder.encode(puid_bits) == "TDMYRi"
+
+    assert FailEncoder.encode(<<76, 51, 24, 70, 2::size(2)>>) == {:error, "not enough bits"}
+    assert FailEncoder.encode(<<76, 51, 24, 255, 1::size(4)>>) == {:error, "unable to encode"}
   end
 
   test "total/risk" do
