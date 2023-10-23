@@ -228,8 +228,8 @@ defmodule Puid do
         do: raise(Puid.Error, "rand_bytes not arity 1")
 
       chars_count = length(puid_charlist)
-      ebpc = :math.log2(chars_count)
-      puid_len = (entropy_bits / ebpc) |> :math.ceil() |> round()
+      entropy_bits_per_char = :math.log2(chars_count)
+      puid_len = (entropy_bits / entropy_bits_per_char) |> :math.ceil() |> round()
 
       avg_rep_bits_per_char =
         puid_charlist
@@ -238,9 +238,11 @@ defmodule Puid do
         |> Kernel.*(8)
         |> Kernel./(chars_count)
 
-      ere = (ebpc / avg_rep_bits_per_char) |> Float.round(2)
+      ere = (entropy_bits_per_char / avg_rep_bits_per_char) |> Float.round(2)
 
-      bits_per_char = log_ceil(chars_count)
+      puid_bits_per_char = log_ceil(chars_count)
+
+      @entropy_bits entropy_bits_per_char * puid_len
 
       defmodule __MODULE__.Bits,
         do:
@@ -251,19 +253,19 @@ defmodule Puid do
           )
 
       if chars_encoding == :ascii do
-        defmodule __MODULE__.Encoding,
+        defmodule __MODULE__.Encoder,
           do:
-            use(Puid.Encoding.ASCII,
+            use(Puid.Encoder.ASCII,
               charlist: puid_charlist,
-              bits_per_char: bits_per_char,
+              bits_per_char: puid_bits_per_char,
               puid_len: puid_len
             )
       else
-        defmodule __MODULE__.Encoding,
+        defmodule __MODULE__.Encoder,
           do:
-            use(Puid.Encoding.Utf8,
+            use(Puid.Encoder.Utf8,
               charlist: puid_charlist,
-              bits_per_char: bits_per_char,
+              bits_per_char: puid_bits_per_char,
               puid_len: puid_len
             )
       end
@@ -271,9 +273,7 @@ defmodule Puid do
       @doc """
       Generate a `puid`
       """
-      def generate(), do: __MODULE__.Bits.generate() |> __MODULE__.Encoding.encode()
-
-      @entropy_bits ebpc * puid_len
+      def generate(), do: __MODULE__.Bits.generate() |> __MODULE__.Encoder.encode()
 
       @doc """
       Approximation of `total` possible `puid`s which can be generated at the specified `risk`
@@ -288,7 +288,7 @@ defmodule Puid do
       mod_info = %Puid.Info{
         characters: puid_charlist |> to_string(),
         char_set: puid_char_set,
-        entropy_bits_per_char: Float.round(ebpc, 2),
+        entropy_bits_per_char: Float.round(entropy_bits_per_char, 2),
         entropy_bits: Float.round(@entropy_bits, 2),
         ere: ere,
         length: puid_len,

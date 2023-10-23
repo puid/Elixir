@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-defmodule Puid.Encoding.Utf8 do
+defmodule Puid.Encoder.Utf8 do
   @moduledoc false
 
   defmacro __using__(opts) do
