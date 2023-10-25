@@ -197,13 +197,15 @@ defmodule Puid.Test.Puid do
   end
 
   test "encode" do
+    defmodule(IdEncoder, do: use(Puid, bits: 55, chars: :alpha_lower))
+
     puid_bits = <<141, 138, 2, 168, 7, 11, 13, 0::size(4)>>
     puid = "rwfafkahbmgq"
 
-    defmodule(IdEncoder, do: use(Puid, bits: 55, chars: :alpha_lower))
-
     assert IdEncoder.encode(puid_bits) == puid
-    assert IdEncoder.encode(<<puid_bits::bits, 2::size(2)>>) == IdEncoder.encode(puid_bits)
+
+    assert IdEncoder.encode(<<141, 138, 2, 168, 7, 11, 13, 0::size(6)>>) ==
+             IdEncoder.encode(puid_bits)
   end
 
   test "encode fail" do
@@ -214,6 +216,47 @@ defmodule Puid.Test.Puid do
 
     assert FailEncoder.encode(<<76, 51, 24, 70, 2::size(2)>>) == {:error, "not enough bits"}
     assert FailEncoder.encode(<<76, 51, 24, 255, 1::size(4)>>) == {:error, "unable to encode"}
+  end
+
+  test "decode" do
+    defmodule(IdDecoder, do: use(Puid, bits: 62, chars: :alphanum))
+
+    bits = <<70, 114, 103, 8, 162, 67, 146, 76, 3::size(2)>>
+    puid = "RnJnCKJDkkz"
+
+    assert IdDecoder.decode(puid) == <<bits::bits, 0::size(6)>>
+  end
+
+  test "decode fail" do
+    defmodule(FailDecoder, do: use(Puid, bits: 34, chars: :alpha))
+
+    puid = FailDecoder.generate()
+
+    long = puid <> "1"
+    assert FailDecoder.decode(long) == {:error, "invalid puid"}
+
+    <<_::binary-size(1), short::binary>> = puid
+    assert FailDecoder.decode(short) == {:error, "invalid puid"}
+
+    wrong = short <> "$"
+    assert FailDecoder.decode(wrong) == {:error, "unable to decode"}
+  end
+
+  test "decode not supported" do
+    defmodule(DNoNo, do: use(Puid, bits: 50, chars: ~c"dîngøsky"))
+
+    assert DNoNo.generate() |> DNoNo.decode() ==
+             {:error, "not supported for non-ascii characters sets"}
+  end
+
+  test "encode/decode round trips" do
+    defmodule(EDHex, do: use(Puid, chars: :hex))
+    hexId = EDHex.generate()
+    assert hexId |> EDHex.decode() |> EDHex.encode() == hexId
+
+    defmodule(EDAscii, do: use(Puid, chars: :safe_ascii))
+    asciiId = EDHex.generate()
+    assert asciiId |> EDHex.decode() |> EDHex.encode() == asciiId
   end
 
   test "total/risk" do

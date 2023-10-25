@@ -124,48 +124,64 @@ defmodule Puid do
 
   ## Module API
 
-  `Puid` modules have two functions:
+  Module functions:
+
+  - **generate/0**: Generate a random **puid**
+  - **total/1**: total **puid**s which can be generated at a specified `risk`
+  - **risk/1**: risk of generating `total` **puid**s
+  - **encode/1**: Encode `bytes` into a **puid**
+  - **decode/1**: Decode a `puid` into **bytes**
+  - **info/0**: Module information
+
+  The `total/1`, `risk/1` functions provide approximations to the **risk** of a repeat in some **total** number of generated **puid**s. The mathematical approximations used purposely _overestimate_ **risk** and _underestimate_ **total**.
+
+  The `encode/1`, `decode/1` functions convert **puid**s to and from **bytes** for binary data storage, e.g. as an **Ecto** type. Note that for efficiency `Puid` operates at a bit level, so `decode/1` of a **puid** produces _representative_ bytes such that `encode/1` of those **bytes** produces the same **puid**. The **bytes** are the **puid** specific _bitstring_ with 0 bit values appended to the ending byte boundary.
+
+  The `info/0` function returns a `Puid.Info` structure consisting of:
+
+  - source characters
+  - name of pre-defined `Puid.Chars` or `:custom`
+  - entropy bits per character
+  - total entropy bits
+  - may be larger than the specified `bits` since it is a multiple of the entropy bits per
+    character
+  - entropy representation efficiency
+  - ratio of the **puid** entropy to the bits required for **puid** string representation
+  - entropy source function
+  - **puid** string length
+
+  #### Example
 
   ```elixir
-  iex> defmodule(AlphanumId, do: use(Puid, total: 10.0e06, risk: 1.0e15, chars: :alphanum))
+  iex> defmodule(SafeId, do: use(Puid))
+
+  iex> SafeId.generate()
+  "CSWEPL3AiethdYFlCbSaVC"
+
+  iex> SafeId.total(1_000_000)
+  104350568690606000
+
+  iex> SafeId.risk(1.0e12)
+  9007199254740992
+
+  iex> SafeId.decode("CSWEPL3AiethdYFlCbSaVC")
+  <<9, 37, 132, 60, 189, 192, 137, 235, 97, 117, 129, 101, 9, 180, 154, 84, 32>>
+
+  iex> SafeId.encode(<<9, 37, 132, 60, 189, 192, 137, 235, 97, 117, 129, 101, 9, 180, 154, 84, 32>>)
+  "CSWEPL3AiethdYFlCbSaVC"
+
+  iex> SafeId.info()
+  %Puid.Info{
+  characters: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_",
+  char_set: :safe64,
+  entropy_bits: 132.0,
+  entropy_bits_per_char: 6.0,
+  ere: 0.75,
+  length: 22,
+  rand_bytes: &:crypto.strong_rand_bytes/1
+  }
   ```
 
-  **`generate/0`**
-
-  Generates a **`puid`**
-
-  ```elixir
-  iex> AlphanumId.generate()
-  "UKQHTmvASwyhcwGNA"
-  ```
-
-  **`info/0`**
-
-    Returns a `Puid.Info` structure consisting of
-
-    - Name of pre-defined `Puid.Chars` or `:custom`
-    - Source characters
-    - Entropy bits
-      - May be larger than the specified `bits` since it is a multiple of the entropy bits per
-        character
-    - Entropy bits per character
-    - Entropy representation efficiency
-      - Ratio of the **`puid`** entropy to the bits required for string representation
-    - **`puid`** string length
-    - Entropy source function
-
-  ```elixir
-  iex> AlphanumId.info()
-   %Puid.Info{
-     char_set: :alphanum,
-     characters: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
-     entropy_bits: 101.22,
-     entropy_bits_per_char: 5.95,
-     ere: 0.74,
-     length: 17,
-     rand_bytes: &:crypto.strong_rand_bytes/1
-   }
-  ```
   """
 
   import Puid.Entropy
@@ -244,6 +260,7 @@ defmodule Puid do
 
       @entropy_bits entropy_bits_per_char * puid_len
       @bits_per_puid puid_len * puid_bits_per_char
+      @puid_len puid_len
 
       defmodule __MODULE__.Bits,
         do:
@@ -261,6 +278,13 @@ defmodule Puid do
               bits_per_char: puid_bits_per_char,
               puid_len: puid_len
             )
+
+        defmodule __MODULE__.Decoder,
+          do:
+            use(Puid.Decoder.ASCII,
+              charlist: puid_charlist,
+              puid_len: puid_len
+            )
       else
         defmodule __MODULE__.Encoder,
           do:
@@ -274,7 +298,8 @@ defmodule Puid do
       @doc """
       Generate a `puid`
       """
-      def generate(), do: __MODULE__.Bits.generate() |> __MODULE__.Encoder.encode()
+      def generate(),
+        do: __MODULE__.Bits.generate() |> __MODULE__.Encoder.encode()
 
       @doc """
       Encode `bits` into a `puid`.
@@ -302,14 +327,42 @@ defmodule Puid do
         do: {:error, "invalid bits"}
 
       @doc """
-      Approximation of `total` possible `puid`s which can be generated at the specified `risk`
+      Decode `puid` into representative `bits`.
+
+      `puid` must a representative **puid** from this module.
+
+      NOTE: `decode/1` not supported for non-ascii character sets
       """
-      def total(risk), do: round(Puid.Entropy.total(@entropy_bits, risk))
+      def decode(puid)
+
+      if chars_encoding == :ascii do
+        def decode(<<_::binary-size(@puid_len)>> = puid) do
+          try do
+            __MODULE__.Decoder.decode(puid)
+          rescue
+            _ ->
+              {:error, "unable to decode"}
+          end
+        end
+
+        def decode(_),
+          do: {:error, "invalid puid"}
+      else
+        def decode(_),
+          do: {:error, "not supported for non-ascii characters sets"}
+      end
 
       @doc """
-      Approximation of `risk` in genertating `total` `puid`s
+      Approximate `total` possible `puid`s at a specified `risk`
       """
-      def risk(total), do: round(Puid.Entropy.risk(@entropy_bits, total))
+      def total(risk),
+        do: round(Puid.Entropy.total(@entropy_bits, risk))
+
+      @doc """
+      Approximate `risk` in genertating `total` `puid`s
+      """
+      def risk(total),
+        do: round(Puid.Entropy.risk(@entropy_bits, total))
 
       mod_info = %Puid.Info{
         characters: puid_charlist |> to_string(),
@@ -326,7 +379,8 @@ defmodule Puid do
       @doc """
       `Puid.Info` module info
       """
-      def info, do: @puid_mod_info
+      def info,
+        do: @puid_mod_info
     end
   end
 end
