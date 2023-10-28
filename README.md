@@ -30,14 +30,9 @@ iex> RandId.generate()
 
 ## <a name="Overview"></a>Overview
 
-A general overview of [Puid](https://github.com/puid/.github/blob/2381099d7f92bda47c35e8b5ae1085119f2a919c/profile/README.md) provides information relevant to the use of random strings for IDs.
+**Puid** provides a means to create modules for generating random IDs. Specifically, **Puid** allows full control over all three key characteristics of generating random strings: entropy source, ID characters and ID randomness. 
 
-The mathematical approximations used by **Puid** always favor conservative estimatation:
-
-- overestimate the **bits** needed for a specified **total** and **risk**
-- overestimate the **risk** of generating a **total** number of **puid**s
-- underestimate the **total** number of **puid**s that can be generated at a specified **risk**
-
+A [general overview](https://github.com/puid/.github/blob/2381099d7f92bda47c35e8b5ae1085119f2a919c/profile/README.md) provides information relevant to the use of **Puid** for random IDs.
 
 [TOC](#TOC)
 
@@ -104,6 +99,17 @@ iex> Token.generate()
 
 Note this is much more intuitive than guess, or simply not knowing, how much entropy your random IDs actually have.
 
+
+### General Note
+
+The mathematical approximations used by **Puid** always favor conservative estimatation:
+
+- overestimate the **bits** needed for a specified **total** and **risk**
+- overestimate the **risk** of generating a **total** number of **puid**s
+- underestimate the **total** number of **puid**s that can be generated at a specified **risk**
+
+
+
 [TOC](#TOC)
 
 ### <a name="Installation"></a>Installation
@@ -136,7 +142,7 @@ mix deps.get
 
 The `total/1`, `risk/1` functions provide approximations to the **risk** of a repeat in some **total** number of generated **puid**s. The mathematical approximations used purposely _overestimate_ **risk** and _underestimate_ **total**.
 
-The `encode/1`, `decode/1` functions convert **puid**s to and from **bytes** for binary data storage, e.g. as an **Ecto** type. Note that for efficiency `Puid` operates at a bit level, so `decode/1` of a **puid** produces _representative_ bytes such that `encode/1` of those **bytes** produces the same **puid**. The **bytes** are the **puid** specific _bitstring_ with 0 bit values appended to the ending byte boundary.
+The `encode/1`, `decode/1` functions convert `String.t()` **puid**s to and from `bitstring` **bits** to facilitate binary data storage, e.g. as an **Ecto** type.
 
 The `info/0` function returns a `Puid.Info` structure consisting of:
 
@@ -168,7 +174,7 @@ iex> SafeId.risk(1.0e12)
 iex> SafeId.decode("CSWEPL3AiethdYFlCbSaVC")
 <<9, 37, 132, 60, 189, 192, 137, 235, 97, 117, 129, 101, 9, 180, 154, 84, 32>>
 
-iex> SafeId.encode(<<9, 37, 132, 60, 189, 192, 137, 235, 97, 117, 129, 101, 9, 180, 154, 84, 32>>)
+iex> SafeId.encode(<<9, 37, 132, 60, 189, 192, 137, 235, 97, 117, 129, 101, 9, 180, 154, 84, 2::size(4)>>)
 "CSWEPL3AiethdYFlCbSaVC"
 
 iex> SafeId.info()

@@ -38,6 +38,9 @@ defmodule Puid.Encoder.Utf8 do
       @puid_char_count length(charlist)
       @puid_single_chunks_size single_chunks_size
 
+      @spec encode(bits :: bitstring()) :: String.t()
+      def encode(bits)
+
       cond do
         # Less than a single chunk
         puid_size < @puid_single_chunks_size ->

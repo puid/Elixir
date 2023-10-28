@@ -43,35 +43,41 @@ defmodule Puid.Encoder.ASCII do
       @puid_pair_chunk_size pair_chunk_size
       @puid_pair_chunks_size pair_chunks_size
 
+      @spec encode(bits :: bitstring()) :: String.t()
+      def encode(bits)
+
       cond do
         # Less than a single chunk
-        puid_size < @puid_single_chunk_size ->
-          def encode(bits), do: encode_singles(bits)
+        puid_size < single_chunk_size ->
+          def encode(bits),
+            do: encode_singles(bits)
 
         # Equal to a single chunk
-        puid_size == @puid_single_chunk_size ->
-          def encode(bits), do: encode_singles(bits)
+        puid_size == single_chunk_size ->
+          def encode(bits),
+            do: encode_singles(bits)
 
         # Less than a pair chunk
-        puid_size < @puid_pair_chunk_size ->
+        puid_size < pair_chunk_size ->
           def encode(bits) do
             <<
               single_chunk::size(@puid_single_chunk_size)-bits,
               sub_chunk::bits
             >> = bits
 
-            single = encode_singles(single_chunk)
-            subchunk = encode_singles(sub_chunk)
+            singles = encode_singles(single_chunk)
+            subs = encode_singles(sub_chunk)
 
-            <<single::binary, subchunk::binary>>
+            <<singles::binary, subs::binary>>
           end
 
         # Equal to one or more pair chunks
-        puid_size == @puid_pair_chunks_size ->
-          def encode(bits), do: encode_pairs(bits)
+        puid_size == pair_chunks_size ->
+          def encode(bits),
+            do: encode_pairs(bits)
 
         # Less than one or more pair chunks plus a single chunk
-        puid_size < @puid_pair_chunks_size + @puid_single_chunk_size ->
+        puid_size < pair_chunks_size + single_chunk_size ->
           def encode(bits) do
             <<
               pair_chunks::size(@puid_pair_chunks_size)-bits,
@@ -79,13 +85,13 @@ defmodule Puid.Encoder.ASCII do
             >> = bits
 
             pairs = encode_pairs(pair_chunks)
-            subchunk = encode_singles(sub_chunk)
+            subs = encode_singles(sub_chunk)
 
-            <<pairs::binary, subchunk::binary>>
+            <<pairs::binary, subs::binary>>
           end
 
         # Equal to one or more pair chunks plus a single chunk
-        puid_size == @puid_pair_chunks_size + @puid_single_chunk_size ->
+        puid_size == pair_chunks_size + single_chunk_size ->
           def encode(bits) do
             <<
               pair_chunks::size(@puid_pair_chunks_size)-bits,
@@ -93,9 +99,9 @@ defmodule Puid.Encoder.ASCII do
             >> = bits
 
             pairs = encode_pairs(pair_chunks)
-            single = encode_singles(single_chunk)
+            singles = encode_singles(single_chunk)
 
-            <<pairs::binary, single::binary>>
+            <<pairs::binary, singles::binary>>
           end
 
         # Greater than one or more pair chunks plus a single chunk
@@ -108,10 +114,10 @@ defmodule Puid.Encoder.ASCII do
             >> = bits
 
             pairs = encode_pairs(pair_chunks)
-            single = encode_singles(single_chunk)
-            subchunk = encode_singles(sub_chunk)
+            singles = encode_singles(single_chunk)
+            subs = encode_singles(sub_chunk)
 
-            <<pairs::binary, single::binary, subchunk::binary>>
+            <<pairs::binary, singles::binary, subs::binary>>
           end
       end
 
@@ -128,8 +134,8 @@ defmodule Puid.Encoder.ASCII do
 
         for {c1, v1} <- cv,
             {c2, v2} <- cv do
-          cc = bsl(c1, 8) + c2
-          v = bsl(v1, @puid_bits_per_char) + v2
+          cc = Bitwise.bsl(c1, 8) + c2
+          v = Bitwise.bsl(v1, @puid_bits_per_char) + v2
 
           [pair_clause] = quote(do: (unquote(v) -> unquote(cc)))
           pair_clause

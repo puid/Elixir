@@ -274,7 +274,7 @@ defmodule Puid.Chars do
   def charlist!(charlist) when is_list(charlist), do: validate_charlist(charlist)
 
   @doc false
-  @spec encoding(charlist() | binary()) :: puid_encoding()
+  @spec encoding(charlist() | String.t()) :: puid_encoding()
   def encoding(charlist_or_chars)
 
   def encoding(chars) when is_binary(chars) do

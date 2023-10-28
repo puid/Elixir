@@ -135,7 +135,7 @@ defmodule Puid do
 
   The `total/1`, `risk/1` functions provide approximations to the **risk** of a repeat in some **total** number of generated **puid**s. The mathematical approximations used purposely _overestimate_ **risk** and _underestimate_ **total**.
 
-  The `encode/1`, `decode/1` functions convert **puid**s to and from **bytes** for binary data storage, e.g. as an **Ecto** type. Note that for efficiency `Puid` operates at a bit level, so `decode/1` of a **puid** produces _representative_ bytes such that `encode/1` of those **bytes** produces the same **puid**. The **bytes** are the **puid** specific _bitstring_ with 0 bit values appended to the ending byte boundary.
+  The `encode/1`, `decode/1` functions convert **puid**s to and from **bits** to facilitate binary data storage, e.g. as an **Ecto** type. Note that for efficiency `Puid` operates at a bit level, so `decode/1` of a **puid** produces _representative_ bytes such that `encode/1` of those **bytes** produces the same **puid**. The **bytes** are the **puid** specific _bitstring_ with 0 bit values appended to the ending byte boundary.
 
   The `info/0` function returns a `Puid.Info` structure consisting of:
 
@@ -187,11 +187,11 @@ defmodule Puid do
   import Puid.Entropy
   import Puid.Util
 
+  @type t :: binary
+
   @doc false
   defmacro __using__(opts) do
     quote do
-      import Bitwise
-
       alias Puid.Chars
 
       puid_default = %Puid.Info{}
@@ -298,6 +298,7 @@ defmodule Puid do
       @doc """
       Generate a `puid`
       """
+      @spec generate() :: String.t()
       def generate(),
         do: __MODULE__.Bits.generate() |> __MODULE__.Encoder.encode()
 
@@ -306,6 +307,7 @@ defmodule Puid do
 
       `bits` must contain enough bits to create a `puid`. The rest are ignored.
       """
+      @spec encode(bits :: bitstring()) :: String.t() | Puid.Error.t()
       def encode(bits)
 
       def encode(<<_::size(@bits_per_puid)>> = bits) do
@@ -317,50 +319,38 @@ defmodule Puid do
         end
       end
 
-      def encode(<<bits::size(@bits_per_puid), _::bits>>),
-        do: encode(<<bits::size(@bits_per_puid)>>)
-
-      def encode(bits) when is_bitstring(bits),
-        do: {:error, "not enough bits"}
-
       def encode(_),
-        do: {:error, "invalid bits"}
+        do: {:error, "unable to encode"}
 
       @doc """
       Decode `puid` into representative `bits`.
 
       `puid` must a representative **puid** from this module.
 
-      NOTE: `decode/1` not supported for non-ascii character sets
+      NOTE: `decode/1` is not supported for non-ascii character sets
       """
+      @spec decode(puid :: String.t()) :: bitstring() | Puid.Error.t()
       def decode(puid)
 
       if chars_encoding == :ascii do
-        def decode(<<_::binary-size(@puid_len)>> = puid) do
-          try do
-            __MODULE__.Decoder.decode(puid)
-          rescue
-            _ ->
-              {:error, "unable to decode"}
-          end
-        end
-
-        def decode(_),
-          do: {:error, "invalid puid"}
+        def decode(puid),
+          do: __MODULE__.Decoder.decode(puid)
       else
         def decode(_),
           do: {:error, "not supported for non-ascii characters sets"}
       end
 
       @doc """
-      Approximate `total` possible `puid`s at a specified `risk`
+      Approximate **total** possible **puid**s at a specified `risk`
       """
+      @spec total(risk :: float()) :: integer()
       def total(risk),
         do: round(Puid.Entropy.total(@entropy_bits, risk))
 
       @doc """
-      Approximate `risk` in genertating `total` `puid`s
+      Approximate **risk** in genertating `total` **puid**s
       """
+      @spec risk(total :: float()) :: integer()
       def risk(total),
         do: round(Puid.Entropy.risk(@entropy_bits, total))
 
@@ -379,7 +369,8 @@ defmodule Puid do
       @doc """
       `Puid.Info` module info
       """
-      def info,
+      @spec info() :: %Puid.Info{}
+      def info(),
         do: @puid_mod_info
     end
   end

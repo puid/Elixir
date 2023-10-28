@@ -27,10 +27,7 @@ defmodule Puid.Entropy do
   The implementation is based on mathematical approximations to the solution of what is often
   referred to as the [Birthday
   Problem](https://en.wikipedia.org/wiki/Birthday_problem#Calculating_the_probability).
-
   """
-
-  @type puid_chars :: Puid.Chars.puid_chars()
 
   @doc """
   Entropy bits necessary to generate `total` number of `puid`s with `risk` risk of repeat.
@@ -81,6 +78,7 @@ defmodule Puid.Entropy do
       192077
 
   """
+  @spec total(bits :: float(), risk :: float()) :: integer()
   def total(0, _), do: 0
   def total(1, _), do: 1
 
@@ -109,6 +107,7 @@ defmodule Puid.Entropy do
       iex> 1.0 / 1501199875790165
       6.661338147750941e-16
   """
+  @spec risk(bits :: float(), total :: float()) :: integer()
   def risk(0, _), do: 0
   def risk(1, _), do: 1
 
@@ -135,7 +134,7 @@ defmodule Puid.Entropy do
       {:ok, 3.0}
 
   """
-  @spec bits_per_char(puid_chars()) :: {:ok, float()} | Puid.Error.t()
+  @spec bits_per_char(Puid.Chars.puid_chars()) :: {:ok, float()} | Puid.Error.t()
   def bits_per_char(chars) do
     with {:ok, charlist} <- chars |> Puid.Chars.charlist() do
       {:ok, charlist |> length() |> :math.log2()}
@@ -157,7 +156,7 @@ defmodule Puid.Entropy do
       3.0
 
   """
-  @spec bits_per_char!(puid_chars()) :: float()
+  @spec bits_per_char!(Puid.Chars.puid_chars()) :: float()
   def bits_per_char!(chars) do
     with {:ok, ebpc} <- bits_per_char(chars) do
       ebpc
@@ -181,7 +180,8 @@ defmodule Puid.Entropy do
       {:ok, 42}
 
   """
-  @spec bits_for_len(puid_chars(), non_neg_integer()) :: {:ok, non_neg_integer()} | Puid.Error.t()
+  @spec bits_for_len(Puid.Chars.puid_chars(), non_neg_integer()) ::
+          {:ok, non_neg_integer()} | Puid.Error.t()
   def bits_for_len(chars, len) do
     with {:ok, ebpc} <- bits_per_char(chars) do
       {:ok, (len * ebpc) |> trunc()}
@@ -205,7 +205,7 @@ defmodule Puid.Entropy do
       42
 
   """
-  @spec bits_for_len!(puid_chars(), non_neg_integer()) :: non_neg_integer()
+  @spec bits_for_len!(Puid.Chars.puid_chars(), non_neg_integer()) :: non_neg_integer()
   def bits_for_len!(chars, len) do
     with {:ok, ebpc} <- bits_for_len(chars, len) do
       ebpc
@@ -230,7 +230,8 @@ defmodule Puid.Entropy do
       {:ok, 43}
 
   """
-  @spec len_for_bits(puid_chars(), non_neg_integer()) :: {:ok, non_neg_integer()} | Puid.Error.t()
+  @spec len_for_bits(Puid.Chars.puid_chars(), non_neg_integer()) ::
+          {:ok, non_neg_integer()} | Puid.Error.t()
   def len_for_bits(chars, bits) do
     with {:ok, ebpc} <- bits_per_char(chars) do
       {:ok, (bits / ebpc) |> :math.ceil() |> round()}
@@ -254,7 +255,8 @@ defmodule Puid.Entropy do
       43
 
   """
-  @spec len_for_bits!(puid_chars(), non_neg_integer()) :: non_neg_integer() | Puid.Error.t()
+  @spec len_for_bits!(Puid.Chars.puid_chars(), non_neg_integer()) ::
+          non_neg_integer() | Puid.Error.t()
   def len_for_bits!(chars, bits) do
     with {:ok, len} <- len_for_bits(chars, bits) do
       len

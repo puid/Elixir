@@ -36,11 +36,25 @@ defmodule Puid.Decoder.ASCII do
       @puid_len puid_len
       @puid_charlist charlist
       @puid_bits_per_char bits_per_char
-      @puid_padding 8 - rem(bits_per_char * puid_len, 8)
       @puid_bits_per_pair 2 * bits_per_char
 
-      def decode(<<_::binary-size(@puid_len)>> = puid),
-        do: puid |> decode_puid_into(<<>>) |> pad_to_bytes()
+      @spec decode(puid :: String.t()) :: bitstring() | Puid.Error.t()
+      def decode(puid)
+
+      def decode(<<_::binary-size(@puid_len)>> = puid) do
+        try do
+          puid |> decode_puid_into(<<>>)
+        rescue
+          _ ->
+            {:error, "unable to decode"}
+        end
+      end
+
+      def decode(_),
+        do: {:error, "unable to decode"}
+
+      @spec decode_puid_into(bytes :: binary(), bits :: bitstring()) :: bitstring()
+      defp decode_puid_into(bytes, bits)
 
       defp decode_puid_into(<<>>, bits),
         do: bits
@@ -54,12 +68,6 @@ defmodule Puid.Decoder.ASCII do
         cc_bits = decode_pair(cc)
         decode_puid_into(rest, <<bits::bits, cc_bits::bits>>)
       end
-
-      defp pad_to_bytes(<<_::binary>> = puid),
-        do: puid
-
-      defp pad_to_bytes(bits),
-        do: <<bits::bits, 0::size(@puid_padding)>>
 
       defp chars_values(), do: @puid_charlist |> Enum.with_index()
 
@@ -75,8 +83,8 @@ defmodule Puid.Decoder.ASCII do
         cv = chars_values()
 
         for {c1, v1} <- cv, {c2, v2} <- cv do
-          cc = bsl(c1, 8) + c2
-          v = bsl(v1, @puid_bits_per_char) + v2
+          cc = Bitwise.bsl(c1, 8) + c2
+          v = Bitwise.bsl(v1, @puid_bits_per_char) + v2
 
           [clause] = quote(do: (unquote(cc) -> unquote(v)))
           clause

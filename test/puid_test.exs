@@ -203,9 +203,6 @@ defmodule Puid.Test.Puid do
     puid = "rwfafkahbmgq"
 
     assert IdEncoder.encode(puid_bits) == puid
-
-    assert IdEncoder.encode(<<141, 138, 2, 168, 7, 11, 13, 0::size(6)>>) ==
-             IdEncoder.encode(puid_bits)
   end
 
   test "encode fail" do
@@ -214,8 +211,10 @@ defmodule Puid.Test.Puid do
     puid_bits = <<76, 51, 24, 70, 2::size(4)>>
     assert FailEncoder.encode(puid_bits) == "TDMYRi"
 
-    assert FailEncoder.encode(<<76, 51, 24, 70, 2::size(2)>>) == {:error, "not enough bits"}
-    assert FailEncoder.encode(<<76, 51, 24, 255, 1::size(4)>>) == {:error, "unable to encode"}
+    assert FailEncoder.encode(<<76, 51, 24, 70, 2::size(3)>>) == {:error, "unable to encode"}
+    assert FailEncoder.encode(<<76, 51, 24, 70, 2::size(5)>>) == {:error, "unable to encode"}
+
+    assert FailEncoder.encode(<<76, 51, 24, 255, 2::size(4)>>) == {:error, "unable to encode"}
   end
 
   test "decode" do
@@ -224,7 +223,7 @@ defmodule Puid.Test.Puid do
     bits = <<70, 114, 103, 8, 162, 67, 146, 76, 3::size(2)>>
     puid = "RnJnCKJDkkz"
 
-    assert IdDecoder.decode(puid) == <<bits::bits, 0::size(6)>>
+    assert IdDecoder.decode(puid) == bits
   end
 
   test "decode fail" do
@@ -233,13 +232,13 @@ defmodule Puid.Test.Puid do
     puid = FailDecoder.generate()
 
     long = puid <> "1"
-    assert FailDecoder.decode(long) == {:error, "invalid puid"}
+    assert FailDecoder.decode(long) == {:error, "unable to decode"}
 
     <<_::binary-size(1), short::binary>> = puid
-    assert FailDecoder.decode(short) == {:error, "invalid puid"}
+    assert FailDecoder.decode(short) == {:error, "unable to decode"}
 
-    wrong = short <> "$"
-    assert FailDecoder.decode(wrong) == {:error, "unable to decode"}
+    invalid_char = short <> "$"
+    assert FailDecoder.decode(invalid_char) == {:error, "unable to decode"}
   end
 
   test "decode not supported" do
@@ -249,7 +248,7 @@ defmodule Puid.Test.Puid do
              {:error, "not supported for non-ascii characters sets"}
   end
 
-  test "encode/decode round trips" do
+  test "decode/encode round trips" do
     defmodule(EDHex, do: use(Puid, chars: :hex))
     hexId = EDHex.generate()
     assert hexId |> EDHex.decode() |> EDHex.encode() == hexId
