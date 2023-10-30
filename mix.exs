@@ -4,8 +4,8 @@ defmodule Puid.Mixfile do
   def project do
     [
       app: :puid,
-      version: "2.2.0",
-      elixir: "~> 1.8",
+      version: "2.3.0",
+      elixir: "~> 1.14",
       description: description(),
       package: package(),
       deps: deps()

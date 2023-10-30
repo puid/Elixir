@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.3.0 (2023-10-30)
+
+### Add functions to `Puid` generated  modules
+
+- `total/1` and `risk/1`
+- `encode/1` and `decode/1`
+
 ## v2.2.0 (2023-08-23)
 
 ### Add predefined chars
