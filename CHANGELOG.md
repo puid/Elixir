@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.3.1 (2024-11-22)
+
+### Minor mods for deprecations raised by Elixir 1.17
+
 ## v2.3.0 (2023-10-30)
 
 ### Add functions to `Puid` generated  modules
