@@ -34,13 +34,13 @@ defmodule Puid.Test.Puid do
     ere = epbc / 8.0
     round_to = 2
 
-    assert mod.info.char_set === char_set
-    assert mod.info.length === length
+    assert mod.info().char_set === char_set
+    assert mod.info().length === length
 
-    assert mod.info.entropy_bits_per_char === Float.round(epbc, round_to)
-    assert mod.info.entropy_bits === Float.round(eb, round_to)
-    assert mod.info.ere === Float.round(ere, round_to)
-    assert mod.generate |> String.length() === length
+    assert mod.info().entropy_bits_per_char === Float.round(epbc, round_to)
+    assert mod.info().entropy_bits === Float.round(eb, round_to)
+    assert mod.info().ere === Float.round(ere, round_to)
+    assert mod.generate() |> String.length() === length
   end
 
   test "pre-defined safe ascii chars" do

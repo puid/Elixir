@@ -176,7 +176,7 @@ defmodule Puid.Entropy do
       iex> Puid.Entropy.bits_for_len(:alphanum, 14)
       {:ok, 83}
 
-      iex> Puid.Entropy.bits_for_len('dingosky', 14)
+      iex> Puid.Entropy.bits_for_len(~c'dingosky', 14)
       {:ok, 42}
 
   """
@@ -251,7 +251,7 @@ defmodule Puid.Entropy do
       iex> Puid.Entropy.len_for_bits!(:alphanum, 128)
       22
 
-      iex> Puid.Entropy.len_for_bits!('dingosky', 128)
+      iex> Puid.Entropy.len_for_bits!(~c'dingosky', 128)
       43
 
   """

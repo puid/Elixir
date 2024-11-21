@@ -217,7 +217,7 @@ defmodule Puid.Chars do
       {:ok, charlist!(chars)}
     rescue
       error in Puid.Error ->
-        {:error, error.message()}
+        {:error, error.message}
     end
   end
 
