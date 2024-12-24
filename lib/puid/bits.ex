@@ -43,7 +43,7 @@ defmodule Puid.Bits do
         if pow2?(chars_count) do
           [base_shift]
         else
-          (bits_per_char - 1)..2
+          (bits_per_char - 1)..2//-1
           |> Enum.reduce(
             [],
             fn bit, shifts ->
@@ -56,8 +56,6 @@ defmodule Puid.Bits do
           )
           |> List.insert_at(0, base_shift)
         end
-
-      # |> IO.inspect(label: "bit_shifts")
 
       {:module, mod} = rand_bytes |> Function.info(:module)
       {:name, name} = rand_bytes |> Function.info(:name)
