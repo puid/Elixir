@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.3.2 (2024-12-24)
+
+### Fix Elixir 1.18 Range warning by explicitly declaring downward stepping on bit_shifts range
+
 ## v2.3.1 (2024-11-22)
 
 ### Minor mods for deprecations raised by Elixir 1.17
