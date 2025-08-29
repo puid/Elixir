@@ -37,8 +37,9 @@ defmodule Puid.MixProject do
   defp deps do
     [
       {:dialyxir, "~> 1.4", only: :dev, runtime: false},
-      {:ex_doc, "~> 0.34", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.38", only: :dev, runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:benchee, "~> 1.3", only: [:dev, :test], runtime: false},
       {:entropy_string, "~> 1.3", only: :test},
       {:misc_random, "~> 0.2", only: :test},
       {:nanoid, "~> 2.0", only: :test},

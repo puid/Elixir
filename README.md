@@ -18,15 +18,6 @@ iex> RandId.generate()
 - [Module API](#ModuleAPI)
 - [Characters](#Characters)
 - [Comparisons](#Comparisons)
-  - [Common Solution](#Common_Solution)
-  - [gen_reference](#gen_reference)
-  - [misc_random](#misc_random)
-  - [nanoid](#nanoid)
-  - [Randomizer](#Randomizer)
-  - [rand_str](#rand_str)
-  - [SecureRandom](#SecureRandom)
-  - [ulid](#ulid)
-  - [UUID](#UUID)
 
 ## <a name="Overview"></a>Overview
 
@@ -237,176 +228,51 @@ Note: :safe32 and :wordSafe32 are two different strategies for the same goal.
 
 ## <a name="Comparisons"></a>Comparisons
 
-As described in the [overview](https://github.com/puid/.github/blob/2381099d7f92bda47c35e8b5ae1085119f2a919c/profile/README.md), **PUID** aims to be a general, flexible mechanism for creating random string for use as random IDs. The following comparisons to other Elixir random ID generators is with respect to the issues of random ID generation described in that overview.
+The Benchee benchmark script provides comparison of Puid to other libraries.
 
-[TOC](#TOC)
+Quick
 
-### <a name="Common_Solution"></a>[Common Solution](https://gist.github.com/dingosky/86328fc8b51d6b3037087ab1a8d14b4f#file-common_id-ex)
+- Puid-only: mix run bench/compare.exs
 
-#### Comments
+Full comparisons (includes external libs via test-only deps)
 
-- Entropy source: Generating indexes via a PRNG is straightforward, though wasteful when compared to bit slicing. Generating indexes via a CSPRNG is not straightforward except for hex characters.
-- Characters: Full control
-- Captured entropy: Indirectly specified via ID length
+- MIX_ENV=test mix run bench/compare.exs
 
-#### Timing
+Adjust workload
 
-**PUID** is much faster.
+- TRIALS=100000 MIX_ENV=test mix run bench/compare.exs
 
+Notes
+
+- External libraries (EntropyString, Nanoid, Randomizer, SecureRandom, UUID) are included automatically when  MIX_ENV=test.
+- Output shows ips and average times per scenario.
+
+Example
+
+```sh
+MIX_ENV=test mix run bench/compare.exs
+
+Name                                  ips        average  deviation         median         99th %
+Puid hex (CSPRNG)                   47.74       20.95 ms     ±1.13%       20.90 ms       21.59 ms
+SecureRandom urlsafe_base64         40.63       24.61 ms     ±2.90%       24.28 ms       27.22 ms
+Puid safe64 (PRNG)                  32.80       30.48 ms     ±5.00%       30.47 ms       33.02 ms
+Puid safe64 (CSPRNG)                29.75       33.61 ms     ±3.30%       33.21 ms       38.22 ms
+UUID v4 (string)                    27.39       36.51 ms     ±6.40%       35.26 ms       41.94 ms
+Puid alphanum (CSPRNG)              12.68       78.85 ms     ±1.44%       78.72 ms       82.99 ms
+EntropyString safe64                 5.69      175.63 ms     ±0.77%      175.78 ms      178.20 ms
+Randomizer alphanum 22               4.63      216.09 ms    ±14.59%      206.54 ms      304.81 ms
+Common Solution alphanum             1.25      797.20 ms     ±1.14%      796.77 ms      806.53 ms
+Nanoid (CSPRNG)                      0.79     1266.43 ms     ±0.99%     1266.43 ms     1275.32 ms
+
+Comparison:
+Puid hex (CSPRNG)                   47.74
+SecureRandom urlsafe_base64         40.63 - 1.17x slower +3.66 ms
+Puid safe64 (PRNG)                  32.80 - 1.46x slower +9.54 ms
+Puid safe64 (CSPRNG)                29.75 - 1.60x slower +12.66 ms
+UUID v4 (string)                    27.39 - 1.74x slower +15.57 ms
+Puid alphanum (CSPRNG)              12.68 - 3.76x slower +57.90 ms
+EntropyString safe64                 5.69 - 8.38x slower +154.68 ms
+Randomizer alphanum 22               4.63 - 10.31x slower +195.14 ms
+Common Solution alphanum             1.25 - 38.05x slower +776.25 ms
+Nanoid (CSPRNG)                      0.79 - 60.45x slower +1245.48 ms
 ```
-Generate 100000 random IDs with 128 bits of entropy using alphanumeric characters
-
-  Common Solution   (PRNG) : 4.977226
-  Puid              (PRNG) : 0.831748
-
-  Common Solution (CSPRNG) : 8.435073
-  Puid            (CSPRNG) : 0.958437
-```
-
-[TOC](#TOC)
-
-### <a name="misc_random"></a>[misc_random](https://github.com/gutschilla/elixir-helper-random)
-
-#### Comments
-
-- Entropy source: No control. Fixed to PRNG `:random.uniform/1`
-- Characters: No control. Fixed to `:alphanum`
-- Captured entropy: Indirectly specified via ID length
-
-#### Timing
-
-Quite slow compared to **PUID**
-
-```code
-Generate 50000 random IDs with 128 bits of entropy using alphanum characters
-
-  Misc.Random (PRNG) : 12.196646
-  Puid        (PRNG) : 0.295741
-
-  Misc.Random (CSPRNG) : 11.9858
-  Puid        (CSPRNG) : 0.310417
-```
-
-[TOC](#TOC)
-
-### <a name="nanoid"></a>[nanoid](https://github.com/railsmechanic/nanoid)
-
-#### Comments:
-
-- Entropy source: Limited control; choice of CSPRNG or PRNG
-- Characters: Full control
-- Captured entropy: Indirectly specified via ID length
-
-#### Timing:
-
-**nanoid** is much slower than **PUID**
-
-```
-  Generate 75000 random IDs with 126 bits of entropy using safe64 characters
-
-    Nanoid (CSPRNG) : 6.354221
-    Puid   (CSPRNG) : 0.226448
-
-    Nanoid (PRNG) : 1.229842
-    Puid   (PRNG) : 0.31025
-
-  Generate 75000 random IDs with 195 bits of entropy using alphanum characters
-
-    Nanoid (CSPRNG) : 10.295134
-    Puid   (CSPRNG) : 0.809756
-
-    Nanoid (PRNG) : 1.678025
-    Puid   (PRNG) : 0.808203
-```
-
-[TOC](#TOC)
-
-### <a name="Randomizer"></a>[Randomizer](https://github.com/jeremytregunna/randomizer)
-
-#### Comments
-
-- Entropy source: No control
-- Characters: Limited to five pre-defined character sets
-- Captured entropy: Indirectly specified via ID length
-
-#### Timing
-
-Slower than **PUID**
-
-```
-Generate 100000 random IDs with 128 bits of entropy using alphanum characters
-
-  Randomizer   (PRNG) : 1.201281
-  Puid         (PRNG) : 0.829199
-
-  Randomizer (CSPRNG) : 4.329881
-  Puid       (CSPRNG) : 0.807226
-```
-
-[TOC](#TOC)
-
-### <a name="SecureRandom"></a>[SecureRandom](https://github.com/patricksrobertson/secure_random.ex)
-
-#### Comments
-
-- Entropy source: No control. Fixed to `:crypto.strong_rand_bytes/1`
-- Characters: Limited control for 3 specified use cases
-- Captured entropy: Indirectly specified via ID length
-
-#### Timing
-
-About the same as **PUID** when using CSPRNG
-
-```
-Generate 500000 random IDs with 128 bits of entropy using hex characters
-
-  SecureRandom (CSPRNG) : 1.19713
-  Puid         (CSPRNG) : 1.187726
-
-Generate 500000 random IDs with 128 bits of entropy using safe64 characters
-
-  SecureRandom (CSPRNG) : 2.103798
-  Puid         (CSPRNG) : 1.806514
-```
-
-[TOC](#TOC)
-
-### <a name="ulid"></a>[ulid](https://github.com/ulid/spec)
-
-#### Comments
-
-- Entropy source: No control. Fixed to CSPRNG (per spec)
-- Characters: No control. Fixed to :base32
-- Captured entropy: 80-bits per timestamp context
-
-A significant characteristic of **ulid** is the generation of lexicographically sortable IDs. This is not a goal for **PUID**; however, one could use **PUID** to generate such IDs by prefixing a timestamp to a generated **puid**. Such a solution would be similar to **ulid** while still providing full control to **entropy source**, **characters**, and **captured entropy** per timestamp context.
-
-#### Timing
-
-**ulid** and **PUID** are not directly comparable with regard to speed.
-
-[TOC](#TOC)
-
-### <a name="UUID"></a>[UUID](https://github.com/zyro/elixir-uuid)
-
-#### Comments
-
-- Entropy source: No control. Fixed to `crypto.strong_rand_bytes/1`
-- Character: No control. Furthermore, string representation is inefficient
-- Capture entropy: No control. Fixed to 122 bits
-
-#### Timing
-
-Similar to **PUID** when using CSPRNG
-
-```code
-Generate 500000 random IDs with 122 bits of entropy using hex
-  UUID     : 1.925131
-  Puid hex : 1.823116
-
-Generate 500000 random IDs with 122 bits of entropy using safe64
-  UUID        : 1.751625
-  Puid safe64 : 1.367201
-```
-
-[TOC](#TOC)
