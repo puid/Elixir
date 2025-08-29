@@ -4,7 +4,7 @@ defmodule Puid.MixProject do
   def project do
     [
       app: :puid,
-      version: "2.3.2",
+      version: "2.4.0",
       elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
       description: description(),
@@ -14,7 +14,11 @@ defmodule Puid.MixProject do
         main: "readme",
         source_url: "https://github.com/puid/Elixir",
         homepage_url: "https://puid.github.io/Elixir/",
-        extras: ["README.md", "CHANGELOG.md"]
+        extras: [
+          {"README.md", [title: "README"]},
+          {"CHANGELOG.md", [title: "Changelog"]}
+        ],
+        skip_undefined_reference_warnings_on: ["CHANGELOG.md"]
       ],
       dialyzer: [
         flags: [:unmatched_returns, :error_handling, :race_conditions, :underspecs]

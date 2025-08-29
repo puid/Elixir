@@ -1,5 +1,30 @@
 # Changelog
 
+## v2.4.0 (2025-08-29)
+
+### Changes
+
+- Unify entropy approximations for `bits/2`, `total/2` and `risk/2` (removed small-total branch)
+- Simplify README Comparisons; add Benchee usage instructions
+
+### Add
+
+- Benchee benchmark: `bench/compare.exs` (Puid-only and full comparison modes)
+- GitHub Actions CI workflow: matrix build/test and dialyzer
+
+### Fix
+
+- Typespec consistency: non-bang functions now return `{:error, String.t()}`; bang variants raise `Puid.Error`
+- Fix test bug in decode/encode roundtrip (use EDAscii correctly)
+- `info/0` spec now returns `Puid.Info.t()`; added `Puid.Info.t` type
+
+### Tooling
+
+- mix: rename to `Puid.MixProject`; add `start_permanent`, docs extras, dialyzer flags, preferred_cli_env, package files
+- Add Credo and `.credo.exs`
+- Update deps: `ex_doc ~> 0.38`, `dialyxir 1.4.6`
+- Remove `test/timing.exs`; use Benchee for performance comparisons
+
 ## v2.3.2 (2024-12-24)
 
 ### Fix Elixir 1.18 Range warning by explicitly declaring downward stepping on bit_shifts range
