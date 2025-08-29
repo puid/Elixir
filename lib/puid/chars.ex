@@ -211,7 +211,7 @@ defmodule Puid.Chars do
       iex> Puid.Chars.charlist("unique")
       {:error, "Characters not unique"}
   """
-  @spec charlist(puid_chars()) :: {:ok, charlist()} | Puid.Error.t()
+  @spec charlist(puid_chars()) :: {:ok, charlist()} | {:error, String.t()}
   def charlist(chars) do
     try do
       {:ok, charlist!(chars)}
@@ -236,7 +236,7 @@ defmodule Puid.Chars do
       iex> Puid.Chars.charlist!("unique")
       # (Puid.Error) Characters not unique
   """
-  @spec charlist!(puid_chars()) :: charlist() | Puid.Error.t()
+  @spec charlist!(puid_chars()) :: charlist()
   def charlist!(chars)
 
   def charlist!(:alpha), do: charlist!(:alpha_upper) ++ charlist!(:alpha_lower)

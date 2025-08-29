@@ -38,7 +38,7 @@ defmodule Puid.Decoder.ASCII do
       @puid_bits_per_char bits_per_char
       @puid_bits_per_pair 2 * bits_per_char
 
-      @spec decode(puid :: String.t()) :: bitstring() | Puid.Error.t()
+      @spec decode(puid :: String.t()) :: bitstring() | {:error, String.t()}
       def decode(puid)
 
       def decode(<<_::binary-size(@puid_len)>> = puid) do

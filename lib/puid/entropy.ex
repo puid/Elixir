@@ -134,7 +134,7 @@ defmodule Puid.Entropy do
       {:ok, 3.0}
 
   """
-  @spec bits_per_char(Puid.Chars.puid_chars()) :: {:ok, float()} | Puid.Error.t()
+  @spec bits_per_char(Puid.Chars.puid_chars()) :: {:ok, float()} | {:error, String.t()}
   def bits_per_char(chars) do
     with {:ok, charlist} <- chars |> Puid.Chars.charlist() do
       {:ok, charlist |> length() |> :math.log2()}
@@ -181,7 +181,7 @@ defmodule Puid.Entropy do
 
   """
   @spec bits_for_len(Puid.Chars.puid_chars(), non_neg_integer()) ::
-          {:ok, non_neg_integer()} | Puid.Error.t()
+          {:ok, non_neg_integer()} | {:error, String.t()}
   def bits_for_len(chars, len) do
     with {:ok, ebpc} <- bits_per_char(chars) do
       {:ok, (len * ebpc) |> trunc()}
@@ -231,7 +231,7 @@ defmodule Puid.Entropy do
 
   """
   @spec len_for_bits(Puid.Chars.puid_chars(), non_neg_integer()) ::
-          {:ok, non_neg_integer()} | Puid.Error.t()
+          {:ok, non_neg_integer()} | {:error, String.t()}
   def len_for_bits(chars, bits) do
     with {:ok, ebpc} <- bits_per_char(chars) do
       {:ok, (bits / ebpc) |> :math.ceil() |> round()}
@@ -256,7 +256,7 @@ defmodule Puid.Entropy do
 
   """
   @spec len_for_bits!(Puid.Chars.puid_chars(), non_neg_integer()) ::
-          non_neg_integer() | Puid.Error.t()
+          non_neg_integer()
   def len_for_bits!(chars, bits) do
     with {:ok, len} <- len_for_bits(chars, bits) do
       len

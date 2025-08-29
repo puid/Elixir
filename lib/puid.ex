@@ -307,7 +307,7 @@ defmodule Puid do
 
       `bits` must contain enough bits to create a `puid`. The rest are ignored.
       """
-      @spec encode(bits :: bitstring()) :: String.t() | Puid.Error.t()
+      @spec encode(bits :: bitstring()) :: String.t() | {:error, String.t()}
       def encode(bits)
 
       def encode(<<_::size(@bits_per_puid)>> = bits) do
@@ -329,7 +329,7 @@ defmodule Puid do
 
       NOTE: `decode/1` is not supported for non-ascii character sets
       """
-      @spec decode(puid :: String.t()) :: bitstring() | Puid.Error.t()
+      @spec decode(puid :: String.t()) :: bitstring() | {:error, String.t()}
       def decode(puid)
 
       if chars_encoding == :ascii do
@@ -369,7 +369,7 @@ defmodule Puid do
       @doc """
       `Puid.Info` module info
       """
-      @spec info() :: %Puid.Info{}
+      @spec info() :: Puid.Info.t()
       def info(),
         do: @puid_mod_info
     end

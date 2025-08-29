@@ -254,8 +254,8 @@ defmodule Puid.Test.Puid do
     assert hexId |> EDHex.decode() |> EDHex.encode() == hexId
 
     defmodule(EDAscii, do: use(Puid, chars: :safe_ascii))
-    asciiId = EDHex.generate()
-    assert asciiId |> EDHex.decode() |> EDHex.encode() == asciiId
+    asciiId = EDAscii.generate()
+    assert asciiId |> EDAscii.decode() |> EDAscii.encode() == asciiId
   end
 
   test "total/risk" do

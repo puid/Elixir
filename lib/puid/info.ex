@@ -51,6 +51,16 @@ defmodule Puid.Info do
   ```
   """
 
+  @type t :: %__MODULE__{
+          characters: String.t(),
+          char_set: atom() | :custom,
+          entropy_bits: number(),
+          entropy_bits_per_char: number(),
+          ere: number(),
+          length: non_neg_integer(),
+          rand_bytes: (non_neg_integer() -> binary) | nil
+        }
+
   defstruct characters: Puid.Chars.charlist!(:safe64) |> to_string(),
             char_set: :safe64,
             entropy_bits: 128,

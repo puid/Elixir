@@ -1,4 +1,4 @@
-defmodule Puid.Mixfile do
+defmodule Puid.MixProject do
   use Mix.Project
 
   def project do
@@ -6,9 +6,25 @@ defmodule Puid.Mixfile do
       app: :puid,
       version: "2.3.2",
       elixir: "~> 1.14",
+      start_permanent: Mix.env() == :prod,
       description: description(),
       package: package(),
-      deps: deps()
+      deps: deps(),
+      docs: [
+        main: "readme",
+        source_url: "https://github.com/puid/Elixir",
+        homepage_url: "https://puid.github.io/Elixir/",
+        extras: ["README.md", "CHANGELOG.md"]
+      ],
+      dialyzer: [
+        flags: [:unmatched_returns, :error_handling, :race_conditions, :underspecs]
+      ],
+      preferred_cli_env: [
+        docs: :dev,
+        dialyzer: :dev,
+        credo: :dev,
+        "hex.docs": :dev
+      ]
     ]
   end
 
@@ -20,9 +36,9 @@ defmodule Puid.Mixfile do
 
   defp deps do
     [
-      {:dialyxir, "~> 1.0", only: :dev, runtime: false},
-      {:earmark, "~> 1.4", only: :dev},
-      {:ex_doc, "~> 0.28", only: :dev},
+      {:dialyxir, "~> 1.4", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.34", only: :dev, runtime: false},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:entropy_string, "~> 1.3", only: :test},
       {:misc_random, "~> 0.2", only: :test},
       {:nanoid, "~> 2.0", only: :test},
@@ -42,6 +58,7 @@ defmodule Puid.Mixfile do
 
   defp package do
     [
+      files: ["lib", "mix.exs", "README.md", "CHANGELOG.md", "LICENSE"],
       maintainers: ["Paul Rogers"],
       licenses: ["MIT"],
       links: %{

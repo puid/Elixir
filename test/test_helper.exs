@@ -20,6 +20,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 ExUnit.start()
+ExUnit.configure(exclude: [
+  # heavy histogram suite tags
+  :hex, :safe32, :alpha_lower, :alphanum, :safe_ascii, :custom_8, :alpha_9_lower, :alpha_10_lower, :unicode,
+  # performance/integration comparisons
+  :common_solution, :entropy_string, :gen_reference, :nanoid, :randomizer, :secure_random, :custom_chars, :prng_csprng, :uuid, :utf8
+])
 
 defmodule Puid.Test.Util do
   @moduledoc false
