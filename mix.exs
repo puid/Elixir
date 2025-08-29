@@ -21,7 +21,7 @@ defmodule Puid.MixProject do
         skip_undefined_reference_warnings_on: ["CHANGELOG.md"]
       ],
       dialyzer: [
-        flags: [:unmatched_returns, :error_handling, :race_conditions, :underspecs]
+        flags: [:unmatched_returns, :error_handling, :underspecs]
       ],
       preferred_cli_env: [
         docs: :dev,

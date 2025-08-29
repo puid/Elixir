@@ -8,26 +8,25 @@ iex> RandId.generate()
 "YAwrpLRqXGlny"
 ```
 
-[![Hex Version](https://img.shields.io/hexpm/v/puid.svg "Hex Version")](https://hex.pm/packages/puid) &nbsp; [![License: MIT](https://img.shields.io/npm/l/express.svg)]()
+[![Hex Version](https://img.shields.io/hexpm/v/puid.svg "Hex Version")](https://hex.pm/packages/puid) [![License: MIT](https://img.shields.io/npm/l/express.svg)]()
 
-## <a name="TOC"></a>TOC
+## Table of Contents
 
-- [Overview](#Overview)
-- [Usage](#Usage)
-- [Installation](#Installation)
-- [Module API](#ModuleAPI)
-- [Characters](#Characters)
-- [Comparisons](#Comparisons)
+- [Overview](#overview)
+- [Usage](#usage)
+- [Installation](#installation)
+- [Module API](#module-api)
+- [Characters](#characters)
+- [Comparisons](#comparisons)
 
-## <a name="Overview"></a>Overview
+## Overview
 
 **Puid** provides a means to create modules for generating random IDs. Specifically, **Puid** allows full control over all three key characteristics of generating random strings: entropy source, ID characters and ID randomness. 
 
 A [general overview](https://github.com/puid/.github/blob/2381099d7f92bda47c35e8b5ae1085119f2a919c/profile/README.md) provides information relevant to the use of **Puid** for random IDs.
 
-[TOC](#TOC)
 
-### <a name="Usage"></a>Usage
+### Usage
 
 `Puid` is used to create individual modules for random ID generation. Creating a random ID generator module is a simple as:
 
@@ -101,9 +100,8 @@ The mathematical approximations used by **Puid** always favor conservative estim
 
 
 
-[TOC](#TOC)
 
-### <a name="Installation"></a>Installation
+### Installation
 
 Add `puid` to `mix.exs` dependencies:
 
@@ -120,7 +118,7 @@ Update dependencies
 mix deps.get
 ```
 
-### <a name="ModuleAPI"></a>Module API
+### Module API
 
 `Puid` modules have the following functions:
 
@@ -180,7 +178,7 @@ iex> SafeId.info()
 }
 ```
 
-### <a name="Characters"></a>Characters
+### Characters
 
 There are 19 pre-defined character sets:
 
@@ -224,9 +222,8 @@ Any `String` of up to 256 unique characters can be used for **`puid`** generatio
 
 Note: :safe32 and :wordSafe32 are two different strategies for the same goal.
 
-[TOC](#TOC)
 
-## <a name="Comparisons"></a>Comparisons
+## Comparisons
 
 The Benchee benchmark script provides comparison of Puid to other libraries.
 
