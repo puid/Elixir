@@ -49,15 +49,7 @@ defmodule Puid.Entropy do
   def bits(_, 1), do: 0
 
   def bits(total, risk) do
-    n =
-      cond do
-        total < 1000 ->
-          :math.log2(total) + :math.log2(total - 1)
-
-        true ->
-          2 * :math.log2(total)
-      end
-
+    n = 2 * :math.log2(total)
     n + :math.log2(risk) - 1
   end
 
@@ -67,8 +59,7 @@ defmodule Puid.Entropy do
   The total number of possible `puid`s is 2<sup>bits</sup>.
   Risk is expressed as a 1 in `risk` chance, so the probability of a repeat is `1/risk`.
 
-  Due to approximations used in the entropy calculation this value is also approximate; the approximation is
-  conservative, however, so the calculated total will not exceed the specified `risk`.
+  This approximation is conservative and will understate the true total.
 
   ## Example
 
@@ -86,7 +77,8 @@ defmodule Puid.Entropy do
   def total(_, 1), do: 1
 
   def total(bits, risk) do
-    round(2 ** ((bits + 1) / 2) * :math.sqrt(:math.log(risk / (risk - 1))))
+    c = 2 ** (bits + 1) / risk
+    round(:math.sqrt(c))
   end
 
   @doc """
@@ -95,17 +87,16 @@ defmodule Puid.Entropy do
   The total number of possible `puid`s is 2<sup>bits</sup>.
   Risk is expressed as a 1 in `risk` chance, so the probability of a repeat is `1/risk`.
 
-  Due to approximations used in the entropy calculation this value is also approximate; the approximation is
-  conservative, however, so the calculated risk will not be exceed for the specified `total`.
+  This approximation is conservative and will understate the true risk.
 
   ## Example
 
       iex> bits = 96
       iex> total = 1.0e7
       iex> Puid.Entropy.risk(bits, total)
-      1501199875790165
-      iex> 1.0 / 1501199875790165
-      6.661338147750941e-16
+      1584563250285288
+      iex> 1.0 / 1584563250285288
+      6.31088724176809e-16
   """
   @spec risk(bits :: float(), total :: float()) :: integer()
   def risk(0, _), do: 0
@@ -115,9 +106,8 @@ defmodule Puid.Entropy do
   def risk(_, 1), do: 1
 
   def risk(bits, total) do
-    events = 2 ** bits
-    exponent = -1.0 * ((total - 1) * total) / (2 * events)
-    round(1 / (1 - :math.exp(exponent)))
+    n = 2 * :math.log2(total)
+    round(2 ** (bits - n + 1))
   end
 
   @doc """

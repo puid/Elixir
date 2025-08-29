@@ -274,8 +274,8 @@ defmodule Puid.Test.Puid do
 
     defmodule(ApproxTotalRisk, do: use(Puid, total: total, risk: risk, chars: :safe32))
 
-    assert ApproxTotalRisk.total(risk) == 1_555_013
-    assert ApproxTotalRisk.risk(total) == 2_418_040_068_387
+    assert ApproxTotalRisk.total(risk) == 1_554_944
+    assert ApproxTotalRisk.risk(total) == 2_417_851_639_229
   end
 
   test "unicode chars" do

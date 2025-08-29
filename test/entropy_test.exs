@@ -42,9 +42,9 @@ defmodule Puid.Test.Entropy do
     assert bits(10_500, 0) === 0
     assert bits(10_500, 1) === 0
 
-    assert d_bits(100, 100, 2) === 18.92
+    assert d_bits(100, 100, 2) === 18.93
     assert d_bits(999, 1000, 2) === 28.89
-    assert d_bits(1000, 1000, 2) === 28.90
+    assert d_bits(1000, 1000, 2) === 28.9
     assert d_bits(10000, 1000, 2) === 35.54
     assert d_bits(1.0e4, 1.0e3, 2) === 35.54
     assert d_bits(1.0e6, 1.0e6, 2) === 58.79
@@ -56,14 +56,17 @@ defmodule Puid.Test.Entropy do
   end
 
   test "total" do
-    assert total(96, 1.0e15) == 13_263_554
-    assert total(108.62, 1.0e15) == 1_052_347_509
+    assert total(96, 1.0e15) == 12_587_944
+    assert total(100, 100) == 159_226_291_813_144
+    assert total(100, 1000) == 50_351_774_551_216
+    assert total(100, 1.0e12) == 1_592_262_918
+    assert total(108.62, 1.0e15) == 998_743_722
   end
 
   @tag :risk
   test "risk" do
-    assert risk(96, 10.0e6) == 1_501_199_875_790_165
-    assert risk(108.62, 1.0e9) == 1_000_799_917_193_444
+    assert risk(96, 10.0e6) == 1_584_563_250_285_288
+    assert risk(108.62, 1.0e9) == 997_489_021_970_237
   end
 
   test "preshing 32-bit" do
