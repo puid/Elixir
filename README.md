@@ -17,6 +17,7 @@ iex> RandId.generate()
 - [Installation](#installation)
 - [Module API](#module-api)
 - [Characters](#characters)
+- [Metrics](#metrics)
 - [Comparisons](#comparisons)
 
 ## Overview
@@ -50,7 +51,7 @@ iex> PrngId.generate()
 
 **Characters**
 
-By default, `Puid` use the [RFC 4648](https://tools.ietf.org/html/rfc4648#section-5) file system & URL safe characters. The `chars` option can by used to specify any of 16 [pre-defined character sets](#Chars) or custom characters, including Unicode:
+By default, `Puid` use the [RFC 4648](https://tools.ietf.org/html/rfc4648#section-5) file system & URL safe characters. The `chars` option can by used to specify any of 19 [pre-defined character sets](#Chars) or custom characters, including Unicode:
 
 ```elixir
 iex> defmodule(HexId, do: use(Puid, chars: :hex))
@@ -69,7 +70,7 @@ iex> DingoskyUnicodeId.generate()
 
 **Captured Entropy**
 
-Generated IDs have at least 128-bit entropy by default. `Puid` provides a simple, intuitive way to specify ID randomness by declaring a `total` number of possible IDs with a specified `risk` of a repeat in that many IDs:
+The default Puid module generates IDs that have 132-bit entropy. `Puid` provides a simple, intuitive way to specify ID randomness by declaring a `total` number of possible IDs with a specified `risk` of a repeat in that many IDs:
 
 To generate up to _10 million_ random IDs with _1 in a trillion_ chance of repeat:
 
@@ -87,19 +88,13 @@ iex> Token.generate()
 "6E908C2A1AA7BF101E7041338D43B87266AFA73734F423B6C3C3A17599F40F2A"
 ```
 
-Note this is much more intuitive than guess, or simply not knowing, how much entropy your random IDs actually have.
-
-
 ### General Note
 
-The mathematical approximations used by **Puid** always favor conservative estimatation:
+The mathematical approximations used by **Puid** always favor conservative estimation:
 
 - overestimate the **bits** needed for a specified **total** and **risk**
 - overestimate the **risk** of generating a **total** number of **puid**s
 - underestimate the **total** number of **puid**s that can be generated at a specified **risk**
-
-
-
 
 ### Installation
 
@@ -139,10 +134,11 @@ The `info/0` function returns a `Puid.Info` structure consisting of:
 - name of pre-defined `Puid.Chars` or `:custom`
 - entropy bits per character
 - total entropy bits
-  - may be larger than the specified `bits` since it is a multiple of the entropy bits per
-    character
+    - may be larger than the specified `bits` since it is a multiple of the entropy bits per character
 - entropy representation efficiency
-  - ratio of the **puid** entropy to the bits required for **puid** string representation
+    - ratio of **puid** entropy to bits required for **puid** string representation
+- entropy transform efficiency
+    - ratio of **puid** entropy bits to avg entropy source bits required for ID generation
 - entropy source function
 - **puid** string length
 
@@ -173,6 +169,7 @@ iex> SafeId.info()
   entropy_bits: 132.0,
   entropy_bits_per_char: 6.0,
   ere: 0.75,
+  ete: 1.0,
   length: 22,
   rand_bytes: &:crypto.strong_rand_bytes/1
 }
@@ -180,33 +177,33 @@ iex> SafeId.info()
 
 ### Characters
 
-There are 19 pre-defined character sets:
+#### Puid Predefined Charsets
 
-| Name              | Characters                                                                                    |
-| :---------------- | :-------------------------------------------------------------------------------------------- |
-| :alpha            | ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz                                          |
-| :alpha_lower      | abcdefghijklmnopqrstuvwxyz                                                                    |
-| :alpha_upper      | ABCDEFGHIJKLMNOPQRSTUVWXYZ                                                                    |
-| :alphanum         | ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789                                |
-| :alphanum_lower   | abcdefghijklmnopqrstuvwxyz0123456789                                                          |
-| :alphanum_upper   | ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789                                                          |
-| :base16           | 0123456789ABCDEF                                                                              |
-| :base32           | ABCDEFGHIJKLMNOPQRSTUVWXYZ234567                                                              |
-| :base32_hex       | 0123456789abcdefghijklmnopqrstuv                                                              |
-| :base32_hex_upper | 0123456789ABCDEFGHIJKLMNOPQRSTUV                                                              |
-| :crockford32      | 0123456789ABCDEFGHJKMNPQRSTVWXYZ                                                              |
-| :decimal          | 0123456789                                                                                    |
-| :hex              | 0123456789abcdef                                                                              |
-| :hex_upper        | 0123456789ABCDEF                                                                              |
-| :safe_ascii       | !#$%&()\*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^\_abcdefghijklmnopqrstuvwxyz{\|}~ |
-| :safe32           | 2346789bdfghjmnpqrtBDFGHJLMNPQRT                                                              |
-| :safe64           | ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-\_                             |
-| :symbol           | !#$%&()\*+,-./:;<=>?@[]^\_{\|}~                                                               |
-| :wordSafe32       | 23456789CFGHJMPQRVWXcfghjmpqrvwx                                                              |
+| Name | Length | ERE | ETE | Characters |
+|------|--------|-----|-----|------------|
+| :alpha | 52 | 5.7 | 0.84 | ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz |
+| :alpha_lower | 26 | 4.7 | 0.81 | abcdefghijklmnopqrstuvwxyz |
+| :alpha_upper | 26 | 4.7 | 0.81 | ABCDEFGHIJKLMNOPQRSTUVWXYZ |
+| :alphanum | 62 | 5.95 | 0.97 | ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 |
+| :alphanum_lower | 36 | 5.17 | 0.65 | abcdefghijklmnopqrstuvwxyz0123456789 |
+| :alphanum_upper | 36 | 5.17 | 0.65 | ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 |
+| :base16 | 16 | 4.0 | 1.0 | 0123456789ABCDEF |
+| :base32 | 32 | 5.0 | 1.0 | ABCDEFGHIJKLMNOPQRSTUVWXYZ234567 |
+| :base32_hex | 32 | 5.0 | 1.0 | 0123456789abcdefghijklmnopqrstuv |
+| :base32_hex_upper | 32 | 5.0 | 1.0 | 0123456789ABCDEFGHIJKLMNOPQRSTUV |
+| :crockford32 | 32 | 5.0 | 1.0 | 0123456789ABCDEFGHJKMNPQRSTVWXYZ |
+| :decimal | 10 | 3.32 | 0.62 | 0123456789 |
+| :hex | 16 | 4.0 | 1.0 | 0123456789abcdef |
+| :hex_upper | 16 | 4.0 | 1.0 | 0123456789ABCDEF |
+| :safe_ascii | 90 | 6.49 | 0.8 | !#$%&()\*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\[]^\_abcdefghijklmnopqrstuvwxyz{\|}~ |
+| :safe32 | 32 | 5.0 | 1.0 | 2346789bdfghjmnpqrtBDFGHJLMNPQRT |
+| :safe64 | 64 | 6.0 | 1.0 | ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-\_ |
+| :symbol | 28 | 4.81 | 0.89 | !#$%&()\*+,-./:;<=>?@\[]^\_{\|}~ |
+| :wordSafe32 | 32 | 5.0 | 1.0 | 23456789CFGHJMPQRVWXcfghjmpqrvwx |
 
-Any `String` of up to 256 unique characters can be used for **`puid`** generation, with custom characters optimized in the same manner as the pre-defined character sets. The characters must be unique. This isn't strictly a technical requirement, **PUID** could handle duplicate characters, but the resulting randomness of the IDs is maximal when the characters are unique, so **PUID** enforces that restriction.
+Note: The [Metrics](#metrics) section explains ERE and ETE.
 
-#### Description of non-obvious character sets
+##### Description of non-obvious character sets
 
 | Name              | Description                                                |
 | :---------------- | :--------------------------------------------------------- |
@@ -220,34 +217,52 @@ Any `String` of up to 256 unique characters can be used for **`puid`** generatio
 | :safe64           | https://datatracker.ietf.org/doc/html/rfc4648#section-5    |
 | :wordSafe32       | Alpha and numbers picked to reduce chance of English words |
 
-Note: :safe32 and :wordSafe32 are two different strategies for the same goal.
+Note: `:safe32` and `:wordSafe32` are two different strategies for the same goal.
 
+#### Custom
+
+Any `String` of up to 256 unique characters can be used for **`puid`** generation, with custom characters optimized in the same manner as the pre-defined character sets. The characters must be unique. This isn't strictly a technical requirement, **PUID** could handle duplicate characters, but the resulting randomness of the IDs is maximal when the characters are unique, so **PUID** enforces that restriction.
+
+### Metrics
+
+#### Entropy Representation Efficiency
+
+Entropy Representation Efficiency (ERE) is a measure of how efficient a string ID represents the entropy of the ID itself. When referring to the entropy of an ID, we mean the Shannon Entropy of the character sequence, and that is maximal when all the permissible characters are equally likely to occur. In most random ID generators, this is the case, and the ERE is solely dependent on the count of characters in the charset, where each character represents **log2(count)** of entropy (a computer specific calc of general Shannon entropy). For example, for a hex charset there are **16** hex characters, so each character "carries" **log2(16) = 4** bits of entropy in the string ID. We say the bits per character is **4** and a random ID of **12** hex characters has **48** bits of entropy.
+
+ERE is measured as a ratio of the bits of entropy for the ID divided by the number of bits require to represent the string (**8** bits per ID character). If each character is equally probably (the most common case), ERE is **(bits-per-char * id_len) / (8 bits * id_len)**, which simplifies to **bits-per-character/8**. The BPC displayed in the Puid Characters table is equivalent to the ERE for that charset.
+
+There is, however, a particular random ID exception where each character is _**not**_ equally probable, namely, the often used v4 format of UUIDs. In that format, there are hyphens that carry no entropy (entropy is uncertainty, and there is _**no uncertainly**_ as to where those hyphens will be), one hex digit that is actually constrained to 1 of only 4 hex values and another that is fixed. This formatting results in a ID of 36 characters with a total entropy of 122 bits. The ERE of a v4 UUID is, therefore, **122 / (8 * 36) = 0.4236**.
+
+#### Entropy Transform Efficiency
+
+Entropy Transform Efficiency (ETE) is a measure of how efficiently source entropy is transformed into random ID entropy. For charsets with a character count that is a power of 2, all of the source entropy bits can be utilized during random ID generation. Each generated ID character requires exactly **log2(count)** bits, so the incoming source entropy can easily be carved into appropriate indices for character selection. Since ETE represents the ratio of output entropy bits to input entropy source, when all of the bits are utilized ETE is **1.0**.
+
+Even for charsets with power of 2 character count, ETE is only the theoretical maximum of **1.0** _**if**_ the input entropy source is used as described above. Unfortunately, that is not the case with many random ID generation schemes. Some schemes use the entire output of a call to source entropy to create a single index used to select a character. Such schemes have very poor ETE.
+
+For charsets with a character count that is not a power of 2, some bits will inevitably be discarded since the smallest number of bits required to select a character, **ceil(log2(count))**, will potentially result in an index beyond the character count. A first-cut, naïve approach to this reality is to simply throw away all the bits when the index is too large.
+
+However, a more sophisticated scheme of bit slicing can actually improve on the naïve approach. Puid extends the bit slicing scheme by adding a bit shifting scheme to the algorithm, wherein a _**minimum**_ number of bits in the "over the limit" bits are discarded by observing that some bit patterns of length less than **ceil(log2(count))** already guarantee the bits will be over the limit, and _**only**_ those bits need be discarded. 
+
+As example, using the **:alphanum_lower** charset, which has 36 characters, **ceil(log2(36)) = 6** bits are required to create a suitable index. However, if those bits start with the bit pattern **11xxxx**, the index would be out of bounds regardless of the **xxxx** bits, so Puid only tosses the first two bits and keeps the trailing four bits for use in the next index. (It is beyond scope to discuss here, but analysis shows this bit shifting scheme does not alter the random characteristics of generated IDs). So whereas the naïve approach would have an ETE of **0.485**, Puid achieves an ETE of **0.646**, a **33%** improvement. The `bench/alphanum_lower_ete.exs` script has detailed analysis.
 
 ## Comparisons
 
-The Benchee benchmark script provides comparison of Puid to other libraries.
+### Speed
 
-Quick
-
-- Puid-only: mix run bench/compare.exs
-
-Full comparisons (includes external libs via test-only deps)
-
-- MIX_ENV=test mix run bench/compare.exs
-
-Adjust workload
-
-- TRIALS=100000 MIX_ENV=test mix run bench/compare.exs
+`bench/compare_libs.exs` provides some comparison of Puid and other random ID libraries.
 
 Notes
 
-- External libraries (EntropyString, Nanoid, Randomizer, SecureRandom, UUID) are included automatically when  MIX_ENV=test.
-- Output shows ips and average times per scenario.
+- run: `MIX_ENV=test mix run bench/compare_libs.exs`
+    - `MIX_ENV=test` is required to include external libraries
+- override trials via env var: `TRIALS=100000 MIX_ENV=test mix run bench/compare_libs.exs`
+- ips and average times per scenario
+- speed comparison wrt Puid using hex and CSPRNG
 
 Example
 
 ```sh
-MIX_ENV=test mix run bench/compare.exs
+MIX_ENV=test mix run bench/compare_libs.exs
 
 Name                                  ips        average  deviation         median         99th %
 Puid hex (CSPRNG)                   47.74       20.95 ms     ±1.13%       20.90 ms       21.59 ms
@@ -273,3 +288,41 @@ Randomizer alphanum 22               4.63 - 10.31x slower +195.14 ms
 Common Solution alphanum             1.25 - 38.05x slower +776.25 ms
 Nanoid (CSPRNG)                      0.79 - 60.45x slower +1245.48 ms
 ```
+
+### Puid charsets ID length and ERE
+
+The `bench/puid_ere_len.exs` script outputs a markdown table comparing the number of actual entropy bits and resulting `puid` lengths for each `Puid` predefined charset. The default target bits are `64, 86, 128, 256`.
+
+    mix run bench/puid_ere_len.exs [bits...]
+
+| charset | ere |  | bits | len |  | bits | len |  | bits | len |  | bits | len |
+| --- | ---: | --- | ---: | ---: | --- | ---: | ---: | --- | ---: | ---: | --- | ---: | ---: |
+|  |  |  | 64 | — |  | 96 | — |  | 128 | — |  | 256 | — |
+| alpha | 0.71 |  | 68.41 | 12 |  | 96.91 | 17 |  | 131.11 | 23 |  | 256.52 | 45 |
+| alpha_lower | 0.59 |  | 65.81 | 14 |  | 98.71 | 21 |  | 131.61 | 28 |  | 258.52 | 55 |
+| alpha_upper | 0.59 |  | 65.81 | 14 |  | 98.71 | 21 |  | 131.61 | 28 |  | 258.52 | 55 |
+| alphanum | 0.74 |  | 65.5 | 11 |  | 101.22 | 17 |  | 130.99 | 22 |  | 256.03 | 43 |
+| alphanum_lower | 0.65 |  | 67.21 | 13 |  | 98.23 | 19 |  | 129.25 | 25 |  | 258.5 | 50 |
+| alphanum_upper | 0.65 |  | 67.21 | 13 |  | 98.23 | 19 |  | 129.25 | 25 |  | 258.5 | 50 |
+| base16 | 0.5 |  | 64.0 | 16 |  | 96.0 | 24 |  | 128.0 | 32 |  | 256.0 | 64 |
+| base32 | 0.63 |  | 65.0 | 13 |  | 100.0 | 20 |  | 130.0 | 26 |  | 260.0 | 52 |
+| base32_hex | 0.63 |  | 65.0 | 13 |  | 100.0 | 20 |  | 130.0 | 26 |  | 260.0 | 52 |
+| base32_hex_upper | 0.63 |  | 65.0 | 13 |  | 100.0 | 20 |  | 130.0 | 26 |  | 260.0 | 52 |
+| crockford32 | 0.63 |  | 65.0 | 13 |  | 100.0 | 20 |  | 130.0 | 26 |  | 260.0 | 52 |
+| decimal | 0.42 |  | 66.44 | 20 |  | 96.34 | 29 |  | 129.56 | 39 |  | 259.11 | 78 |
+| hex | 0.5 |  | 64.0 | 16 |  | 96.0 | 24 |  | 128.0 | 32 |  | 256.0 | 64 |
+| hex_upper | 0.5 |  | 64.0 | 16 |  | 96.0 | 24 |  | 128.0 | 32 |  | 256.0 | 64 |
+| safe_ascii | 0.81 |  | 64.92 | 10 |  | 97.38 | 15 |  | 129.84 | 20 |  | 259.67 | 40 |
+| safe32 | 0.63 |  | 65.0 | 13 |  | 100.0 | 20 |  | 130.0 | 26 |  | 260.0 | 52 |
+| safe64 | 0.75 |  | 66.0 | 11 |  | 96.0 | 16 |  | 132.0 | 22 |  | 258.0 | 43 |
+| symbol | 0.6 |  | 67.3 | 14 |  | 96.15 | 20 |  | 129.8 | 27 |  | 259.6 | 54 |
+| wordSafe32 | 0.63 |  | 65.0 | 13 |  | 100.0 | 20 |  | 130.0 | 26 |  | 260.0 | 52 |
+
+| Library | Charset | Target | Lib Len | Lib Bits | Lib ERE | Puid Len | Puid Bits | Puid ERE | ERE Δ% |
+|---------|---------|--------|---------|----------|---------|----------|-----------|----------|--------|
+| Nanoid | safe64 | 126 | 21 | 126.0 | 0.75 | 21 | 126.0 | 0.75 | 0.0% |
+| Randomizer | alphanum_lower | 52 | 10 | 51.7 | 0.65 | 11 | 56.87 | 0.65 | 0.0% |
+| SecureRandom.urlsafe_base64 | safe64 | 128 | 22 | 132.0 | 0.75 | 22 | 132.0 | 0.75 | 0.0% |
+| UUID v4 | hex | 122 | 32 | 128.0 | 0.5 | 31 | 124.0 | 0.5 | 0.0% |
+
+ERE = Entropy Representation Efficiency (higher is better)

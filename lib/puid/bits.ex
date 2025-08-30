@@ -26,6 +26,33 @@ defmodule Puid.Bits do
   import Bitwise
   import Puid.Util
 
+  @doc false
+  @spec bit_shifts(pos_integer()) :: [{non_neg_integer(), pos_integer()}]
+  def bit_shifts(charset_size) do
+    bits_per_char = log_ceil(charset_size)
+
+    if pow2?(charset_size) do
+      [{charset_size - 1, bits_per_char}]
+    else
+      base_value = if even?(charset_size), do: charset_size - 1, else: charset_size
+      base_shift = {base_value, bits_per_char}
+
+      shifts =
+        (bits_per_char - 1)..2//-1
+        |> Enum.reduce([], fn bit, shifts ->
+          # Use bit_zero? with 1-based indexing - this creates the correct
+          # bit shift patterns through an indexing offset
+          if bit_zero?(base_value, bit) do
+            [{base_value ||| pow2(bit) - 1, bits_per_char - bit + 1} | shifts]
+          else
+            shifts
+          end
+        end)
+
+      List.insert_at(shifts, 0, base_shift)
+    end
+  end
+
   defmacro __using__(opts) do
     quote do
       chars_count = unquote(opts[:chars_count])
@@ -36,26 +63,8 @@ defmodule Puid.Bits do
       bits_per_puid = puid_len * bits_per_char
       bytes_per_puid = trunc(:math.ceil(bits_per_puid / 8))
 
-      base_value = if even?(chars_count), do: chars_count - 1, else: chars_count
-      base_shift = {base_value, bits_per_char}
-
-      bit_shifts =
-        if pow2?(chars_count) do
-          [base_shift]
-        else
-          (bits_per_char - 1)..2//-1
-          |> Enum.reduce(
-            [],
-            fn bit, shifts ->
-              if bit_zero?(base_value, bit) do
-                [{base_value ||| pow2(bit) - 1, bits_per_char - bit + 1} | shifts]
-              else
-                shifts
-              end
-            end
-          )
-          |> List.insert_at(0, base_shift)
-        end
+      # Use the shared bit_shifts function for consistency
+      bit_shifts = Puid.Bits.bit_shifts(chars_count)
 
       {:module, mod} = rand_bytes |> Function.info(:module)
       {:name, name} = rand_bytes |> Function.info(:name)

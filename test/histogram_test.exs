@@ -22,32 +22,43 @@
 defmodule Puid.Test.Histogram do
   use ExUnit.Case
 
+  @tag :histogram
   @tag :hex
-  test ":hex", do: test_chars("Hex", "HexId", :hex)
+  test ":hex", do: test_chars("Hex", "HistHexId", :hex)
 
+  @tag :histogram
   @tag :safe32
-  test ":safe32", do: test_chars("Safe32", "Safe32Id", :safe32)
+  test ":safe32", do: test_chars("Safe32", "HistSafe32Id", :safe32)
 
+  @tag :histogram
   @tag :alpha_lower
-  test ":alpha_lower", do: test_chars("AlphaLower", "AlphaLowerId", :alpha_lower)
+  test ":alpha_lower", do: test_chars("AlphaLower", "HistAlphaLowerId", :alpha_lower)
 
+  @tag :histogram
   @tag :alphanum
-  test ":alphanum", do: test_chars("Alphanumeric", "AlphanumId", :alphanum)
+  test ":alphanum", do: test_chars("Alphanumeric", "HistAlphanumId", :alphanum)
 
+  @tag :histogram
   @tag :safe_ascii
-  test ":safe_ascii", do: test_chars("All ASCII", "SafeAsciiId", :safe_ascii)
+  test ":safe_ascii", do: test_chars("All ASCII", "HistSafeAsciiId", :safe_ascii)
 
+  @tag :histogram
   @tag :custom_8
-  test "ascii", do: test_chars("8 custom ASCII", "DingoSkyId", "dingosky")
+  test "ascii", do: test_chars("8 custom ASCII", "HistDingoSkyId", "dingosky")
 
+  @tag :histogram
   @tag :alpha_9_lower
-  test "alpha 9 lower", do: test_chars("9 alpha lower chars", "Alpha9LowerId", "abcdefghi")
+  test "alpha 9 lower", do: test_chars("9 alpha lower chars", "HistAlpha9LowerId", "abcdefghi")
 
+  @tag :histogram
   @tag :alpha_10_lower
-  test "alpha 10 lower", do: test_chars("10 alpha lower chars", "Alpha10LowerId", "abcdefghij")
+  test "alpha 10 lower",
+    do: test_chars("10 alpha lower chars", "HistAlpha10LowerId", "abcdefghij")
 
+  @tag :histogram
   @tag :unicode
-  test "unicode", do: test_chars("Unicode characters", "DingoSkyUnicodeId", "dîñgø$kyDÎÑGØßK¥")
+  test "unicode",
+    do: test_chars("Unicode characters", "HistDingoSkyUnicodeId", "dîñgø$kyDÎÑGØßK¥")
 
   defp test_chars(descr, id_name, chars) do
     trials = 500_000

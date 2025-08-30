@@ -186,6 +186,35 @@ defmodule Puid.Chars do
   """
   @type puid_encoding() :: :ascii | :utf8
 
+  @doc "List of predefined charsets discovered from compiled module."
+  @spec predefined() :: [atom()]
+  def predefined do
+    beam = :code.which(__MODULE__)
+    {:ok, {_, [{:abstract_code, {_, forms}}]}} = :beam_lib.chunks(beam, [:abstract_code])
+
+    forms
+    |> Enum.flat_map(fn
+      {:function, _, :charlist!, 1, clauses} ->
+        clauses
+        |> Enum.flat_map(fn
+          {:clause, _, [{:atom, _, name}], _, _} -> [name]
+          _ -> []
+        end)
+
+      _ ->
+        []
+    end)
+    |> Enum.uniq()
+    |> Enum.filter(fn cs ->
+      try do
+        _ = charlist!(cs)
+        true
+      rescue
+        _ -> false
+      end
+    end)
+  end
+
   ##
   ## Chars count max is 256 due to optimized bit slicing scheme
   ##
@@ -245,6 +274,7 @@ defmodule Puid.Chars do
   def charlist!(:alphanum), do: charlist!(:alpha) ++ charlist!(:decimal)
   def charlist!(:alphanum_lower), do: charlist!(:alpha_lower) ++ charlist!(:decimal)
   def charlist!(:alphanum_upper), do: charlist!(:alpha_upper) ++ charlist!(:decimal)
+  def charlist!(:base16), do: charlist!(:hex_upper)
   def charlist!(:base32), do: charlist!(:alpha_upper) ++ ~c"234567"
   def charlist!(:base32_hex), do: charlist!(:decimal) ++ Enum.to_list(?a..?v)
   def charlist!(:base32_hex_upper), do: charlist!(:decimal) ++ Enum.to_list(?A..?V)
@@ -295,6 +325,66 @@ defmodule Puid.Chars do
           raise(Puid.Error, "Invalid char")
       end
     end)
+  end
+
+  @doc false
+  @spec ete(puid_chars()) :: %{
+          ete: float(),
+          bit_shifts: [{non_neg_integer(), pos_integer()}],
+          expected_bits: float()
+        }
+  def ete(chars) do
+    charlist = charlist!(chars)
+    charset_size = length(charlist)
+
+    bit_shifts = Puid.Bits.bit_shifts(charset_size)
+    bits_per_char = Puid.Util.log_ceil(charset_size)
+    theoretical_bits = :math.log2(charset_size)
+
+    if Puid.Util.pow2?(charset_size) do
+      %{
+        ete: 1.0,
+        bit_shifts: bit_shifts,
+        expected_bits: bits_per_char * 1.0
+      }
+    else
+      total_values = Puid.Util.pow2(bits_per_char)
+
+      # Calculate probabilities
+      p_accept = charset_size / total_values
+      p_reject = 1 - p_accept
+
+      # Calculate average bits consumed on rejection
+      reject_count = total_values - charset_size
+
+      reject_bits_sum =
+        charset_size..(total_values - 1)
+        |> Enum.reduce(0, fn value, sum ->
+          case Enum.find(bit_shifts, fn {max_val, _} -> value <= max_val end) do
+            {_, bits_consumed} ->
+              sum + bits_consumed
+
+            nil ->
+              raise(
+                Puid.Error,
+                "bit_shifts #{inspect(bit_shifts)} has no matching bit shift rule for value #{value}"
+              )
+          end
+        end)
+
+      avg_bits_on_reject = reject_bits_sum / reject_count
+
+      # Calculate expected bits accounting for recursive retries
+      # This is the key fix: we need to account for the geometric series of retries
+      expected_bits = bits_per_char + p_reject / p_accept * avg_bits_on_reject
+      ete = theoretical_bits / expected_bits
+
+      %{
+        ete: ete,
+        bit_shifts: bit_shifts,
+        expected_bits: expected_bits
+      }
+    end
   end
 
   @doc false

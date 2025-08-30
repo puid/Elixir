@@ -146,4 +146,79 @@ defmodule Puid.Test.Chars do
   test "invalid encoding" do
     assert_raise(Puid.Error, fn -> Chars.encoding(~c"ab cd") end)
   end
+
+  describe "ete/1" do
+    test "power-of-2 charsets have perfect ETE" do
+      power_of_2_charsets = [
+        :base16,
+        :base32,
+        :base32_hex,
+        :base32_hex_upper,
+        :crockford32,
+        :hex,
+        :hex_upper,
+        :safe32,
+        :safe64,
+        :wordSafe32
+      ]
+
+      Enum.each(power_of_2_charsets, fn charset ->
+        result = Chars.ete(charset)
+
+        assert result.ete == 1.0,
+               "#{charset} should have ETE = 1.0, got #{result.ete}"
+      end)
+    end
+
+    test "known ETE values for non-power-of-2 charsets" do
+      test_cases = [
+        {:alphanum_lower, 0.65, 0.01},
+        {:alphanum, 0.97, 0.01},
+        {:decimal, 0.62, 0.01},
+        {:alpha_lower, 0.81, 0.01},
+        {:alpha_upper, 0.81, 0.01},
+        {:alphanum_upper, 0.65, 0.01},
+        {:alpha, 0.84, 0.01}
+      ]
+
+      Enum.each(test_cases, fn {charset, expected_ete, tolerance} ->
+        result = Chars.ete(charset)
+
+        assert abs(result.ete - expected_ete) < tolerance,
+               "#{charset} should have ETE ≈ #{expected_ete}, got #{Float.round(result.ete, 4)}"
+      end)
+    end
+
+    test "ETE is always between 0 and 1" do
+      all_charsets = predefined_chars()
+
+      Enum.each(all_charsets, fn charset ->
+        result = Chars.ete(charset)
+
+        assert result.ete > 0 and result.ete <= 1.0,
+               "#{charset} has invalid ETE: #{result.ete}"
+      end)
+    end
+
+    test "ETE result structure" do
+      result = Chars.ete(:alphanum_lower)
+
+      assert is_map(result)
+      assert Map.has_key?(result, :ete)
+      assert Map.has_key?(result, :bit_shifts)
+      assert Map.has_key?(result, :expected_bits)
+
+      assert is_float(result.ete)
+      assert is_list(result.bit_shifts)
+      assert is_float(result.expected_bits)
+    end
+
+    test "custom charset ETE" do
+      custom_36 = "abcdefghijklmnopqrstuvwxyz0123456789"
+      result = Chars.ete(custom_36)
+
+      alphanum_lower_result = Chars.ete(:alphanum_lower)
+      assert abs(result.ete - alphanum_lower_result.ete) < 0.0001
+    end
+  end
 end

@@ -40,6 +40,8 @@ defmodule Puid.Test.Puid do
     assert mod.info().entropy_bits_per_char === Float.round(epbc, round_to)
     assert mod.info().entropy_bits === Float.round(eb, round_to)
     assert mod.info().ere === Float.round(ere, round_to)
+    assert is_number(mod.info().ete)
+    assert mod.info().ete >= 0 and mod.info().ete <= 1.0
     assert mod.generate() |> String.length() === length
   end
 
@@ -193,6 +195,7 @@ defmodule Puid.Test.Puid do
     assert DefaultId.info().entropy_bits === 132.0
     assert DefaultId.info().rand_bytes === (&:crypto.strong_rand_bytes/1)
     assert DefaultId.info().ere === 0.75
+    assert DefaultId.info().ete === 1.0
     assert byte_size(DefaultId.generate()) === DefaultId.info().length
   end
 
@@ -265,6 +268,7 @@ defmodule Puid.Test.Puid do
     assert info.entropy_bits === 68.41
     assert info.entropy_bits_per_char == 5.7
     assert info.ere == 0.71
+    assert info.ete == 0.84
     assert info.length == 12
   end
 
@@ -285,11 +289,13 @@ defmodule Puid.Test.Puid do
     info = XMasChars.info()
     assert info.characters == chars
     assert info.char_set == :custom
+    assert is_number(info.ete)
+    assert info.ete >= 0 and info.ete <= 1.0
     assert info.length == 56
   end
 
   test "unicode dog" do
-    chars = "dîngøsky:\u{1F415}"
+    chars = "dîngøsky:🐕"
     defmodule(DingoSkyDog, do: use(Puid, total: 1.0e9, risk: 1.0e15, chars: chars))
 
     info = DingoSkyDog.info()
@@ -298,6 +304,8 @@ defmodule Puid.Test.Puid do
     assert info.entropy_bits == 109.62
     assert info.entropy_bits_per_char == 3.32
     assert info.ere == 0.28
+    assert is_number(info.ete)
+    assert info.ete >= 0 and info.ete <= 1.0
     assert info.length == 33
   end
 
@@ -1044,6 +1052,29 @@ defmodule Puid.Test.Puid do
     spawn(fn ->
       assert String.length(HereAlphanumId.generate()) === HereAlphanumId.info().length
     end)
+  end
+
+  test "ETE values for various charsets" do
+    defmodule(Base32EteId, do: use(Puid, chars: :base32))
+    assert Base32EteId.info().ete == 1.0
+
+    defmodule(Safe64EteId, do: use(Puid, chars: :safe64))
+    assert Safe64EteId.info().ete == 1.0
+
+    defmodule(HexEteId, do: use(Puid, chars: :hex))
+    assert HexEteId.info().ete == 1.0
+
+    defmodule(AlphanumLowerEteId, do: use(Puid, chars: :alphanum_lower))
+    assert_in_delta AlphanumLowerEteId.info().ete, 0.65, 0.01
+
+    defmodule(AlphanumEteId, do: use(Puid, chars: :alphanum))
+    assert_in_delta AlphanumEteId.info().ete, 0.97, 0.01
+
+    defmodule(DecimalEteId, do: use(Puid, chars: :decimal))
+    assert_in_delta DecimalEteId.info().ete, 0.62, 0.01
+
+    defmodule(AlphaEteId, do: use(Puid, chars: :alpha))
+    assert_in_delta AlphaEteId.info().ete, 0.84, 0.01
   end
 
   test "Calling process not the same as creating process: fixed bytes" do

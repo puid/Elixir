@@ -22,31 +22,37 @@
 defmodule Puid.Test.File.Data do
   use ExUnit.Case, async: true
 
+  @tag :data
   @tag :alphanum
   test "test alphanum file data" do
     Puid.Test.Data.test("alphanum")
   end
 
+  @tag :data
   @tag :alpha_10_lower
   test "test alpha 10 lower file data" do
     Puid.Test.Data.test("alpha_10_lower")
   end
 
+  @tag :data
   @tag :dingosky
   test "test dingosky file data" do
     Puid.Test.Data.test("dingosky")
   end
 
+  @tag :data
   @tag :safe32
   test "test safe32 file data" do
     Puid.Test.Data.test("safe32")
   end
 
+  @tag :data
   @tag :safe_ascii
   test "test safe_ascii file data" do
     Puid.Test.Data.test("safe_ascii")
   end
 
+  @tag :data
   @tag :unicode
   test "test unicode file data " do
     Puid.Test.Data.test("unicode")

@@ -33,6 +33,7 @@ defmodule Puid.Info do
   | entropy_bits | entropy bits for generated **puid** |
   | entropy_bits_per_char | entropy bits per character for generated **puid**s |
   | ere | **puid** entropy string representation efficiency |
+  | ete | **puid** entropy transform efficiency |
   | length | **puid** string length |
   | rand_bytes | entropy source function |
 
@@ -45,6 +46,7 @@ defmodule Puid.Info do
     entropy_bits: 65.81,
     entropy_bits_per_char: 4.7,
     ere: 0.59,
+    ete: 0.81,
     length: 14,
     rand_bytes: &:crypto.strong_rand_bytes/1
   }
@@ -57,6 +59,7 @@ defmodule Puid.Info do
           entropy_bits: number(),
           entropy_bits_per_char: number(),
           ere: number(),
+          ete: number(),
           length: non_neg_integer(),
           rand_bytes: (non_neg_integer() -> binary) | nil
         }
@@ -66,6 +69,7 @@ defmodule Puid.Info do
             entropy_bits: 128,
             entropy_bits_per_char: 0,
             ere: 0,
+            ete: 0,
             length: 0,
             rand_bytes: nil
 end

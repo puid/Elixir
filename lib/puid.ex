@@ -143,10 +143,11 @@ defmodule Puid do
   - name of pre-defined `Puid.Chars` or `:custom`
   - entropy bits per character
   - total entropy bits
-  - may be larger than the specified `bits` since it is a multiple of the entropy bits per
-    character
+      - may be larger than the specified `bits` since it is a multiple of the entropy bits per character
   - entropy representation efficiency
-  - ratio of the **puid** entropy to the bits required for **puid** string representation
+      - ratio of the **puid** entropy to the bits required for **puid** string representation
+  - entropy transform efficiency
+      - ratio of **puid** entropy bits to avg entropy source bits required for ID generation
   - entropy source function
   - **puid** string length
 
@@ -256,6 +257,15 @@ defmodule Puid do
 
       ere = (entropy_bits_per_char / avg_rep_bits_per_char) |> Float.round(2)
 
+      ete_charset =
+        if is_atom(puid_char_set) and puid_char_set != :custom do
+          puid_char_set
+        else
+          puid_charlist
+        end
+
+      ete = ete_charset |> Puid.Chars.ete() |> Map.fetch!(:ete) |> Float.round(2)
+
       puid_bits_per_char = log_ceil(chars_count)
 
       @entropy_bits entropy_bits_per_char * puid_len
@@ -360,6 +370,7 @@ defmodule Puid do
         entropy_bits_per_char: Float.round(entropy_bits_per_char, 2),
         entropy_bits: Float.round(@entropy_bits, 2),
         ere: ere,
+        ete: ete,
         length: puid_len,
         rand_bytes: rand_bytes
       }
