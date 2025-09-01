@@ -12,6 +12,10 @@
 - ETE analysis scripts showing theoretical vs empirical efficiency
 - Updated README for ETE and ERE
 
+### Changes
+
+- Minimum Elixir version bumped to 1.15 (from 1.14)
+
 ## v2.4.0 (2025-08-29)
 
 ### Changes

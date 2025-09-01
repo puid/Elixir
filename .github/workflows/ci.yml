@@ -14,12 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Elixir 1.14 supports OTP 23-25
-          - elixir: '1.14'
-            otp: '24'
-          - elixir: '1.14'
-            otp: '25'
-          # Elixir 1.15 supports OTP 24-26
+          # Elixir 1.15 supports OTP 24-26 (minimum version)
           - elixir: '1.15'
             otp: '24'
           - elixir: '1.15'

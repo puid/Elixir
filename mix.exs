@@ -5,7 +5,7 @@ defmodule Puid.MixProject do
     [
       app: :puid,
       version: "2.5.0",
-      elixir: "~> 1.14",
+      elixir: "~> 1.15",
       start_permanent: Mix.env() == :prod,
       description: description(),
       package: package(),
