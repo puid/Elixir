@@ -103,6 +103,13 @@ defmodule Puid.Chars do
   ```
   bits per character: `5`
 
+  ### :base58
+  Bitcoin Base58 alphabet (no 0, O, I, l)
+  ```none
+  123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz
+  ```
+  bits per character: `5.86`
+
   ### :crockford32
   [Crockford 32](https://www.crockford.com/base32.html)
   ```none
@@ -278,6 +285,7 @@ defmodule Puid.Chars do
   def charlist!(:base32), do: charlist!(:alpha_upper) ++ ~c"234567"
   def charlist!(:base32_hex), do: charlist!(:decimal) ++ Enum.to_list(?a..?v)
   def charlist!(:base32_hex_upper), do: charlist!(:decimal) ++ Enum.to_list(?A..?V)
+  def charlist!(:base58), do: ~c"123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
   def charlist!(:crockford32), do: charlist!(:decimal) ++ (charlist!(:alpha_upper) -- ~c"ILOU")
   def charlist!(:decimal), do: Enum.to_list(?0..?9)
   def charlist!(:hex), do: charlist!(:decimal) ++ Enum.to_list(?a..?f)

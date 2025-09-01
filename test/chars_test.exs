@@ -32,9 +32,11 @@ defmodule Puid.Test.Chars do
       :alphanum,
       :alphanum_lower,
       :alphanum_upper,
+      :base16,
       :base32,
       :base32_hex,
       :base32_hex_upper,
+      :base58,
       :crockford32,
       :decimal,
       :hex,
@@ -178,7 +180,8 @@ defmodule Puid.Test.Chars do
         {:alpha_lower, 0.81, 0.01},
         {:alpha_upper, 0.81, 0.01},
         {:alphanum_upper, 0.65, 0.01},
-        {:alpha, 0.84, 0.01}
+        {:alpha, 0.84, 0.01},
+        {:base58, 0.91, 0.01}
       ]
 
       Enum.each(test_cases, fn {charset, expected_ete, tolerance} ->

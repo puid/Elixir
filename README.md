@@ -51,12 +51,16 @@ iex> PrngId.generate()
 
 **Characters**
 
-By default, `Puid` use the [RFC 4648](https://tools.ietf.org/html/rfc4648#section-5) file system & URL safe characters. The `chars` option can by used to specify any of 19 [pre-defined character sets](#Chars) or custom characters, including Unicode:
+By default, `Puid` use the [RFC 4648](https://tools.ietf.org/html/rfc4648#section-5) file system & URL safe characters. The `chars` option can by used to specify any of 20 [pre-defined character sets](#Chars) or custom characters, including Unicode:
 
 ```elixir
 iex> defmodule(HexId, do: use(Puid, chars: :hex))
 iex> HexId.generate()
 "13fb81e35cb89e5daa5649802ad4bbbd"
+
+iex> defmodule(Base58Id, do: use(Puid, chars: :base58))
+iex> Base58Id.generate()
+"vRxen9A4vejoX4U66iaHna"
 
 iex> defmodule(DingoskyId, do: use(Puid, chars: "dingosky"))
 iex> DingoskyId.generate()
@@ -188,6 +192,7 @@ iex> SafeId.info()
 | :alphanum_lower | 36 | 5.17 | 0.65 | abcdefghijklmnopqrstuvwxyz0123456789 |
 | :alphanum_upper | 36 | 5.17 | 0.65 | ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 |
 | :base16 | 16 | 4.0 | 1.0 | 0123456789ABCDEF |
+| :base58 | 58 | 5.86 | 0.91 | 123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz |
 | :base32 | 32 | 5.0 | 1.0 | ABCDEFGHIJKLMNOPQRSTUVWXYZ234567 |
 | :base32_hex | 32 | 5.0 | 1.0 | 0123456789abcdefghijklmnopqrstuv |
 | :base32_hex_upper | 32 | 5.0 | 1.0 | 0123456789ABCDEFGHIJKLMNOPQRSTUV |
@@ -209,6 +214,7 @@ Note: The [Metrics](#metrics) section explains ERE and ETE.
 | :---------------- | :--------------------------------------------------------- |
 | :base16           | https://datatracker.ietf.org/doc/html/rfc4648#section-8    |
 | :base32           | https://datatracker.ietf.org/doc/html/rfc4648#section-6    |
+| :base58           | Bitcoin base58 alphabet (excludes 0, O, I, l)              |
 | :base32_hex       | Lowercase of :base32_hex_upper                             |
 | :base32_hex_upper | https://datatracker.ietf.org/doc/html/rfc4648#section-7    |
 | :crockford32      | https://www.crockford.com/base32.html                      |
@@ -295,34 +301,26 @@ The `bench/puid_ere_len.exs` script outputs a markdown table comparing the numbe
 
     mix run bench/puid_ere_len.exs [bits...]
 
-| charset | ere |  | bits | len |  | bits | len |  | bits | len |  | bits | len |
-| --- | ---: | --- | ---: | ---: | --- | ---: | ---: | --- | ---: | ---: | --- | ---: | ---: |
-|  |  |  | 64 | — |  | 96 | — |  | 128 | — |  | 256 | — |
-| alpha | 0.71 |  | 68.41 | 12 |  | 96.91 | 17 |  | 131.11 | 23 |  | 256.52 | 45 |
-| alpha_lower | 0.59 |  | 65.81 | 14 |  | 98.71 | 21 |  | 131.61 | 28 |  | 258.52 | 55 |
-| alpha_upper | 0.59 |  | 65.81 | 14 |  | 98.71 | 21 |  | 131.61 | 28 |  | 258.52 | 55 |
-| alphanum | 0.74 |  | 65.5 | 11 |  | 101.22 | 17 |  | 130.99 | 22 |  | 256.03 | 43 |
-| alphanum_lower | 0.65 |  | 67.21 | 13 |  | 98.23 | 19 |  | 129.25 | 25 |  | 258.5 | 50 |
-| alphanum_upper | 0.65 |  | 67.21 | 13 |  | 98.23 | 19 |  | 129.25 | 25 |  | 258.5 | 50 |
-| base16 | 0.5 |  | 64.0 | 16 |  | 96.0 | 24 |  | 128.0 | 32 |  | 256.0 | 64 |
-| base32 | 0.63 |  | 65.0 | 13 |  | 100.0 | 20 |  | 130.0 | 26 |  | 260.0 | 52 |
-| base32_hex | 0.63 |  | 65.0 | 13 |  | 100.0 | 20 |  | 130.0 | 26 |  | 260.0 | 52 |
-| base32_hex_upper | 0.63 |  | 65.0 | 13 |  | 100.0 | 20 |  | 130.0 | 26 |  | 260.0 | 52 |
-| crockford32 | 0.63 |  | 65.0 | 13 |  | 100.0 | 20 |  | 130.0 | 26 |  | 260.0 | 52 |
-| decimal | 0.42 |  | 66.44 | 20 |  | 96.34 | 29 |  | 129.56 | 39 |  | 259.11 | 78 |
-| hex | 0.5 |  | 64.0 | 16 |  | 96.0 | 24 |  | 128.0 | 32 |  | 256.0 | 64 |
-| hex_upper | 0.5 |  | 64.0 | 16 |  | 96.0 | 24 |  | 128.0 | 32 |  | 256.0 | 64 |
-| safe_ascii | 0.81 |  | 64.92 | 10 |  | 97.38 | 15 |  | 129.84 | 20 |  | 259.67 | 40 |
-| safe32 | 0.63 |  | 65.0 | 13 |  | 100.0 | 20 |  | 130.0 | 26 |  | 260.0 | 52 |
-| safe64 | 0.75 |  | 66.0 | 11 |  | 96.0 | 16 |  | 132.0 | 22 |  | 258.0 | 43 |
-| symbol | 0.6 |  | 67.3 | 14 |  | 96.15 | 20 |  | 129.8 | 27 |  | 259.6 | 54 |
-| wordSafe32 | 0.63 |  | 65.0 | 13 |  | 100.0 | 20 |  | 130.0 | 26 |  | 260.0 | 52 |
-
-| Library | Charset | Target | Lib Len | Lib Bits | Lib ERE | Puid Len | Puid Bits | Puid ERE | ERE Δ% |
-|---------|---------|--------|---------|----------|---------|----------|-----------|----------|--------|
-| Nanoid | safe64 | 126 | 21 | 126.0 | 0.75 | 21 | 126.0 | 0.75 | 0.0% |
-| Randomizer | alphanum_lower | 52 | 10 | 51.7 | 0.65 | 11 | 56.87 | 0.65 | 0.0% |
-| SecureRandom.urlsafe_base64 | safe64 | 128 | 22 | 132.0 | 0.75 | 22 | 132.0 | 0.75 | 0.0% |
-| UUID v4 | hex | 122 | 32 | 128.0 | 0.5 | 31 | 124.0 | 0.5 | 0.0% |
-
-ERE = Entropy Representation Efficiency (higher is better)
+| charset | bits | len |  | bits | len |  | bits | len |
+| --- | ---: | ---: | --- | ---: | ---: | --- | ---: | ---: |
+|  | 64 | — |  | 96 | — |  | 128 | — |
+| alpha | 68.41 | 12 |  | 96.91 | 17 |  | 131.11 | 23 |
+| alpha_lower | 65.81 | 14 |  | 98.71 | 21 |  | 131.61 | 28 |
+| alpha_upper | 65.81 | 14 |  | 98.71 | 21 |  | 131.61 | 28 |
+| alphanum | 65.5 | 11 |  | 101.22 | 17 |  | 130.99 | 22 |
+| alphanum_lower | 67.21 | 13 |  | 98.23 | 19 |  | 129.25 | 25 |
+| alphanum_upper | 67.21 | 13 |  | 98.23 | 19 |  | 129.25 | 25 |
+| base16 | 64.0 | 16 |  | 96.0 | 24 |  | 128.0 | 32 |
+| base32 | 65.0 | 13 |  | 100.0 | 20 |  | 130.0 | 26 |
+| base32_hex | 65.0 | 13 |  | 100.0 | 20 |  | 130.0 | 26 |
+| base32_hex_upper | 65.0 | 13 |  | 100.0 | 20 |  | 130.0 | 26 |
+| base58 | 64.44 | 11 |  | 99.59 | 17 |  | 128.88 | 22 |
+| crockford32 | 65.0 | 13 |  | 100.0 | 20 |  | 130.0 | 26 |
+| decimal | 66.44 | 20 |  | 96.34 | 29 |  | 129.56 | 39 |
+| hex | 64.0 | 16 |  | 96.0 | 24 |  | 128.0 | 32 |
+| hex_upper | 64.0 | 16 |  | 96.0 | 24 |  | 128.0 | 32 |
+| safe_ascii | 64.92 | 10 |  | 97.38 | 15 |  | 129.84 | 20 |
+| safe32 | 65.0 | 13 |  | 100.0 | 20 |  | 130.0 | 26 |
+| safe64 | 66.0 | 11 |  | 96.0 | 16 |  | 132.0 | 22 |
+| symbol | 67.3 | 14 |  | 96.15 | 20 |  | 129.8 | 27 |
+| wordSafe32 | 65.0 | 13 |  | 100.0 | 20 |  | 130.0 | 26 |
