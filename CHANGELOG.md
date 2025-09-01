@@ -1,5 +1,17 @@
 # Changelog
 
+## v2.5.0 (2025-09-01)
+
+### Add
+
+- `Puid.Chars.ete/1` function for calculating ETE of charsets
+- `Puid.Chars.predefined/0` function to dynamically list predefined charset atoms
+- `ete` field to `Puid.Info` structure showing Entropy Transform Efficiency
+- `:base58` predefined charset using Bitcoin base58 alphabet (excludes 0, O, I, l)
+- Comprehensive ETE benchmarks comparing Puid with other ID generation libraries
+- ETE analysis scripts showing theoretical vs empirical efficiency
+- Updated README for ETE and ERE
+
 ## v2.4.0 (2025-08-29)
 
 ### Changes
@@ -63,7 +75,7 @@
 - Update effected fixed byte tests and add histogram tests for correctness validation
 - This change is an optimization and does not effect previous correctness
 
-Note: This change warrants a minor version bump as any fixed byte testing using effected character counts must be updated. Any non-fixed-byte entropy source usage is uneffected.
+Note: This change warrants a minor version bump as any fixed byte testing using effected character counts must be updated. Any non-fixed-byte entropy source usage is unaffected.
 
 ### Address issue #13
 

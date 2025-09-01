@@ -13,8 +13,38 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        elixir: [ '1.14', '1.15', '1.16', '1.17', '1.18' ]
-        otp: [ '25', '26', '27' ]
+        include:
+          # Elixir 1.14 supports OTP 23-25
+          - elixir: '1.14'
+            otp: '24'
+          - elixir: '1.14'
+            otp: '25'
+          # Elixir 1.15 supports OTP 24-26
+          - elixir: '1.15'
+            otp: '24'
+          - elixir: '1.15'
+            otp: '25'
+          - elixir: '1.15'
+            otp: '26'
+          # Elixir 1.16 supports OTP 24-26
+          - elixir: '1.16'
+            otp: '25'
+          - elixir: '1.16'
+            otp: '26'
+          # Elixir 1.17 supports OTP 25-27
+          - elixir: '1.17'
+            otp: '25'
+          - elixir: '1.17'
+            otp: '26'
+          - elixir: '1.17'
+            otp: '27'
+          # Elixir 1.18 supports OTP 26-27 (and likely 28)
+          - elixir: '1.18'
+            otp: '26'
+          - elixir: '1.18'
+            otp: '27'
+          - elixir: '1.18'
+            otp: '28'
     steps:
       - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
@@ -52,7 +82,7 @@ jobs:
       - uses: erlef/setup-beam@v1
         with:
           elixir-version: '1.18'
-          otp-version: '27'
+          otp-version: '28'
       - name: Restore deps cache
         uses: actions/cache@v4
         with:
