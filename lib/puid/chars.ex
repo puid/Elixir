@@ -249,12 +249,10 @@ defmodule Puid.Chars do
   """
   @spec charlist(puid_chars()) :: {:ok, charlist()} | {:error, String.t()}
   def charlist(chars) do
-    try do
-      {:ok, charlist!(chars)}
-    rescue
-      error in Puid.Error ->
-        {:error, error.message}
-    end
+    {:ok, charlist!(chars)}
+  rescue
+    error in Puid.Error ->
+      {:error, error.message}
   end
 
   @doc """
@@ -358,33 +356,15 @@ defmodule Puid.Chars do
     else
       total_values = Puid.Util.pow2(bits_per_char)
 
-      # Calculate probabilities
-      p_accept = charset_size / total_values
-      p_reject = 1 - p_accept
+      prob_accept = charset_size / total_values
+      prob_reject = 1 - prob_accept
 
-      # Calculate average bits consumed on rejection
       reject_count = total_values - charset_size
+      reject_bits = bits_consumed_on_reject(charset_size, total_values, bit_shifts)
 
-      reject_bits_sum =
-        charset_size..(total_values - 1)
-        |> Enum.reduce(0, fn value, sum ->
-          case Enum.find(bit_shifts, fn {max_val, _} -> value <= max_val end) do
-            {_, bits_consumed} ->
-              sum + bits_consumed
+      avg_bits_on_reject = reject_bits / reject_count
+      expected_bits = bits_per_char + prob_reject / prob_accept * avg_bits_on_reject
 
-            nil ->
-              raise(
-                Puid.Error,
-                "bit_shifts #{inspect(bit_shifts)} has no matching bit shift rule for value #{value}"
-              )
-          end
-        end)
-
-      avg_bits_on_reject = reject_bits_sum / reject_count
-
-      # Calculate expected bits accounting for recursive retries
-      # This is the key fix: we need to account for the geometric series of retries
-      expected_bits = bits_per_char + p_reject / p_accept * avg_bits_on_reject
       ete = theoretical_bits / expected_bits
 
       %{
@@ -423,7 +403,29 @@ defmodule Puid.Chars do
     end
   end
 
-  # Prevent "unsafe" code points
+  # PRIVATE FUNCTIONS
+
+  defp bits_consumed_on_reject(charset_size, total_values, bit_shifts) do
+    charset_size..(total_values - 1)
+    |> Enum.reduce(0, fn value, sum ->
+      {_, bits_consumed} = find_bit_shift(value, bit_shifts)
+      sum + bits_consumed
+    end)
+  end
+
+  defp find_bit_shift(value, bit_shifts) do
+    case Enum.find(bit_shifts, fn {max_val, _} -> value <= max_val end) do
+      nil ->
+        raise(
+          Puid.Error,
+          "bit_shifts #{inspect(bit_shifts)} has no matching bit shift rule for value #{value}"
+        )
+
+      result ->
+        result
+    end
+  end
+
   defp safe_code_point?(cp) when cp < 0x007F, do: safe_ascii?(cp)
   defp safe_code_point?(cp), do: safe_utf8?(cp)
 
@@ -438,11 +440,9 @@ defmodule Puid.Chars do
   defp safe_ascii?(_), do: false
 
   # Reject code points between tilde and inverse bang
-  # CxNote There may be other utf8 code points that should be invalid.
   defp safe_utf8?(g) when g < 0x00A1, do: false
   defp safe_utf8?(_), do: true
 
-  # Are charlist characters unique?
   defp unique?([], no_repeat?), do: no_repeat?
 
   defp unique?([char | charlist], seen) do

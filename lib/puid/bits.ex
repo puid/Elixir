@@ -37,20 +37,21 @@ defmodule Puid.Bits do
       base_value = if even?(charset_size), do: charset_size - 1, else: charset_size
       base_shift = {base_value, bits_per_char}
 
-      shifts =
-        (bits_per_char - 1)..2//-1
-        |> Enum.reduce([], fn bit, shifts ->
-          # Use bit_zero? with 1-based indexing - this creates the correct
-          # bit shift patterns through an indexing offset
-          if bit_zero?(base_value, bit) do
-            [{base_value ||| pow2(bit) - 1, bits_per_char - bit + 1} | shifts]
-          else
-            shifts
-          end
-        end)
+      shifts = build_shifts(base_value, bits_per_char)
 
       List.insert_at(shifts, 0, base_shift)
     end
+  end
+
+  defp build_shifts(base_value, bits_per_char) do
+    (bits_per_char - 1)..2//-1
+    |> Enum.reduce([], fn bit, shifts ->
+      if bit_zero?(base_value, bit) do
+        [{base_value ||| pow2(bit) - 1, bits_per_char - bit + 1} | shifts]
+      else
+        shifts
+      end
+    end)
   end
 
   defmacro __using__(opts) do

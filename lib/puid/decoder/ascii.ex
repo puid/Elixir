@@ -42,12 +42,10 @@ defmodule Puid.Decoder.ASCII do
       def decode(puid)
 
       def decode(<<_::binary-size(@puid_len)>> = puid) do
-        try do
-          puid |> decode_puid_into(<<>>)
-        rescue
-          _ ->
-            {:error, "unable to decode"}
-        end
+        puid |> decode_puid_into(<<>>)
+      rescue
+        _ ->
+          {:error, "unable to decode"}
       end
 
       def decode(_),

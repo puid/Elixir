@@ -321,12 +321,10 @@ defmodule Puid do
       def encode(bits)
 
       def encode(<<_::size(@bits_per_puid)>> = bits) do
-        try do
-          __MODULE__.Encoder.encode(bits)
-        rescue
-          _ ->
-            {:error, "unable to encode"}
-        end
+        __MODULE__.Encoder.encode(bits)
+      rescue
+        _ ->
+          {:error, "unable to encode"}
       end
 
       def encode(_),
@@ -358,7 +356,7 @@ defmodule Puid do
         do: round(Puid.Entropy.total(@entropy_bits, risk))
 
       @doc """
-      Approximate **risk** in genertating `total` **puid**s
+      Approximate **risk** in generating `total` **puid**s
       """
       @spec risk(total :: float()) :: integer()
       def risk(total),
