@@ -1,5 +1,26 @@
 # Changelog
 
+## v2.6.0 (2025-09-05)
+
+### Add
+
+- `Puid.Chars.metrics/1` expose as public API
+- add more predefined character sets
+  - `:base36`: Used by many URL shorteners
+  - `:base45`: Used in QR codes and text-based transport
+  - `:base62`: Alias for :alphanum
+  - `:base85`: Used in Adobe PostScript and PDF  
+  - `:bech32`: Bitcoin SegWit address encoding
+  - `:boolean`: binary/boolean representations
+  - `:dna`: DNA nucleotide sequences
+  - `:geohash`: Used in geographic coordinate encoding (base32 variant)
+  - `:url_safe`: RFC 3986 unreserved characters
+  - `:z_base32`: Zooko's human-oriented base32
+
+### Changes
+
+- Refactored internal ERE/ETE calculations to use centralized `Puid.Chars.metrics/1` function
+
 ## v2.5.0 (2025-09-01)
 
 ### Add
