@@ -248,23 +248,16 @@ defmodule Puid do
       entropy_bits_per_char = :math.log2(chars_count)
       puid_len = (entropy_bits / entropy_bits_per_char) |> :math.ceil() |> round()
 
-      avg_rep_bits_per_char =
-        puid_charlist
-        |> to_string()
-        |> byte_size()
-        |> Kernel.*(8)
-        |> Kernel./(chars_count)
-
-      ere = (entropy_bits_per_char / avg_rep_bits_per_char) |> Float.round(2)
-
-      ete_charset =
+      metrics_charset =
         if is_atom(puid_char_set) and puid_char_set != :custom do
           puid_char_set
         else
           puid_charlist
         end
 
-      ete = ete_charset |> Puid.Chars.ete() |> Map.fetch!(:ete) |> Float.round(2)
+      metrics = Puid.Chars.metrics(metrics_charset)
+      ere = metrics.ere |> Float.round(2)
+      ete = metrics.ete |> Float.round(2)
 
       puid_bits_per_char = log_ceil(chars_count)
 

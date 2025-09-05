@@ -267,8 +267,7 @@ defmodule Puid.Chars do
       iex> Puid.Chars.charlist!("dingosky")
       ~c"dingosky"
 
-      iex> Puid.Chars.charlist!("unique")
-      # (Puid.Error) Characters not unique
+  Raises `Puid.Error` if the characters are not unique, too few, or contain invalid characters.
   """
   @spec charlist!(puid_chars()) :: charlist()
   def charlist!(chars)
@@ -333,13 +332,59 @@ defmodule Puid.Chars do
     end)
   end
 
-  @doc false
-  @spec ete(puid_chars()) :: %{
-          ete: float(),
-          bit_shifts: [{non_neg_integer(), pos_integer()}],
-          expected_bits: float()
+  @doc """
+  Calculate entropy metrics for a character set.
+
+  ## Return Value
+
+  Returns a map with the following keys:
+  - `:avg_bits` - Average bits consumed per character
+  - `:bit_shifts` - Bit shift rules used for character generation
+  - `:ere` - Entropy representation efficiency (0 < ERE ≤ 1.0), measures how efficiently the characters represent entropy in their string form
+  - `:ete` - Entropy transform efficiency (0 < ETE ≤ 1.0), measures how efficiently random bits are
+    transformed into characters during generation
+
+  ## Examples
+
+      iex> Puid.Chars.metrics(:safe64)
+      %{
+        avg_bits: 6.0,
+        bit_shifts: [{63, 6}],
+        ere: 0.75,
+        ete: 1.0
+      }
+
+      iex> Puid.Chars.metrics(:alpha)
+      %{
+        avg_bits: 6.769230769230769,
+        bit_shifts: [{51, 6}, {55, 4}, {63, 3}],
+        ere: 0.7125549647676365,
+        ete: 0.8421104129072068
+      }
+
+  ## Details
+
+  ERE: Entropy representation efficiency (0 < ERE ≤ 1.0), measures how efficiently ID characters
+  represent entropy in their string form. For Puid this is always equivalent to the bits per
+  character.
+
+  ETE: Entropy transform efficiency (0 < ETE ≤ 1.0). Character sets with a power-of-2 number of
+  characters have ETE = 1.0 since bit slicing always creates a proper index into the characters
+  list. Other character sets discard some bits due to bit slicing that creates an out-of-bounds
+  index. Puid uses an algorithm which minimizes the number of bits discarded.
+
+  avg_bits: Theoretical average bits consumed per character
+
+  :bit_shifts: Bit shift values used to determine how many bits are discarded during bit slicing.
+
+  """
+  @spec metrics(puid_chars()) :: %{
+          avg_bits: float(),
+          bit_shifts: [{non_neg_integer(), pos_integer()}, ...],
+          ere: float(),
+          ete: float()
         }
-  def ete(chars) do
+  def metrics(chars) do
     charlist = charlist!(chars)
     charset_size = length(charlist)
 
@@ -347,11 +392,22 @@ defmodule Puid.Chars do
     bits_per_char = Puid.Util.log_ceil(charset_size)
     theoretical_bits = :math.log2(charset_size)
 
+    # Calculate ERE (Entropy Representation Efficiency)
+    avg_rep_bits_per_char =
+      charlist
+      |> to_string()
+      |> byte_size()
+      |> Kernel.*(8)
+      |> Kernel./(charset_size)
+
+    ere = theoretical_bits / avg_rep_bits_per_char
+
     if Puid.Util.pow2?(charset_size) do
       %{
-        ete: 1.0,
+        avg_bits: bits_per_char * 1.0,
         bit_shifts: bit_shifts,
-        expected_bits: bits_per_char * 1.0
+        ere: ere,
+        ete: 1.0
       }
     else
       total_values = Puid.Util.pow2(bits_per_char)
@@ -363,14 +419,15 @@ defmodule Puid.Chars do
       reject_bits = bits_consumed_on_reject(charset_size, total_values, bit_shifts)
 
       avg_bits_on_reject = reject_bits / reject_count
-      expected_bits = bits_per_char + prob_reject / prob_accept * avg_bits_on_reject
+      avg_bits = bits_per_char + prob_reject / prob_accept * avg_bits_on_reject
 
-      ete = theoretical_bits / expected_bits
+      ete = theoretical_bits / avg_bits
 
       %{
-        ete: ete,
+        avg_bits: avg_bits,
         bit_shifts: bit_shifts,
-        expected_bits: expected_bits
+        ere: ere,
+        ete: ete
       }
     end
   end

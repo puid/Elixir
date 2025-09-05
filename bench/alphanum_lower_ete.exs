@@ -91,8 +91,8 @@ IO.puts("  Average bits consumed: #{Float.round(avg_bits_on_reject, 2)} bits")
 IO.puts("  Then must retry (recursively)")
 
 # Expected bits calculation
-expected_bits = bits_per_char + p_reject / p_accept * avg_bits_on_reject
-ete = theoretical_bits / expected_bits
+avg_bits = bits_per_char + p_reject / p_accept * avg_bits_on_reject
+ete = theoretical_bits / avg_bits
 
 IO.puts("\nExpected bits per character (accounting for retries):")
 
@@ -100,11 +100,11 @@ IO.puts(
   "  E = #{bits_per_char} + (#{Float.round(p_reject, 4)} / #{Float.round(p_accept, 4)}) × #{Float.round(avg_bits_on_reject, 2)}"
 )
 
-IO.puts("  E = #{Float.round(expected_bits, 4)} bits")
+IO.puts("  E = #{Float.round(avg_bits, 4)} bits")
 
 IO.puts("\nEntropy Transform Efficiency:")
-IO.puts("  ETE = theoretical_bits / expected_bits")
-IO.puts("  ETE = #{Float.round(theoretical_bits, 4)} / #{Float.round(expected_bits, 4)}")
+IO.puts("  ETE = theoretical_bits / avg_bits")
+IO.puts("  ETE = #{Float.round(theoretical_bits, 4)} / #{Float.round(avg_bits, 4)}")
 IO.puts("  ETE = #{Float.round(ete, 4)}")
 
 # Compare with naive approach

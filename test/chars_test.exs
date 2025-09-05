@@ -22,6 +22,8 @@
 defmodule Puid.Test.Chars do
   use ExUnit.Case, async: true
 
+  doctest Puid.Chars
+
   alias Puid.Chars
 
   def predefined_chars,
@@ -149,7 +151,7 @@ defmodule Puid.Test.Chars do
     assert_raise(Puid.Error, fn -> Chars.encoding(~c"ab cd") end)
   end
 
-  describe "ete/1" do
+  describe "metrics/1" do
     test "power-of-2 charsets have perfect ETE" do
       power_of_2_charsets = [
         :base16,
@@ -165,10 +167,10 @@ defmodule Puid.Test.Chars do
       ]
 
       Enum.each(power_of_2_charsets, fn charset ->
-        result = Chars.ete(charset)
+        metric = Chars.metrics(charset)
 
-        assert result.ete == 1.0,
-               "#{charset} should have ETE = 1.0, got #{result.ete}"
+        assert metric.ete == 1.0,
+               "#{charset} should have ETE = 1.0, got #{metric.ete}"
       end)
     end
 
@@ -185,10 +187,10 @@ defmodule Puid.Test.Chars do
       ]
 
       Enum.each(test_cases, fn {charset, expected_ete, tolerance} ->
-        result = Chars.ete(charset)
+        metric = Chars.metrics(charset)
 
-        assert abs(result.ete - expected_ete) < tolerance,
-               "#{charset} should have ETE ≈ #{expected_ete}, got #{Float.round(result.ete, 4)}"
+        assert abs(metric.ete - expected_ete) < tolerance,
+               "#{charset} should have ETE ≈ #{expected_ete}, got #{Float.round(metric.ete, 4)}"
       end)
     end
 
@@ -196,32 +198,38 @@ defmodule Puid.Test.Chars do
       all_charsets = predefined_chars()
 
       Enum.each(all_charsets, fn charset ->
-        result = Chars.ete(charset)
+        metric = Chars.metrics(charset)
 
-        assert result.ete > 0 and result.ete <= 1.0,
-               "#{charset} has invalid ETE: #{result.ete}"
+        assert metric.ete > 0 and metric.ete <= 1.0,
+               "#{charset} has invalid ETE: #{metric.ete}"
       end)
     end
 
     test "ETE result structure" do
-      result = Chars.ete(:alphanum_lower)
+      metric = Chars.metrics(:alphanum_lower)
 
-      assert is_map(result)
-      assert Map.has_key?(result, :ete)
-      assert Map.has_key?(result, :bit_shifts)
-      assert Map.has_key?(result, :expected_bits)
+      assert is_map(metric)
+      assert Map.has_key?(metric, :avg_bits)
+      assert Map.has_key?(metric, :bit_shifts)
+      assert Map.has_key?(metric, :ere)
+      assert Map.has_key?(metric, :ete)
 
-      assert is_float(result.ete)
-      assert is_list(result.bit_shifts)
-      assert is_float(result.expected_bits)
+      assert is_float(metric.avg_bits)
+      assert is_list(metric.bit_shifts)
+      assert is_float(metric.ere)
+      assert is_float(metric.ete)
+      
+      # Verify all expected keys are present
+      expected_keys = [:avg_bits, :bit_shifts, :ere, :ete]
+      assert Map.keys(metric) |> Enum.sort() == expected_keys
     end
 
     test "custom charset ETE" do
       custom_36 = "abcdefghijklmnopqrstuvwxyz0123456789"
-      result = Chars.ete(custom_36)
+      metric = Chars.metrics(custom_36)
 
-      alphanum_lower_result = Chars.ete(:alphanum_lower)
-      assert abs(result.ete - alphanum_lower_result.ete) < 0.0001
+      alphanum_lower_metric = Chars.metrics(:alphanum_lower)
+      assert abs(metric.ete - alphanum_lower_metric.ete) < 0.0001
     end
   end
 end

@@ -15,8 +15,8 @@ md_codepoint = fn
 end
 
 get_puid_ete = fn charset ->
-  result = Puid.Chars.ete(charset)
-  result.ete
+  metric = Puid.Chars.metrics(charset)
+  metric.ete
 end
 
 md_output = fn ->

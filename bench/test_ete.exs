@@ -33,8 +33,8 @@ defmodule ETETest do
     IO.puts("Power of 2: #{Puid.Util.pow2?(charset_size)}")
     IO.puts("")
 
-    ete_result = Puid.Chars.ete(charset)
-    puid_ete = ete_result.ete
+    metrics = Puid.Chars.metrics(charset)
+    puid_ete = metrics.ete
     naive_ete = calculate_naive_ete(charset_size, theoretical_bits, bits_per_char)
 
     IO.puts("Puid ETE: #{Float.round(puid_ete, 4)}")
@@ -181,8 +181,8 @@ defmodule ETETest do
       total_values = Puid.Util.pow2(bits_per_char)
       p_accept = charset_size / total_values
       expected_attempts = 1 / p_accept
-      expected_bits = expected_attempts * bits_per_char
-      theoretical_bits / expected_bits
+      avg_bits = expected_attempts * bits_per_char
+      theoretical_bits / avg_bits
     end
   end
 end

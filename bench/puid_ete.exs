@@ -103,12 +103,12 @@ defmodule Bench.PuidETE do
 
     is_power_of_2 = Puid.Util.pow2?(charset_size)
 
-    ete_result = Puid.Chars.ete(charset_atom)
+    ete_metric = Puid.Chars.metrics(charset_atom)
 
-    {ete, bit_shifts, expected_bits} =
-      {ete_result.ete, ete_result.bit_shifts, ete_result.expected_bits}
+    {ete, bit_shifts, avg_bits} =
+      {ete_metric.ete, ete_metric.bit_shifts, ete_metric.avg_bits}
 
-    actual_bits = id_length * expected_bits
+    actual_bits = id_length * avg_bits
     random_bytes = actual_bits / 8
     theoretical_bits = id_length * theoretical_bits_per_char
     bits_per_char = Puid.Util.log_ceil(charset_size)
@@ -120,7 +120,7 @@ defmodule Bench.PuidETE do
       slicing_bits: bits_per_char,
       is_power_of_2: is_power_of_2,
       ete: Float.round(ete, 4),
-      expected_bits_per_char: Float.round(expected_bits, 2),
+      expected_bits_per_char: Float.round(avg_bits, 2),
       id_length: id_length,
       theoretical_bytes: Float.round(theoretical_bits / 8, 2),
       actual_bytes: Float.round(random_bytes, 2),
