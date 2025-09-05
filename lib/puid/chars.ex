@@ -103,12 +103,61 @@ defmodule Puid.Chars do
   ```
   bits per character: `5`
 
+  ### :base36
+  Case-insensitive alphanumeric (lowercase)
+  ```none
+  0123456789abcdefghijklmnopqrstuvwxyz
+  ```
+  bits per character: `5.17`
+
+  ### :base36_upper
+  Case-insensitive alphanumeric (uppercase)
+  ```none
+  0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+  ```
+  bits per character: `5.17`
+
+  ### :base45
+  QR code alphanumeric mode (ISO/IEC 18004:2015)
+  ```none
+  0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:
+  ```
+  bits per character: `5.49`
+
   ### :base58
   Bitcoin Base58 alphabet (no 0, O, I, l)
   ```none
   123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz
   ```
   bits per character: `5.86`
+
+  ### :base62
+  Alphanumeric characters (alias for :alphanum)
+  ```none
+  ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789
+  ```
+  bits per character: `5.95`
+
+  ### :base85
+  ASCII85/Ascii85 encoding (Adobe, btoa)
+  ```none
+  !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstu
+  ```
+  bits per character: `6.41`
+
+  ### :bech32
+  Bitcoin SegWit address encoding (no 1, b, i, o)
+  ```none
+  023456789acdefghjklmnpqrstuvwxyz
+  ```
+  bits per character: `5`
+
+  ### :boolean
+  Boolean/binary representation
+  ```none
+  TF
+  ```
+  bits per character: `1`
 
   ### :crockford32
   [Crockford 32](https://www.crockford.com/base32.html)
@@ -122,6 +171,20 @@ defmodule Puid.Chars do
   0123456789
   ```
   bits per character: `3.32`
+
+  ### :dna
+  DNA nucleotide bases
+  ```none
+  ACGT
+  ```
+  bits per character: `2`
+
+  ### :geohash
+  Geohash encoding alphabet (base32 variant excluding 'a', 'i', 'l', 'o')
+  ```none
+  0123456789bcdefghjkmnpqrstuvwxyz
+  ```
+  bits per character: `5`
 
   ### :hex
   Lowercase hexadecimal
@@ -172,6 +235,13 @@ defmodule Puid.Chars do
   ```
   bits per character: `4.81`
 
+  ### :url_safe
+  RFC 3986 unreserved characters (URL safe without percent-encoding)
+  ```none
+  ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~
+  ```
+  bits per character: `6.02`
+
   ### :wordSafe32
   Strings that don't look like English words
   ```none
@@ -179,7 +249,14 @@ defmodule Puid.Chars do
   ```
   Origin unknown
 
-  bits per character: `6.49`
+  bits per character: `5`
+
+  ### :z_base32
+  Zooko's human-oriented base32 (easier to read/transcribe)
+  ```none
+  ybndrfg8ejkmcpqxot1uwisza345h769
+  ```
+  bits per character: `5`
 
   """
 
@@ -282,9 +359,22 @@ defmodule Puid.Chars do
   def charlist!(:base32), do: charlist!(:alpha_upper) ++ ~c"234567"
   def charlist!(:base32_hex), do: charlist!(:decimal) ++ Enum.to_list(?a..?v)
   def charlist!(:base32_hex_upper), do: charlist!(:decimal) ++ Enum.to_list(?A..?V)
+  def charlist!(:base36), do: charlist!(:decimal) ++ charlist!(:alpha_lower)
+  def charlist!(:base36_upper), do: charlist!(:decimal) ++ charlist!(:alpha_upper)
+  def charlist!(:base45), do: ~c"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:"
   def charlist!(:base58), do: ~c"123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+  def charlist!(:base62), do: charlist!(:alphanum)
+
+  def charlist!(:base85),
+    do:
+      ~c"!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstu"
+
+  def charlist!(:bech32), do: ~c"023456789acdefghjklmnpqrstuvwxyz"
+  def charlist!(:boolean), do: ~c"TF"
   def charlist!(:crockford32), do: charlist!(:decimal) ++ (charlist!(:alpha_upper) -- ~c"ILOU")
   def charlist!(:decimal), do: Enum.to_list(?0..?9)
+  def charlist!(:dna), do: ~c"ACGT"
+  def charlist!(:geohash), do: ~c"0123456789bcdefghjkmnpqrstuvwxyz"
   def charlist!(:hex), do: charlist!(:decimal) ++ Enum.to_list(?a..?f)
   def charlist!(:hex_upper), do: charlist!(:decimal) ++ Enum.to_list(?A..?F)
   def charlist!(:safe_ascii), do: ?!..?~ |> Enum.filter(&safe_ascii?(&1))
@@ -298,7 +388,9 @@ defmodule Puid.Chars do
     :safe_ascii |> charlist!() |> Enum.filter(&(!Enum.member?(alphanum, &1)))
   end
 
+  def charlist!(:url_safe), do: charlist!(:alphanum) ++ ~c"-._~"
   def charlist!(:wordSafe32), do: ~c"23456789CFGHJMPQRVWXcfghjmpqrvwx"
+  def charlist!(:z_base32), do: ~c"ybndrfg8ejkmcpqxot1uwisza345h769"
 
   def charlist!(charlist) when is_atom(charlist),
     do: raise(Puid.Error, "Invalid pre-defined charlist: :#{charlist}")

@@ -51,7 +51,7 @@ iex> PrngId.generate()
 
 **Characters**
 
-By default, `Puid` use the [RFC 4648](https://tools.ietf.org/html/rfc4648#section-5) file system & URL safe characters. The `chars` option can by used to specify any of 20 [pre-defined character sets](#Chars) or custom characters, including Unicode:
+By default, `Puid` use the [RFC 4648](https://tools.ietf.org/html/rfc4648#section-5) file system & URL safe characters. The `chars` option can by used to specify any of the 31 [pre-defined character sets](#Chars) or custom characters, including Unicode:
 
 ```elixir
 iex> defmodule(HexId, do: use(Puid, chars: :hex))
@@ -183,7 +183,7 @@ iex> SafeId.info()
 
 #### Puid Predefined Charsets
 
-| Name | Length | ERE | ETE | Characters |
+| Name | Count | ERE | ETE | Characters |
 |------|--------|-----|-----|------------|
 | :alpha | 52 | 5.7 | 0.84 | ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz |
 | :alpha_lower | 26 | 4.7 | 0.81 | abcdefghijklmnopqrstuvwxyz |
@@ -192,19 +192,31 @@ iex> SafeId.info()
 | :alphanum_lower | 36 | 5.17 | 0.65 | abcdefghijklmnopqrstuvwxyz0123456789 |
 | :alphanum_upper | 36 | 5.17 | 0.65 | ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 |
 | :base16 | 16 | 4.0 | 1.0 | 0123456789ABCDEF |
-| :base58 | 58 | 5.86 | 0.91 | 123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz |
 | :base32 | 32 | 5.0 | 1.0 | ABCDEFGHIJKLMNOPQRSTUVWXYZ234567 |
 | :base32_hex | 32 | 5.0 | 1.0 | 0123456789abcdefghijklmnopqrstuv |
 | :base32_hex_upper | 32 | 5.0 | 1.0 | 0123456789ABCDEFGHIJKLMNOPQRSTUV |
+| :base36 | 36 | 5.17 | 0.65 | 0123456789abcdefghijklmnopqrstuvwxyz |
+| :base36_upper | 36 | 5.17 | 0.65 | 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ |
+| :base45 | 45 | 5.49 | 0.78 | 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%\*+-./: |
+| :base58 | 58 | 5.86 | 0.91 | 123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz |
+| :base62 | 62 | 5.95 | 0.97 | ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 |
+| :base85 | 85 | 6.41 | 0.77 | !"#$%&'()\*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\[\\]^\_\`abcdefghijklmnopqrstu |
+| :bech32 | 32 | 5.0 | 1.0 | 023456789acdefghjklmnpqrstuvwxyz |
+| :boolean | 2 | 1.0 | 1.0 | TF |
 | :crockford32 | 32 | 5.0 | 1.0 | 0123456789ABCDEFGHJKMNPQRSTVWXYZ |
 | :decimal | 10 | 3.32 | 0.62 | 0123456789 |
+| :dna | 4 | 2.0 | 1.0 | ACGT |
+| :geohash | 32 | 5.0 | 1.0 | 0123456789bcdefghjkmnpqrstuvwxyz |
 | :hex | 16 | 4.0 | 1.0 | 0123456789abcdef |
 | :hex_upper | 16 | 4.0 | 1.0 | 0123456789ABCDEF |
-| :safe_ascii | 90 | 6.49 | 0.8 | !#$%&()\*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\[]^\_abcdefghijklmnopqrstuvwxyz{\|}~ |
+| :safe_ascii | 90 | 6.49 | 0.8 | !#$%&()\*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\[\]^\_abcdefghijklmnopqrstuvwxyz{\|}~ |
 | :safe32 | 32 | 5.0 | 1.0 | 2346789bdfghjmnpqrtBDFGHJLMNPQRT |
 | :safe64 | 64 | 6.0 | 1.0 | ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-\_ |
-| :symbol | 28 | 4.81 | 0.89 | !#$%&()\*+,-./:;<=>?@\[]^\_{\|}~ |
+| :symbol | 28 | 4.81 | 0.89 | !#$%&()\*+,-./:;<=>?@\[\]^\_{\|}~ |
+| :url_safe | 66 | 6.04 | 0.63 | ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-.\_~ |
 | :wordSafe32 | 32 | 5.0 | 1.0 | 23456789CFGHJMPQRVWXcfghjmpqrvwx |
+| :z_base32 | 32 | 5.0 | 1.0 | ybndrfg8ejkmcpqxot1uwisza345h769 |
+
 
 Note: The [Metrics](#metrics) section explains ERE and ETE.
 
@@ -214,16 +226,23 @@ Note: The [Metrics](#metrics) section explains ERE and ETE.
 | :---------------- | :--------------------------------------------------------- |
 | :base16           | https://datatracker.ietf.org/doc/html/rfc4648#section-8    |
 | :base32           | https://datatracker.ietf.org/doc/html/rfc4648#section-6    |
-| :base58           | Bitcoin base58 alphabet (excludes 0, O, I, l)              |
 | :base32_hex       | Lowercase of :base32_hex_upper                             |
 | :base32_hex_upper | https://datatracker.ietf.org/doc/html/rfc4648#section-7    |
+| :base36           | Used by many URL shorteners                                |
+| :base58           | Bitcoin base58 alphabet (excludes 0, O, I, l)              |
+| :base85           | Used in Adobe PostScript and PDF                           |
+| :bech32           | Bitcoin SegWit address encoding                            |
+| :dna              | DNA nucleotide bases (Adenine, Cytosine, Guanine, Thymine) |
+| :ascii85          | Same as :safe_ascii                                        |
+| :ascii90          | Same as :base85                                            |
 | :crockford32      | https://www.crockford.com/base32.html                      |
+| :geohash          | Used for encoding geographic coordinates                   |
 | :safe_ascii       | Printable ascii that does not require escape in String     |
 | :safe32           | Alpha and numbers picked to reduce chance of English words |
-| :safe64           | https://datatracker.ietf.org/doc/html/rfc4648#section-5    |
+| :safe64           | https://datatracker.ietf.org/doc/html/rfc4648#section-5    | 
+| :url_safe         | https://datatracker.ietf.org/doc/html/rfc3986#section-2.3  |
 | :wordSafe32       | Alpha and numbers picked to reduce chance of English words |
-
-Note: `:safe32` and `:wordSafe32` are two different strategies for the same goal.
+| :z_base32         | Zooko’s Base32                                             |
 
 #### Custom
 

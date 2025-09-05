@@ -218,7 +218,7 @@ defmodule Puid.Test.Chars do
       assert is_list(metric.bit_shifts)
       assert is_float(metric.ere)
       assert is_float(metric.ete)
-      
+
       # Verify all expected keys are present
       expected_keys = [:avg_bits, :bit_shifts, :ere, :ete]
       assert Map.keys(metric) |> Enum.sort() == expected_keys

@@ -11,6 +11,8 @@ md_codepoint = fn
   ?* -> [?\\, ?*]
   ?_ -> [?\\, ?_]
   ?[ -> [?\\, ?[]
+  ?] -> [?\\, ?]]
+  ?` -> [?\\, ?`]
   codepoint -> codepoint
 end
 
@@ -22,7 +24,7 @@ end
 md_output = fn ->
   IO.puts("# Puid Predefined Charsets")
   IO.puts("")
-  IO.puts("| Name | Length | ERE | ETE | Characters |")
+  IO.puts("| Name | Count | ERE | ETE | Characters |")
   IO.puts("|------|--------|-----|-----|------------|")
 
   Puid.Chars.predefined()
