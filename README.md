@@ -214,7 +214,7 @@ iex> SafeId.info()
 | :safe64 | 64 | 6.0 | 1.0 | ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-\_ |
 | :symbol | 28 | 4.81 | 0.89 | !#$%&()\*+,-./:;<=>?@\[\]^\_{\|}~ |
 | :url_safe | 66 | 6.04 | 0.63 | ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-.\_~ |
-| :wordSafe32 | 32 | 5.0 | 1.0 | 23456789CFGHJMPQRVWXcfghjmpqrvwx |
+| :word_safe32 | 32 | 5.0 | 1.0 | 23456789CFGHJMPQRVWXcfghjmpqrvwx |
 | :z_base32 | 32 | 5.0 | 1.0 | ybndrfg8ejkmcpqxot1uwisza345h769 |
 
 
@@ -241,8 +241,8 @@ Note: The [Metrics](#metrics) section explains ERE and ETE.
 | :safe32           | Alpha and numbers picked to reduce chance of English words |
 | :safe64           | https://datatracker.ietf.org/doc/html/rfc4648#section-5    | 
 | :url_safe         | https://datatracker.ietf.org/doc/html/rfc3986#section-2.3  |
-| :wordSafe32       | Alpha and numbers picked to reduce chance of English words |
-| :z_base32         | Zooko’s Base32                                             |
+| :word_safe32      | Alpha and numbers picked to reduce chance of English words |
+| :z_base32         | Zooko's Base32                                             |
 
 #### Custom
 
@@ -342,4 +342,4 @@ The `bench/puid_ere_len.exs` script outputs a markdown table comparing the numbe
 | safe32 | 65.0 | 13 |  | 100.0 | 20 |  | 130.0 | 26 |
 | safe64 | 66.0 | 11 |  | 96.0 | 16 |  | 132.0 | 22 |
 | symbol | 67.3 | 14 |  | 96.15 | 20 |  | 129.8 | 27 |
-| wordSafe32 | 65.0 | 13 |  | 100.0 | 20 |  | 130.0 | 26 |
+| word_safe32 | 65.0 | 13 |  | 100.0 | 20 |  | 130.0 | 26 |

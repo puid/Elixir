@@ -242,7 +242,7 @@ defmodule Puid.Chars do
   ```
   bits per character: `6.02`
 
-  ### :wordSafe32
+  ### :word_safe32
   Strings that don't look like English words
   ```none
   23456789CFGHJMPQRVWXcfghjmpqrvwx
@@ -389,7 +389,9 @@ defmodule Puid.Chars do
   end
 
   def charlist!(:url_safe), do: charlist!(:alphanum) ++ ~c"-._~"
-  def charlist!(:wordSafe32), do: ~c"23456789CFGHJMPQRVWXcfghjmpqrvwx"
+  def charlist!(:word_safe32), do: ~c"23456789CFGHJMPQRVWXcfghjmpqrvwx"
+  # Backwards compatibility alias
+  def charlist!(:wordSafe32), do: charlist!(:word_safe32)
   def charlist!(:z_base32), do: ~c"ybndrfg8ejkmcpqxot1uwisza345h769"
 
   def charlist!(charlist) when is_atom(charlist),

@@ -1,5 +1,17 @@
 # Changelog
 
+## v2.7.0 (2025-10-18)
+
+### Added
+- Support for Elixir 1.19
+- Added `:word_safe32` as new preferred atom for word-safe character set
+
+### Changed
+- Fixed preferred_cli_env deprecation warning by moving to cli/0 function
+
+### Deprecated
+- `:wordSafe32` atom is deprecated in favor of `:word_safe32`
+
 ## v2.6.0 (2025-09-05)
 
 ### Add
@@ -20,7 +32,8 @@
 ### Changes
 
 - Refactored internal ERE/ETE calculations to use centralized `Puid.Chars.metrics/1` function
-
+- Increased predefined charsets from 20 to 31 (11 new charsets added)
+- Added `:word_safe32` as the preferred name for `:wordSafe32` (backwards compatible)
 ## v2.5.0 (2025-09-01)
 
 ### Add
@@ -83,7 +96,7 @@
 
 - :base16
 - :crockford32
-- :wordSafe32
+- :word_safe32 (also accessible as :wordSafe32 for backwards compatibility)
 
 ### Minor
 

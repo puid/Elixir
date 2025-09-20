@@ -4,7 +4,7 @@ defmodule Puid.MixProject do
   def project do
     [
       app: :puid,
-      version: "2.6.0",
+      version: "2.7.0",
       elixir: "~> 1.15",
       start_permanent: Mix.env() == :prod,
       description: description(),
@@ -22,8 +22,13 @@ defmodule Puid.MixProject do
       ],
       dialyzer: [
         flags: [:unmatched_returns, :error_handling, :underspecs]
-      ],
-      preferred_cli_env: [
+      ]
+    ]
+  end
+
+  def cli do
+    [
+      preferred_envs: [
         docs: :dev,
         dialyzer: :dev,
         credo: :dev,

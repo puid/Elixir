@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 defmodule Puid.Decoder.ASCII do
+  @moduledoc false
   import Puid.Util
 
   defmacro __using__(opts) do

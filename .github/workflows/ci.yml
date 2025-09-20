@@ -40,6 +40,13 @@ jobs:
             otp: '27'
           - elixir: '1.18'
             otp: '28'
+          # Elixir 1.19 RC (testing support)
+          - elixir: '1.19.0-rc.1'
+            otp: '26'
+          - elixir: '1.19.0-rc.1'
+            otp: '27'
+          - elixir: '1.19.0-rc.1'
+            otp: '28'
     steps:
       - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
