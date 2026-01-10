@@ -166,7 +166,7 @@ defmodule Puid.Bits do
 
           # IO.puts("reject #{value} --> #{bit_shift}")
 
-          <<_used::size(bit_shift), rest::bits>> = bits
+          <<_used::size(^bit_shift), rest::bits>> = bits
 
           slice(
             count - 1,
