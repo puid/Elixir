@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.7.1 (2026-01-13)
+
+### Fix
+- Fix bit shift pattern matching in `Puid.Bits` by using pin operator for bit size
+
 ## v2.7.0 (2025-10-18)
 
 ### Added
