@@ -1,0 +1,45 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract changelog
+        id: changelog
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+          # Extract the changelog section for this version
+          # Pattern: Find the version header and extract until the next version header or end
+          sed -n "/^## v\?${VERSION}/,/^## v\?[0-9]/p" CHANGELOG.md | sed '$d' > /tmp/release_notes.md
+          
+          # If the file is empty, it means this version might be at the end of the file
+          if [ ! -s /tmp/release_notes.md ]; then
+            sed -n "/^## v\?${VERSION}/\$p" CHANGELOG.md > /tmp/release_notes.md
+          fi
+          
+          # Remove the version header line itself, keep only the content
+          tail -n +2 /tmp/release_notes.md > /tmp/release_body.md
+          
+          # Use EOF to handle multiline content
+          {
+            echo 'body<<EOF'
+            cat /tmp/release_body.md
+            echo 'EOF'
+          } >> $GITHUB_OUTPUT
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create ${{ steps.changelog.outputs.version }} \
+            --title "${{ steps.changelog.outputs.version }}" \
+            --notes-file /tmp/release_body.md
