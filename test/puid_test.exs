@@ -1075,6 +1075,12 @@ defmodule Puid.Test.Puid do
 
     defmodule(AlphaEteId, do: use(Puid, chars: :alpha))
     assert_in_delta AlphaEteId.info().ete, 0.84, 0.01
+
+    defmodule(AlphanumLowerIntervalEteId,
+      do: use(Puid, chars: :alphanum_lower, sampler: :interval)
+    )
+
+    assert AlphanumLowerIntervalEteId.info().ete > AlphanumLowerEteId.info().ete
   end
 
   test "Calling process not the same as creating process: fixed bytes" do

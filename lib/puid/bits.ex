@@ -59,6 +59,7 @@ defmodule Puid.Bits do
       chars_count = unquote(opts[:chars_count])
       puid_len = unquote(opts)[:puid_len]
       rand_bytes = unquote(opts)[:rand_bytes]
+      sampler = unquote(opts)[:sampler] || :bit_shift
 
       bits_per_char = log_ceil(chars_count)
       bits_per_puid = puid_len * bits_per_char
@@ -76,21 +77,24 @@ defmodule Puid.Bits do
       @puid_bits_per_puid bits_per_puid
       @puid_bytes_per_puid bytes_per_puid
       @puid_char_count chars_count
+      @puid_sampler sampler
       @puid_len puid_len
+      @puid_interval_state String.to_atom("#{mod}_#{name}_puid_interval_state")
       @puid_rand_bytes rand_bytes
 
       # If chars count is a power of 2, sliced bits always yield a valid char
       is_pow2? = pow2?(chars_count)
+      byte_aligned? = rem(bits_per_puid, 8) == 0
 
       @spec generate() :: bitstring()
       def generate()
 
-      cond do
-        is_pow2? and rem(bits_per_puid, 8) == 0 ->
+      case {is_pow2?, byte_aligned?, @puid_sampler} do
+        {true, true, _} ->
           # Sliced bits always valid and no carried bits
           def generate(), do: @puid_rand_bytes.(@puid_bytes_per_puid)
 
-        is_pow2? ->
+        {true, false, _} ->
           # Sliced bits always valid with carried bits
           def generate() do
             carried_bits = Process.get(@puid_carried_bits, <<>>)
@@ -103,7 +107,45 @@ defmodule Puid.Bits do
             <<puid_bits::size(@puid_bits_per_puid)>>
           end
 
-        true ->
+        {false, _, :interval} ->
+          # Stateful interval entropy recycling
+          def generate() do
+            interval_state = Process.get(@puid_interval_state, {0, 1})
+            generate_interval(@puid_len, interval_state, <<>>)
+          end
+
+          defp generate_interval(0, interval_state, puid_bits) do
+            Process.put(@puid_interval_state, interval_state)
+            puid_bits
+          end
+
+          defp generate_interval(count, interval_state, puid_bits) do
+            {value, next_state} = next_value(interval_state)
+
+            generate_interval(
+              count - 1,
+              next_state,
+              <<puid_bits::bits, value::size(@puid_bits_per_char)>>
+            )
+          end
+
+          defp next_value({x, m}) when m < @puid_char_count do
+            <<byte::size(8)>> = @puid_rand_bytes.(1)
+            next_value({x * 256 + byte, m * 256})
+          end
+
+          defp next_value({x, m}) do
+            q = div(m, @puid_char_count)
+            t = q * @puid_char_count
+
+            if x < t do
+              {rem(x, @puid_char_count), {div(x, @puid_char_count), q}}
+            else
+              next_value({x - t, m - t})
+            end
+          end
+
+        _ ->
           # Always manage carried bits since bit slices can be rejected with variable shift
           def generate(),
             do: generate(@puid_len, Process.get(@puid_carried_bits, <<>>), <<>>)
@@ -123,8 +165,10 @@ defmodule Puid.Bits do
       end
 
       @spec reset() :: no_return()
-      def reset(),
-        do: Process.put(@puid_carried_bits, <<>>)
+      def reset() do
+        Process.put(@puid_carried_bits, <<>>)
+        Process.put(@puid_interval_state, {0, 1})
+      end
 
       defp generate_bits(char_count, carried_bits) do
         num_bits_needed = char_count * @puid_bits_per_char - bit_size(carried_bits)

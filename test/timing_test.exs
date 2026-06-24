@@ -30,6 +30,24 @@ defmodule Puid.Test.Timing do
     |> IO.inspect(label: label)
   end
 
+  defp format_ratio(ratio) do
+    :io_lib.format("~.1f", [ratio])
+    |> IO.iodata_to_binary()
+  end
+
+  defp report_puid_speed(puid_time, external_time, external_name, entropy_source) do
+    cond do
+      puid_time < external_time ->
+        ratio = format_ratio(external_time / puid_time)
+        IO.puts("    Puid is ~#{ratio}× faster than #{external_name} (#{entropy_source})")
+      puid_time > external_time ->
+        ratio = format_ratio(puid_time / external_time)
+        IO.puts("    Puid is ~#{ratio}× slower than #{external_name} (#{entropy_source})")
+      true ->
+        IO.puts("    Puid is ~1.0× as fast as #{external_name} (#{entropy_source})")
+    end
+  end
+
   def common_solution(len, chars) do
     chars_count = String.length(chars)
 
@@ -63,12 +81,14 @@ defmodule Puid.Test.Timing do
 
     :rand.seed(:exsss)
     IO.puts("")
-    time(common, "    Common Solution   (PRNG) ")
-    time(prng_puid, "    Puid              (PRNG) ")
+    common_prng_time = time(common, "    Common Solution   (PRNG) ")
+    puid_prng_time = time(prng_puid, "    Puid              (PRNG) ")
+    report_puid_speed(puid_prng_time, common_prng_time, "the common solution", "PRNG")
     IO.puts("")
     :crypto.rand_seed()
-    time(common, "    Common Solution (CSPRNG) ")
-    time(puid, "    Puid            (CSPRNG) ")
+    common_csprng_time = time(common, "    Common Solution (CSPRNG) ")
+    puid_csprng_time = time(puid, "    Puid            (CSPRNG) ")
+    report_puid_speed(puid_csprng_time, common_csprng_time, "the common solution", "CSPRNG")
   end
 
   @tag :timing
@@ -89,8 +109,9 @@ defmodule Puid.Test.Timing do
     puid = fn -> for(_ <- 1..trials, do: Safe64Puid128_ES.generate()) end
 
     IO.puts("")
-    time(entropy_string, "    Entropy String (CSPRNG) ")
-    time(puid, "    Puid           (CSPRNG) ")
+    entropy_string_time = time(entropy_string, "    Entropy String (CSPRNG) ")
+    puid_time = time(puid, "    Puid           (CSPRNG) ")
+    report_puid_speed(puid_time, entropy_string_time, "Entropy String", "CSPRNG")
 
     defmodule(DingoskyPuid64, do: use(Puid, bits: 64, chars: "dingosky"))
 
@@ -105,8 +126,9 @@ defmodule Puid.Test.Timing do
     puid = fn -> for(_ <- 1..trials, do: DingoskyPuid64.generate()) end
 
     IO.puts("")
-    time(entropy_string, "    Entropy String (CSPRNG) ")
-    time(puid, "    Puid           (CSPRNG) ")
+    entropy_string_time = time(entropy_string, "    Entropy String (CSPRNG) ")
+    puid_time = time(puid, "    Puid           (CSPRNG) ")
+    report_puid_speed(puid_time, entropy_string_time, "Entropy String", "CSPRNG")
   end
 
   def gen_reference() do
@@ -144,20 +166,23 @@ defmodule Puid.Test.Timing do
 
     IO.puts("")
     :rand.seed(:exsss)
-    time(gen_reference, "    gen_reference   (PRNG) ")
-    time(prng_puid, "    Puid            (PRNG) ")
+    gen_reference_prng_time = time(gen_reference, "    gen_reference   (PRNG) ")
+    puid_prng_time = time(prng_puid, "    Puid            (PRNG) ")
+    report_puid_speed(puid_prng_time, gen_reference_prng_time, "gen_reference", "PRNG")
     IO.puts("")
     :crypto.rand_seed()
-    time(gen_reference, "    gen_reference (CSPRNG) ")
-    time(puid, "    Puid          (CSPRNG) ")
+    gen_reference_csprng_time = time(gen_reference, "    gen_reference (CSPRNG) ")
+    puid_csprng_time = time(puid, "    Puid          (CSPRNG) ")
+    report_puid_speed(puid_csprng_time, gen_reference_csprng_time, "gen_reference", "CSPRNG")
 
     IO.puts("\n  Generate #{trials} random IDs with 31 bits of entropy using :safe32 characters")
     defmodule(Safe32Puid, do: use(Puid, bits: 31, chars: :safe32))
     safe32_puid = fn -> for(_ <- 1..trials, do: Safe32Puid.generate()) end
 
     IO.puts("")
-    time(gen_reference, "    gen_reference (CSPRNG) ")
-    time(safe32_puid, "    Puid safe32   (CSPRNG) ")
+    gen_reference_csprng_time = time(gen_reference, "    gen_reference (CSPRNG) ")
+    safe32_puid_time = time(safe32_puid, "    Puid safe32   (CSPRNG) ")
+    report_puid_speed(safe32_puid_time, gen_reference_csprng_time, "gen_reference", "CSPRNG")
   end
 
   @tag :timing
@@ -183,13 +208,15 @@ defmodule Puid.Test.Timing do
 
     IO.puts("")
     :rand.seed(:exsss)
-    time(misc_random, "    Misc.Random (PRNG) ")
-    time(prng_puid, "    Puid        (PRNG) ")
+    misc_random_prng_time = time(misc_random, "    Misc.Random (PRNG) ")
+    puid_prng_time = time(prng_puid, "    Puid        (PRNG) ")
+    report_puid_speed(puid_prng_time, misc_random_prng_time, "Misc.Random", "PRNG")
 
     IO.puts("")
     :crypto.rand_seed()
-    time(misc_random, "    Misc.Random (CSPRNG) ")
-    time(puid, "    Puid        (CSPRNG) ")
+    misc_random_csprng_time = time(misc_random, "    Misc.Random (CSPRNG) ")
+    puid_csprng_time = time(puid, "    Puid        (CSPRNG) ")
+    report_puid_speed(puid_csprng_time, misc_random_csprng_time, "Misc.Random", "CSPRNG")
   end
 
   @tag :timing
@@ -241,24 +268,28 @@ defmodule Puid.Test.Timing do
     end
 
     IO.puts("")
-    time(nanoid_safe64_126, "    Nanoid (CSPRNG) ")
-    time(puid_safe64_126, "    Puid   (CSPRNG) ")
+    nanoid_safe64_126_csprng_time = time(nanoid_safe64_126, "    Nanoid (CSPRNG) ")
+    puid_safe64_126_csprng_time = time(puid_safe64_126, "    Puid   (CSPRNG) ")
+    report_puid_speed(puid_safe64_126_csprng_time, nanoid_safe64_126_csprng_time, "Nanoid", "CSPRNG")
 
     IO.puts("")
-    time(nanoid_safe64_126_prng, "    Nanoid (PRNG) ")
-    time(puid_safe64_126_prng, "    Puid   (PRNG) ")
+    nanoid_safe64_126_prng_time = time(nanoid_safe64_126_prng, "    Nanoid (PRNG) ")
+    puid_safe64_126_prng_time = time(puid_safe64_126_prng, "    Puid   (PRNG) ")
+    report_puid_speed(puid_safe64_126_prng_time, nanoid_safe64_126_prng_time, "Nanoid", "PRNG")
 
     IO.puts(
       "\n  Generate #{trials} random IDs with 195 bits of entropy using #{:alphanum} characters"
     )
 
     IO.puts("")
-    time(nanoid_alphanum_195, "    Nanoid (CSPRNG) ")
-    time(puid_alphanum_195, "    Puid   (CSPRNG) ")
+    nanoid_alphanum_195_csprng_time = time(nanoid_alphanum_195, "    Nanoid (CSPRNG) ")
+    puid_alphanum_195_csprng_time = time(puid_alphanum_195, "    Puid   (CSPRNG) ")
+    report_puid_speed(puid_alphanum_195_csprng_time, nanoid_alphanum_195_csprng_time, "Nanoid", "CSPRNG")
 
     IO.puts("")
-    time(nanoid_alphanum_195_prng, "    Nanoid (PRNG) ")
-    time(puid_alphanum_195_prng, "    Puid   (PRNG) ")
+    nanoid_alphanum_195_prng_time = time(nanoid_alphanum_195_prng, "    Nanoid (PRNG) ")
+    puid_alphanum_195_prng_time = time(puid_alphanum_195_prng, "    Puid   (PRNG) ")
+    report_puid_speed(puid_alphanum_195_prng_time, nanoid_alphanum_195_prng_time, "Nanoid", "PRNG")
   end
 
   @tag :timing
@@ -282,13 +313,15 @@ defmodule Puid.Test.Timing do
 
     IO.puts("")
     :rand.seed(:exsss)
-    time(randomizer, "    Randomizer   (PRNG) ")
-    time(prng_puid, "    Puid         (PRNG) ")
+    randomizer_prng_time = time(randomizer, "    Randomizer   (PRNG) ")
+    puid_prng_time = time(prng_puid, "    Puid         (PRNG) ")
+    report_puid_speed(puid_prng_time, randomizer_prng_time, "Randomizer", "PRNG")
 
     IO.puts("")
     :crypto.rand_seed()
-    time(randomizer, "    Randomizer (CSPRNG) ")
-    time(puid, "    Puid       (CSPRNG) ")
+    randomizer_csprng_time = time(randomizer, "    Randomizer (CSPRNG) ")
+    puid_csprng_time = time(puid, "    Puid       (CSPRNG) ")
+    report_puid_speed(puid_csprng_time, randomizer_csprng_time, "Randomizer", "CSPRNG")
   end
 
   @tag :timing
@@ -307,8 +340,9 @@ defmodule Puid.Test.Timing do
     hex_puid = fn -> for(_ <- 1..trials, do: HexPuid128_SR.generate()) end
 
     IO.puts("")
-    time(hex_secure_random, "    SecureRandom (CSPRNG) ")
-    time(hex_puid, "    Puid         (CSPRNG) ")
+    hex_secure_random_time = time(hex_secure_random, "    SecureRandom (CSPRNG) ")
+    hex_puid_time = time(hex_puid, "    Puid         (CSPRNG) ")
+    report_puid_speed(hex_puid_time, hex_secure_random_time, "SecureRandom", "CSPRNG")
 
     IO.puts(
       "\n  Generate #{trials} random IDs with 128 bits of entropy using #{:safe64} characters"
@@ -318,8 +352,9 @@ defmodule Puid.Test.Timing do
     puid = fn -> for(_ <- 1..trials, do: Safe64Puid128_SR.generate()) end
 
     IO.puts("")
-    time(secure_random, "    SecureRandom (CSPRNG) ")
-    time(puid, "    Puid         (CSPRNG) ")
+    secure_random_time = time(secure_random, "    SecureRandom (CSPRNG) ")
+    puid_time = time(puid, "    Puid         (CSPRNG) ")
+    report_puid_speed(puid_time, secure_random_time, "SecureRandom", "CSPRNG")
   end
 
   @tag :timing
@@ -384,8 +419,9 @@ defmodule Puid.Test.Timing do
     puid = fn -> for(_ <- 1..trials, do: HexPuid.generate()) end
 
     IO.puts("")
-    time(uuid, "    UUID (122 bits) ")
-    time(puid, "    Puid (128 bits) ")
+    uuid_time = time(uuid, "    UUID (122 bits) ")
+    puid_time = time(puid, "    Puid (128 bits) ")
+    report_puid_speed(puid_time, uuid_time, "UUID", "CSPRNG")
   end
 
   @tag :timing

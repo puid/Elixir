@@ -37,7 +37,7 @@ iex> SessionId.generate()
 "8nGA2UaIfaawX-Og61go5A"
 ```
 
-The code above use default parameters, so `Puid` creates a module suitable for generating session IDs (ID entropy for the default module is 132 bits). Options allow easy and complete control of all three of the important facets of ID generation.
+The code above use default parameters, so `Puid` creates a module suitable for generating session IDs (ID entropy for the default module is 132 bits). Options allow easy and complete control of the important facets of ID generation.
 
 **Entropy Source**
 
@@ -91,6 +91,22 @@ iex> defmodule(Token, do: use(Puid, bits: 256, chars: :hex_upper))
 iex> Token.generate()
 "6E908C2A1AA7BF101E7041338D43B87266AFA73734F423B6C3C3A17599F40F2A"
 ```
+
+**Sampler**
+
+The `sampler` option controls how source entropy bits are transformed into character indices for non-power-of-2 character sets:
+
+- `:bit_shift` (default): current behavior, optimized for speed.
+- `:interval`: interval/range-style entropy recycling that usually improves ETE for non-power-of-2 character sets at some performance cost.
+
+```elixir
+iex> defmodule(BitShiftId, do: use(Puid, chars: :alphanum_lower, sampler: :bit_shift))
+iex> defmodule(IntervalId, do: use(Puid, chars: :alphanum_lower, sampler: :interval))
+iex> IntervalId.info().ete > BitShiftId.info().ete
+true
+```
+
+`info().ete` is sampler-aware and reflects the selected strategy.
 
 ### General Note
 
@@ -218,7 +234,7 @@ iex> SafeId.info()
 | :z_base32 | 32 | 5.0 | 1.0 | ybndrfg8ejkmcpqxot1uwisza345h769 |
 
 
-Note: The [Metrics](#metrics) section explains ERE and ETE.
+Note: The [Metrics](#metrics) section explains ERE and ETE. ETE values in the table above use the default sampler (`:bit_shift`).
 
 ##### Description of non-obvious character sets
 
@@ -266,9 +282,14 @@ Even for charsets with power of 2 character count, ETE is only the theoretical m
 
 For charsets with a character count that is not a power of 2, some bits will inevitably be discarded since the smallest number of bits required to select a character, **ceil(log2(count))**, will potentially result in an index beyond the character count. A first-cut, naïve approach to this reality is to simply throw away all the bits when the index is too large.
 
-However, a more sophisticated scheme of bit slicing can actually improve on the naïve approach. Puid extends the bit slicing scheme by adding a bit shifting scheme to the algorithm, wherein a _**minimum**_ number of bits in the "over the limit" bits are discarded by observing that some bit patterns of length less than **ceil(log2(count))** already guarantee the bits will be over the limit, and _**only**_ those bits need be discarded. 
+However, more sophisticated schemes can improve on the naïve approach. For non-power-of-2 character sets, Puid supports two sampler strategies:
 
-As example, using the **:alphanum_lower** charset, which has 36 characters, **ceil(log2(36)) = 6** bits are required to create a suitable index. However, if those bits start with the bit pattern **11xxxx**, the index would be out of bounds regardless of the **xxxx** bits, so Puid only tosses the first two bits and keeps the trailing four bits for use in the next index. (It is beyond scope to discuss here, but analysis shows this bit shifting scheme does not alter the random characteristics of generated IDs). So whereas the naïve approach would have an ETE of **0.485**, Puid achieves an ETE of **0.646**, a **33%** improvement. The `bench/alphanum_lower_ete.exs` script has detailed analysis.
+- `:bit_shift` (default): extends bit slicing with bit-shift rejection. A _**minimum**_ number of bits in an out-of-bounds candidate are discarded by observing that some prefixes shorter than **ceil(log2(count))** already guarantee overflow.
+- `:interval`: uses a stateful interval/range sampler that carries forward leftover bits from an out-of-range draw and reuses them on the next draw, instead of discarding those bits and restarting from a fresh fixed-width slice.
+
+As an example of `:bit_shift`, using the **:alphanum_lower** charset (36 chars), **ceil(log2(36)) = 6** bits are required to create an index. If those bits start with **11xxxx**, the index is out of bounds regardless of **xxxx**, so Puid discards only the first two bits and reuses the trailing four bits in the next draw. This improves ETE versus naïve full-slice rejection (naïve: **0.485**, `:bit_shift`: **0.646**, a **33%** improvement).
+
+For the same **:alphanum_lower** example, `:interval` improves ETE further to about **0.937** (compared with **0.646** for `:bit_shift` and **0.485** for naïve full-slice rejection), at some additional computational cost. The `bench/alphanum_lower_bit_shift_ete.exs` and `bench/alphanum_lower_interval_ete.exs` scripts provide parallel detailed walk-throughs, and `info().ete` reports the selected sampler’s efficiency.
 
 ## Comparisons
 

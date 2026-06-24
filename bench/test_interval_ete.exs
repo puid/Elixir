@@ -1,20 +1,20 @@
-# Tests the theoretical ETE calculation by running trials and measuring actual bit consumption
+# Tests the theoretical :interval ETE calculation by running trials and measuring actual bit consumption
 #
 # Usage:
-#   mix run bench/test_ete.exs [charset] [trials]
+#   mix run bench/test_interval_ete.exs [charset] [trials]
 #
 # Example:
-#   mix run bench/test_ete.exs decimal 1000000
-#   mix run bench/test_ete.exs alphanum_lower
+#   mix run bench/test_interval_ete.exs decimal 1000000
+#   mix run bench/test_interval_ete.exs alphanum_lower
 
-defmodule ETETest do
+defmodule ETETestInterval do
   @default_trials 1_000_000
   @bits 64
 
   def run(args) do
     {charset, trials} = parse_args(args)
 
-    IO.puts("\nEmpirical ETE Test")
+    IO.puts("\nEmpirical ETE Test (:interval)")
     IO.puts("=" |> String.duplicate(60))
     IO.puts("Charset: :#{charset}")
     IO.puts("Trials: #{trials}")
@@ -25,7 +25,6 @@ defmodule ETETest do
     charset_size = length(chars)
     theoretical_bits = :math.log2(charset_size)
     bits_per_char = Puid.Util.log_ceil(charset_size)
-    bit_shifts = Puid.Bits.bit_shifts(charset_size)
 
     IO.puts("Charset size: #{charset_size}")
     IO.puts("Theoretical bits per char: #{Float.round(theoretical_bits, 2)}")
@@ -33,23 +32,32 @@ defmodule ETETest do
     IO.puts("Power of 2: #{Puid.Util.pow2?(charset_size)}")
     IO.puts("")
 
-    metrics = Puid.Chars.metrics(charset)
-    puid_ete = metrics.ete
+    interval_metrics = Puid.Chars.metrics(charset, :interval)
+    bit_shift_metrics = Puid.Chars.metrics(charset, :bit_shift)
+
+    interval_ete = interval_metrics.ete
+    bit_shift_ete = bit_shift_metrics.ete
     naive_ete = calculate_naive_ete(charset_size, theoretical_bits, bits_per_char)
 
-    IO.puts("Puid ETE: #{Float.round(puid_ete, 4)}")
+    IO.puts("interval ETE: #{Float.round(interval_ete, 4)}")
+    IO.puts("bit_shift ETE: #{Float.round(bit_shift_ete, 4)}")
     IO.puts("Naive ETE: #{Float.round(naive_ete, 4)}")
 
-    if puid_ete != naive_ete do
-      improvement = (puid_ete / naive_ete - 1) * 100
-      IO.puts("Puid improvement: #{Float.round(improvement, 1)}%")
+    if interval_ete != bit_shift_ete do
+      interval_gain = (interval_ete / bit_shift_ete - 1) * 100
+      IO.puts("interval gain vs bit_shift: #{Float.round(interval_gain, 1)}%")
+    end
+
+    if interval_ete != naive_ete do
+      interval_improvement = (interval_ete / naive_ete - 1) * 100
+      IO.puts("interval improvement vs naive: #{Float.round(interval_improvement, 1)}%")
     end
 
     IO.puts("")
 
     {:ok, counter_agent} = Agent.start_link(fn -> 0 end)
 
-    rand_module_name = String.to_atom("ETETestRand_#{charset}")
+    rand_module_name = String.to_atom("ETETestIntervalRand_#{charset}")
 
     if Code.ensure_loaded?(rand_module_name) do
       :code.purge(rand_module_name)
@@ -67,7 +75,7 @@ defmodule ETETest do
       Macro.Env.location(__ENV__)
     )
 
-    module_name = String.to_atom("ETETest_#{charset}")
+    module_name = String.to_atom("ETETestInterval_#{charset}")
 
     if Code.ensure_loaded?(module_name) do
       :code.purge(module_name)
@@ -80,6 +88,7 @@ defmodule ETETest do
         use Puid,
           bits: unquote(@bits),
           chars: unquote(charset),
+          sampler: :interval,
           rand_bytes: &unquote(rand_module_name).rand_bytes/1
       end,
       Macro.Env.location(__ENV__)
@@ -117,26 +126,28 @@ defmodule ETETest do
     IO.puts("Total IDs generated: #{trials}")
     IO.puts("Total bits consumed: #{total_bits_consumed}")
     IO.puts("Average bits per ID: #{Float.round(avg_bits_per_id, 2)}")
-    IO.puts("Expected bits per ID (Puid): #{Float.round(total_id_bits / puid_ete, 2)}")
-    IO.puts("Expected bits per ID (Naive): #{Float.round(total_id_bits / naive_ete, 2)}")
+    IO.puts("Expected bits per ID (interval): #{Float.round(total_id_bits / interval_ete, 2)}")
+    IO.puts("Expected bits per ID (bit_shift): #{Float.round(total_id_bits / bit_shift_ete, 2)}")
+    IO.puts("Expected bits per ID (naive): #{Float.round(total_id_bits / naive_ete, 2)}")
     IO.puts("")
     IO.puts("Empirical ETE: #{Float.round(empirical_ete, 4)}")
-    IO.puts("Puid ETE: #{Float.round(puid_ete, 4)}")
+    IO.puts("interval ETE: #{Float.round(interval_ete, 4)}")
+    IO.puts("bit_shift ETE: #{Float.round(bit_shift_ete, 4)}")
     IO.puts("Naive ETE: #{Float.round(naive_ete, 4)}")
-    IO.puts("Difference from Puid: #{Float.round((empirical_ete - puid_ete) * 100, 2)}%")
+    IO.puts("Difference from interval: #{Float.round((empirical_ete - interval_ete) * 100, 2)}%")
     IO.puts("")
 
-    if abs(empirical_ete - puid_ete) < 0.01 do
-      IO.puts("✓ Empirical and calculated Puid ETE match closely!")
+    if abs(empirical_ete - interval_ete) < 0.01 do
+      IO.puts("✓ Empirical and calculated interval ETE match closely!")
     else
       IO.puts("⚠ Significant difference between empirical and calculated ETE")
       IO.puts("  This might indicate an issue with the ETE calculation")
     end
 
-    if puid_ete != naive_ete do
+    if interval_ete != naive_ete do
       actual_improvement = (empirical_ete / naive_ete - 1) * 100
       IO.puts("")
-      IO.puts("Puid vs Naive Comparison:")
+      IO.puts("interval vs Naive Comparison:")
       IO.puts("-" |> String.duplicate(40))
       IO.puts("Empirical improvement over naive: #{Float.round(actual_improvement, 1)}%")
 
@@ -144,6 +155,19 @@ defmodule ETETest do
       extra_bits = naive_bits_needed - total_bits_consumed
       IO.puts("Extra bits naive would consume: #{Float.round(extra_bits, 0)}")
       IO.puts("That's #{Float.round(extra_bits / 8, 0)} extra bytes for #{trials} IDs")
+    end
+
+    if interval_ete != bit_shift_ete do
+      actual_gain = (empirical_ete / bit_shift_ete - 1) * 100
+      IO.puts("")
+      IO.puts("interval vs bit_shift Comparison:")
+      IO.puts("-" |> String.duplicate(40))
+      IO.puts("Empirical gain over bit_shift: #{Float.round(actual_gain, 1)}%")
+
+      bit_shift_bits_needed = total_id_bits / bit_shift_ete * trials
+      saved_bits = bit_shift_bits_needed - total_bits_consumed
+      IO.puts("Bits saved vs bit_shift: #{Float.round(saved_bits, 0)}")
+      IO.puts("That's #{Float.round(saved_bits / 8, 0)} bytes saved for #{trials} IDs")
     end
 
     if not Puid.Util.pow2?(charset_size) do
@@ -170,7 +194,7 @@ defmodule ETETest do
   end
 
   defp parse_args(_) do
-    IO.puts("Usage: mix run bench/test_ete.exs [charset] [trials]")
+    IO.puts("Usage: mix run bench/test_interval_ete.exs [charset] [trials]")
     System.halt(1)
   end
 
@@ -187,4 +211,4 @@ defmodule ETETest do
   end
 end
 
-ETETest.run(System.argv())
+ETETestInterval.run(System.argv())

@@ -244,6 +244,22 @@ defmodule Puid do
       if :erlang.fun_info(rand_bytes)[:arity] !== 1,
         do: raise(Puid.Error, "rand_bytes not arity 1")
 
+      sampler = unquote(opts)[:sampler] || :bit_shift
+
+      case sampler do
+        :bit_shift ->
+          :ok
+
+        :interval ->
+          :ok
+
+        _ ->
+          raise(
+            Puid.Error,
+            "Invalid sampler. Must be :bit_shift or :interval"
+          )
+      end
+
       chars_count = length(puid_charlist)
       entropy_bits_per_char = :math.log2(chars_count)
       puid_len = (entropy_bits / entropy_bits_per_char) |> :math.ceil() |> round()
@@ -255,7 +271,7 @@ defmodule Puid do
           puid_charlist
         end
 
-      metrics = Puid.Chars.metrics(metrics_charset)
+      metrics = Puid.Chars.metrics(metrics_charset, sampler)
       ere = metrics.ere |> Float.round(2)
       ete = metrics.ete |> Float.round(2)
 
@@ -270,7 +286,8 @@ defmodule Puid do
           use(Puid.Bits,
             chars_count: chars_count,
             puid_len: puid_len,
-            rand_bytes: rand_bytes
+            rand_bytes: rand_bytes,
+            sampler: sampler
           )
 
       if chars_encoding == :ascii do

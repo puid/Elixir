@@ -2,16 +2,15 @@
 # by analyzing the actual bit slicing algorithm
 #
 # Usage:
-#   MIX_ENV=test mix run bench/puid_ete.exs
+#   MIX_ENV=test mix run bench/puid_bit_shift_ete.exs
 
 Code.require_file("benchmark_helper.exs", __DIR__)
 import Bitwise
 
-defmodule Bench.PuidETE do
+defmodule Bench.PuidBitShiftETE do
   @moduledoc """
   Computes Entropy Transform Efficiency (ETE) for all Puid charsets.
-
-  Based on Puid's actual bit slicing algorithm from lib/puid/bits.ex:
+  Based on Puid's bit_shift sampler behavior:
   - For power-of-2 charsets: ETE = 1.0 (no rejection)
   - For non-power-of-2: Computes probability based on rejection zones
   """
@@ -57,10 +56,10 @@ defmodule Bench.PuidETE do
   ]
 
   def run do
-    IO.puts("\n# Puid Entropy Transform Efficiency (ETE) Analysis")
+    IO.puts("\n# Puid Entropy Transform Efficiency (ETE) Analysis - :bit_shift")
     IO.puts("")
     IO.puts("## Overview")
-    IO.puts("ETE calculation based on Puid's bit slicing algorithm.")
+    IO.puts("ETE calculation based on Puid's :bit_shift sampler.")
     IO.puts("This computes the probability of bit acceptance/rejection.")
     IO.puts("")
 
@@ -90,10 +89,11 @@ defmodule Bench.PuidETE do
   defp pow2(n), do: 1 <<< n
 
   defp analyze_charset(charset_atom) do
-    module_name = Module.concat([PuidETE, charset_atom |> to_string() |> Macro.camelize()])
+    module_name =
+      Module.concat([PuidBitShiftETE, charset_atom |> to_string() |> Macro.camelize()])
 
     defmodule module_name do
-      use Puid, bits: 128, chars: charset_atom
+      use Puid, bits: 128, chars: charset_atom, sampler: :bit_shift
     end
 
     info = apply(module_name, :info, [])
@@ -103,7 +103,7 @@ defmodule Bench.PuidETE do
 
     is_power_of_2 = Puid.Util.pow2?(charset_size)
 
-    ete_metric = Puid.Chars.metrics(charset_atom)
+    ete_metric = Puid.Chars.metrics(charset_atom, :bit_shift)
 
     {ete, bit_shifts, avg_bits} =
       {ete_metric.ete, ete_metric.bit_shifts, ete_metric.avg_bits}
@@ -227,7 +227,7 @@ defmodule Bench.PuidETE do
       IO.puts("")
 
       IO.puts("### Key Insights")
-      IO.puts("- The variable bit consumption strategy minimizes waste")
+      IO.puts("- The :bit_shift variable bit consumption strategy minimizes waste")
       IO.puts("- Charsets closer to powers of 2 have better efficiency")
       IO.puts("- Odd-sized charsets can have different shift patterns than even ones")
       IO.puts("- The algorithm uses early termination for smaller rejection zones")
@@ -251,4 +251,4 @@ defmodule Bench.PuidETE do
   end
 end
 
-Bench.PuidETE.run()
+Bench.PuidBitShiftETE.run()

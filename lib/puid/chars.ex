@@ -270,6 +270,11 @@ defmodule Puid.Chars do
   """
   @type puid_encoding() :: :ascii | :utf8
 
+  @typedoc """
+  Entropy sampler strategy used during ID generation.
+  """
+  @type sampler() :: :bit_shift | :interval
+
   @doc "List of predefined charsets discovered from compiled module."
   @spec predefined() :: [atom()]
   def predefined do
@@ -296,6 +301,259 @@ defmodule Puid.Chars do
       rescue
         _ -> false
       end
+    end)
+  end
+
+  defp avg_bits_bit_shift(charset_size, bits_per_char, bit_shifts) do
+    case Puid.Util.pow2?(charset_size) do
+      true ->
+        bits_per_char * 1.0
+
+      false ->
+        total_values = Puid.Util.pow2(bits_per_char)
+
+        prob_accept = charset_size / total_values
+        prob_reject = 1 - prob_accept
+
+        reject_count = total_values - charset_size
+        reject_bits = bits_consumed_on_reject(charset_size, total_values, bit_shifts)
+
+        avg_bits_on_reject = reject_bits / reject_count
+        bits_per_char + prob_reject / prob_accept * avg_bits_on_reject
+    end
+  end
+
+  defp avg_bits_interval(charset_size, bits_per_char) do
+    case Puid.Util.pow2?(charset_size) do
+      true ->
+        bits_per_char * 1.0
+
+      false ->
+        states = Enum.to_list(1..255)
+        small_bits = interval_small_bits(charset_size)
+        small_transitions = interval_small_transitions(charset_size)
+
+        bits_by_state = interval_bits_by_state(charset_size, states, small_bits)
+
+        transitions =
+          states
+          |> Enum.reduce(%{}, fn state, acc ->
+            Map.put(
+              acc,
+              state,
+              interval_transition_for_state(charset_size, state, small_transitions)
+            )
+          end)
+
+        stationary = interval_stationary_distribution(states, transitions)
+
+        stationary
+        |> Enum.reduce(0.0, fn {state, prob}, sum ->
+          sum + prob * Map.fetch!(bits_by_state, state)
+        end)
+    end
+  end
+
+  defp interval_bits_by_state(charset_size, states, small_bits) do
+    states
+    |> Enum.reduce(%{}, fn state, acc ->
+      bits =
+        cond do
+          state < charset_size ->
+            Map.fetch!(small_bits, state)
+
+          true ->
+            remainder = rem(state, charset_size)
+
+            case remainder do
+              0 -> 0.0
+              _ -> remainder / state * Map.fetch!(small_bits, remainder)
+            end
+        end
+
+      Map.put(acc, state, bits)
+    end)
+  end
+
+  defp interval_small_bits(charset_size) do
+    small_states = Enum.to_list(1..(charset_size - 1))
+
+    initial =
+      small_states
+      |> Enum.reduce(%{}, fn state, acc ->
+        Map.put(acc, state, 8.0)
+      end)
+
+    update = fn current ->
+      small_states
+      |> Enum.reduce(%{}, fn state, acc ->
+        remainder = rem(256 * state, charset_size)
+        reject_prob = remainder / (256 * state)
+        tail_bits = Map.get(current, remainder, 0.0)
+        Map.put(acc, state, 8.0 + reject_prob * tail_bits)
+      end)
+    end
+
+    delta = fn current, next ->
+      small_states
+      |> Enum.reduce(0.0, fn state, max_delta ->
+        abs(Map.fetch!(current, state) - Map.fetch!(next, state))
+        |> max(max_delta)
+      end)
+    end
+
+    iterate_until_converged(initial, update, delta, 1.0e-12, 10_000, "interval bits")
+  end
+
+  defp interval_small_transitions(charset_size) do
+    small_states = Enum.to_list(1..(charset_size - 1))
+
+    initial =
+      small_states
+      |> Enum.reduce(%{}, fn state, acc ->
+        q = div(256 * state, charset_size)
+        Map.put(acc, state, %{q => 1.0})
+      end)
+
+    update = fn current ->
+      small_states
+      |> Enum.reduce(%{}, fn state, acc ->
+        m = 256 * state
+        q = div(m, charset_size)
+        remainder = rem(m, charset_size)
+        reject_prob = remainder / m
+
+        base = %{q => 1.0 - reject_prob}
+
+        dist =
+          case remainder do
+            0 ->
+              base
+
+            _ ->
+              base
+              |> add_distribution(scale_distribution(Map.fetch!(current, remainder), reject_prob))
+          end
+
+        Map.put(acc, state, dist)
+      end)
+    end
+
+    delta = fn current, next ->
+      small_states
+      |> Enum.reduce(0.0, fn state, max_delta ->
+        distribution_delta(Map.fetch!(current, state), Map.fetch!(next, state))
+        |> max(max_delta)
+      end)
+    end
+
+    iterate_until_converged(
+      initial,
+      update,
+      delta,
+      1.0e-12,
+      10_000,
+      "interval transitions"
+    )
+  end
+
+  defp interval_transition_for_state(charset_size, state, small_transitions) do
+    cond do
+      state < charset_size ->
+        Map.fetch!(small_transitions, state)
+
+      true ->
+        q = div(state, charset_size)
+        remainder = rem(state, charset_size)
+        reject_prob = remainder / state
+
+        case remainder do
+          0 ->
+            %{q => 1.0}
+
+          _ ->
+            %{q => 1.0 - reject_prob}
+            |> add_distribution(
+              scale_distribution(Map.fetch!(small_transitions, remainder), reject_prob)
+            )
+        end
+    end
+  end
+
+  defp interval_stationary_distribution(states, transitions) do
+    initial = %{1 => 1.0}
+
+    update = fn current ->
+      next =
+        current
+        |> Enum.reduce(%{}, fn {state, state_prob}, acc ->
+          transitions
+          |> Map.fetch!(state)
+          |> Enum.reduce(acc, fn {next_state, transition_prob}, acc2 ->
+            prob = state_prob * transition_prob
+            Map.update(acc2, next_state, prob, &(&1 + prob))
+          end)
+        end)
+
+      total_prob = next |> Map.values() |> Enum.sum()
+
+      if total_prob == 0.0 do
+        next
+      else
+        next
+        |> Enum.reduce(%{}, fn {state, prob}, acc ->
+          Map.put(acc, state, prob / total_prob)
+        end)
+      end
+    end
+
+    delta = fn current, next ->
+      states
+      |> Enum.reduce(0.0, fn state, max_delta ->
+        abs(Map.get(current, state, 0.0) - Map.get(next, state, 0.0))
+        |> max(max_delta)
+      end)
+    end
+
+    iterate_until_converged(initial, update, delta, 1.0e-12, 25_000, "stationary distribution")
+  end
+
+  defp iterate_until_converged(_current, _update, _delta, _epsilon, 0, label) do
+    raise(Puid.Error, "#{label} failed to converge")
+  end
+
+  defp iterate_until_converged(current, update, delta, epsilon, max_iter, label) do
+    next = update.(current)
+
+    case delta.(current, next) < epsilon do
+      true ->
+        next
+
+      false ->
+        iterate_until_converged(next, update, delta, epsilon, max_iter - 1, label)
+    end
+  end
+
+  defp add_distribution(a, b) do
+    b
+    |> Enum.reduce(a, fn {state, prob}, acc ->
+      Map.update(acc, state, prob, &(&1 + prob))
+    end)
+  end
+
+  defp scale_distribution(distribution, factor) do
+    distribution
+    |> Enum.reduce(%{}, fn {state, prob}, acc ->
+      Map.put(acc, state, prob * factor)
+    end)
+  end
+
+  defp distribution_delta(a, b) do
+    (Map.keys(a) ++ Map.keys(b))
+    |> Enum.uniq()
+    |> Enum.reduce(0.0, fn state, max_delta ->
+      abs(Map.get(a, state, 0.0) - Map.get(b, state, 0.0))
+      |> max(max_delta)
     end)
   end
 
@@ -478,7 +736,15 @@ defmodule Puid.Chars do
           ere: float(),
           ete: float()
         }
-  def metrics(chars) do
+  def metrics(chars), do: metrics(chars, :bit_shift)
+
+  @spec metrics(puid_chars(), sampler()) :: %{
+          avg_bits: float(),
+          bit_shifts: [{non_neg_integer(), pos_integer()}, ...],
+          ere: float(),
+          ete: float()
+        }
+  def metrics(chars, sampler) do
     charlist = charlist!(chars)
     charset_size = length(charlist)
 
@@ -496,34 +762,26 @@ defmodule Puid.Chars do
 
     ere = theoretical_bits / avg_rep_bits_per_char
 
-    if Puid.Util.pow2?(charset_size) do
-      %{
-        avg_bits: bits_per_char * 1.0,
-        bit_shifts: bit_shifts,
-        ere: ere,
-        ete: 1.0
-      }
-    else
-      total_values = Puid.Util.pow2(bits_per_char)
+    avg_bits =
+      case sampler do
+        :bit_shift ->
+          avg_bits_bit_shift(charset_size, bits_per_char, bit_shifts)
 
-      prob_accept = charset_size / total_values
-      prob_reject = 1 - prob_accept
+        :interval ->
+          avg_bits_interval(charset_size, bits_per_char)
 
-      reject_count = total_values - charset_size
-      reject_bits = bits_consumed_on_reject(charset_size, total_values, bit_shifts)
+        _ ->
+          raise(Puid.Error, "Invalid sampler. Must be :bit_shift or :interval")
+      end
 
-      avg_bits_on_reject = reject_bits / reject_count
-      avg_bits = bits_per_char + prob_reject / prob_accept * avg_bits_on_reject
+    ete = theoretical_bits / avg_bits
 
-      ete = theoretical_bits / avg_bits
-
-      %{
-        avg_bits: avg_bits,
-        bit_shifts: bit_shifts,
-        ere: ere,
-        ete: ete
-      }
-    end
+    %{
+      avg_bits: avg_bits,
+      bit_shifts: bit_shifts,
+      ere: ere,
+      ete: ete
+    }
   end
 
   @doc false

@@ -231,5 +231,26 @@ defmodule Puid.Test.Chars do
       alphanum_lower_metric = Chars.metrics(:alphanum_lower)
       assert abs(metric.ete - alphanum_lower_metric.ete) < 0.0001
     end
+
+    test "interval sampler improves ETE for non-power-of-2 charsets" do
+      bit_shift = Chars.metrics(:alphanum_lower, :bit_shift)
+      interval = Chars.metrics(:alphanum_lower, :interval)
+
+      assert interval.ete > bit_shift.ete
+      assert interval.avg_bits < bit_shift.avg_bits
+    end
+
+    test "interval sampler keeps perfect ETE for power-of-2 charsets" do
+      bit_shift = Chars.metrics(:safe64, :bit_shift)
+      interval = Chars.metrics(:safe64, :interval)
+
+      assert bit_shift.ete == 1.0
+      assert interval.ete == 1.0
+      assert interval.avg_bits == bit_shift.avg_bits
+    end
+
+    test "metrics/2 invalid sampler" do
+      assert_raise Puid.Error, fn -> Chars.metrics(:safe64, :unknown) end
+    end
   end
 end

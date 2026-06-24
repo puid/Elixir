@@ -1,4 +1,4 @@
-# Detailed ETE Analysis for :alphanum_lower charset
+# Detailed ETE Analysis for :alphanum_lower charset using :bit_shift sampler
 # Shows exactly how the bit-slicing algorithm works for 36 characters
 
 charset = :alphanum_lower
@@ -9,7 +9,7 @@ bits_per_char = Puid.Util.log_ceil(charset_size)
 bit_shifts = Puid.Bits.bit_shifts(charset_size)
 
 IO.puts("\n" <> String.duplicate("=", 70))
-IO.puts("DETAILED ETE ANALYSIS: :alphanum_lower")
+IO.puts("DETAILED ETE ANALYSIS (:bit_shift): :alphanum_lower")
 IO.puts(String.duplicate("=", 70))
 
 IO.puts("\n## Charset Properties")

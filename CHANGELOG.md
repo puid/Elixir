@@ -1,5 +1,18 @@
 # Changelog
 
+## v2.8.0 (2026-06-24)
+
+### Add
+- Add `sampler` option to `use(Puid, ...)` with `:bit_shift` (default) and `:interval`
+- Add interval/range entropy recycling sampler for non-power-of-2 charsets in `Puid.Bits`
+- Add sampler-aware metrics API via `Puid.Chars.metrics/2`
+- Add sampler-specific ETE reporting in `Puid` module info
+
+### Changes
+- Keep existing default generation behavior (`:bit_shift`) for backward compatibility
+- Update README and benchmark scripts for sampler strategy comparison and ETE analysis
+- Expand test coverage for sampler validation, efficiency, timing, and histogram behavior
+
 ## v2.7.1 (2026-01-13)
 
 ### Fix

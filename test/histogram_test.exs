@@ -21,6 +21,7 @@
 # SOFTWARE.
 defmodule Puid.Test.Histogram do
   use ExUnit.Case
+  @samplers [:bit_shift, :interval]
 
   @tag :histogram
   @tag :hex
@@ -61,13 +62,19 @@ defmodule Puid.Test.Histogram do
     do: test_chars("Unicode characters", "HistDingoSkyUnicodeId", "dîñgø$kyDÎÑGØßK¥")
 
   defp test_chars(descr, id_name, chars) do
+    Enum.each(@samplers, fn sampler ->
+      test_chars(descr, id_name, chars, sampler)
+    end)
+  end
+
+  defp test_chars(descr, id_name, chars, sampler) do
     trials = 500_000
     risk = 1.0e12
-    mod_name = String.to_atom(id_name)
+    mod_name = String.to_atom("#{id_name}_#{sampler}")
 
-    IO.write("#{descr} ... ")
+    IO.write("#{descr} (#{sampler}) ... ")
 
-    defmodule(mod_name, do: use(Puid, chars: chars, total: trials, risk: risk))
+    defmodule(mod_name, do: use(Puid, chars: chars, total: trials, risk: risk, sampler: sampler))
 
     {passed, expect, histogram} = chi_square_test(mod_name, trials)
 
