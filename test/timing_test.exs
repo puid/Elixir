@@ -40,9 +40,11 @@ defmodule Puid.Test.Timing do
       puid_time < external_time ->
         ratio = format_ratio(external_time / puid_time)
         IO.puts("    Puid is ~#{ratio}× faster than #{external_name} (#{entropy_source})")
+
       puid_time > external_time ->
         ratio = format_ratio(puid_time / external_time)
         IO.puts("    Puid is ~#{ratio}× slower than #{external_name} (#{entropy_source})")
+
       true ->
         IO.puts("    Puid is ~1.0× as fast as #{external_name} (#{entropy_source})")
     end
@@ -270,7 +272,13 @@ defmodule Puid.Test.Timing do
     IO.puts("")
     nanoid_safe64_126_csprng_time = time(nanoid_safe64_126, "    Nanoid (CSPRNG) ")
     puid_safe64_126_csprng_time = time(puid_safe64_126, "    Puid   (CSPRNG) ")
-    report_puid_speed(puid_safe64_126_csprng_time, nanoid_safe64_126_csprng_time, "Nanoid", "CSPRNG")
+
+    report_puid_speed(
+      puid_safe64_126_csprng_time,
+      nanoid_safe64_126_csprng_time,
+      "Nanoid",
+      "CSPRNG"
+    )
 
     IO.puts("")
     nanoid_safe64_126_prng_time = time(nanoid_safe64_126_prng, "    Nanoid (PRNG) ")
@@ -284,12 +292,24 @@ defmodule Puid.Test.Timing do
     IO.puts("")
     nanoid_alphanum_195_csprng_time = time(nanoid_alphanum_195, "    Nanoid (CSPRNG) ")
     puid_alphanum_195_csprng_time = time(puid_alphanum_195, "    Puid   (CSPRNG) ")
-    report_puid_speed(puid_alphanum_195_csprng_time, nanoid_alphanum_195_csprng_time, "Nanoid", "CSPRNG")
+
+    report_puid_speed(
+      puid_alphanum_195_csprng_time,
+      nanoid_alphanum_195_csprng_time,
+      "Nanoid",
+      "CSPRNG"
+    )
 
     IO.puts("")
     nanoid_alphanum_195_prng_time = time(nanoid_alphanum_195_prng, "    Nanoid (PRNG) ")
     puid_alphanum_195_prng_time = time(puid_alphanum_195_prng, "    Puid   (PRNG) ")
-    report_puid_speed(puid_alphanum_195_prng_time, nanoid_alphanum_195_prng_time, "Nanoid", "PRNG")
+
+    report_puid_speed(
+      puid_alphanum_195_prng_time,
+      nanoid_alphanum_195_prng_time,
+      "Nanoid",
+      "PRNG"
+    )
   end
 
   @tag :timing

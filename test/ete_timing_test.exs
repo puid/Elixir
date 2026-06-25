@@ -154,10 +154,13 @@ defmodule Puid.Test.ETETiming do
 
           IO.puts("")
           :crypto.rand_seed()
+
           bit_shift_csprng_time =
             time(generator(bit_shift_csprng, trials), "    bit_shift (CSPRNG) ")
 
-          interval_csprng_time = time(generator(interval_csprng, trials), "    interval  (CSPRNG) ")
+          interval_csprng_time =
+            time(generator(interval_csprng, trials), "    interval  (CSPRNG) ")
+
           report_interval_speed(interval_csprng_time, bit_shift_csprng_time)
 
           remove_modules([bit_shift_prng, interval_prng, bit_shift_csprng, interval_csprng])

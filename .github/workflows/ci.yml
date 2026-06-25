@@ -53,18 +53,18 @@ jobs:
           - elixir: '1.20'
             otp: '29'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: erlef/setup-beam@v1
         with:
           elixir-version: ${{ matrix.elixir }}
           otp-version: ${{ matrix.otp }}
       - name: Restore deps cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: deps
           key: deps-${{ runner.os }}-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('**/mix.lock') }}
       - name: Restore _build cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: _build
           key: build-${{ runner.os }}-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('**/mix.lock') }}
@@ -85,18 +85,18 @@ jobs:
     name: dialyzer (latest)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: erlef/setup-beam@v1
         with:
           elixir-version: '1.20'
           otp-version: '29'
       - name: Restore deps cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: deps
           key: deps-${{ runner.os }}-latest-${{ hashFiles('**/mix.lock') }}
       - name: Restore _build cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: _build
           key: build-${{ runner.os }}-latest-${{ hashFiles('**/mix.lock') }}
